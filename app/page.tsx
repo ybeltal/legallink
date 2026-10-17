@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { 
   Scale, Briefcase, Heart, Home, Lightbulb, Users, Shield, Globe, Building, 
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
-  X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck
+  X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
+  Calendar, Check, AlertCircle
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -32,10 +33,11 @@ export default function LegalLinkHome() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   // -------------------------------------------------------------
-  // USER DASHBOARD (MY CONSULTATIONS)
+  // USER DASHBOARD (MY CONSULTATIONS) & DETAILS MODAL
   // -------------------------------------------------------------
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
   const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
+  const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<any | null>(null);
 
   const fetchMyConsultations = async () => {
     setLoadingMyConsultations(true);
@@ -301,7 +303,7 @@ export default function LegalLinkHome() {
               </div>
             </div>
 
-            {/* Desktop Navigation Links (Public / User Facing) */}
+            {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center gap-1">
               {[
                 { id: 'match', label: lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer' },
@@ -615,6 +617,8 @@ export default function LegalLinkHome() {
                           ? 'bg-blue-50 text-blue-700 border-blue-200' 
                           : c.status === 'completed'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : c.status === 'cancelled'
+                          ? 'bg-red-50 text-red-700 border-red-200'
                           : 'bg-amber-50 text-amber-700 border-amber-200'
                       }`}>
                         {c.status || 'pending'}
@@ -630,8 +634,8 @@ export default function LegalLinkHome() {
 
                   <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
                     <button
-                      onClick={() => alert(`Details for consultation ${c.id}: Current advocate matching in progress.`)}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#0A1128] text-xs font-bold rounded-xl"
+                      onClick={() => setSelectedConsultationDetails(c)}
+                      className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
                     >
                       View Details
                     </button>
@@ -643,10 +647,148 @@ export default function LegalLinkHome() {
         </main>
       )}
 
+      {/* Interactive Consultation Details Modal */}
+      {selectedConsultationDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-start pb-5 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
+                    {selectedConsultationDetails.practice_area}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    selectedConsultationDetails.status === 'approved' 
+                      ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                      : selectedConsultationDetails.status === 'completed'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : selectedConsultationDetails.status === 'cancelled'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                  }`}>
+                    {selectedConsultationDetails.status || 'pending'}
+                  </span>
+                </div>
+                <h3 className="font-black text-xl text-[#0A1128] mt-1">Consultation Overview</h3>
+                <span className="text-[11px] font-mono text-slate-400">
+                  Case ID: #{selectedConsultationDetails.id.slice(0, 8).toUpperCase()}
+                </span>
+              </div>
+              <button 
+                onClick={() => setSelectedConsultationDetails(null)} 
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Case Details Grid */}
+            <div className="py-6 space-y-6">
+              
+              {/* Progress Tracker */}
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase block mb-3">Case Progression</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>1. Submitted</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-600 block mt-0.5">Database verified</span>
+                  </div>
+
+                  <div className={`p-3 rounded-xl border ${
+                    selectedConsultationDetails.status === 'approved' || selectedConsultationDetails.status === 'completed'
+                      ? 'bg-blue-50 border-blue-200 text-blue-800'
+                      : 'bg-slate-50 border-slate-200 text-slate-500'
+                  }`}>
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <Clock className="w-4 h-4" />
+                      <span>2. Review</span>
+                    </div>
+                    <span className="text-[10px] block mt-0.5">
+                      {selectedConsultationDetails.status === 'approved' ? 'Assigned' : 'Under Review'}
+                    </span>
+                  </div>
+
+                  <div className={`p-3 rounded-xl border ${
+                    selectedConsultationDetails.status === 'completed'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-slate-50 border-slate-200 text-slate-400'
+                  }`}>
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>3. Resolved</span>
+                    </div>
+                    <span className="text-[10px] block mt-0.5">Final decree</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Case Specifications */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Client Name</span>
+                  <span className="font-bold text-[#0A1128] text-sm">
+                    {selectedConsultationDetails.client_name || 'Anonymous Client'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Jurisdiction / Location</span>
+                  <span className="font-bold text-[#0A1128] text-sm flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                    {selectedConsultationDetails.location}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Budget Range</span>
+                  <span className="font-bold text-[#0A1128] text-sm">
+                    {selectedConsultationDetails.budget_range || 'ETB 1,000–2,000'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Submission Date</span>
+                  <span className="font-bold text-[#0A1128] text-sm">
+                    {selectedConsultationDetails.created_at ? new Date(selectedConsultationDetails.created_at).toLocaleString() : 'Recent'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Case Description */}
+              <div>
+                <span className="text-xs font-bold text-slate-700 uppercase block mb-2">Situation Description</span>
+                <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedConsultationDetails.situation_description}
+                </div>
+              </div>
+
+              {/* Advocate Matching Notice */}
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-amber-900 leading-relaxed">
+                  <strong>Assigned Advocate Match:</strong> An advocate specializing in Ethiopian {selectedConsultationDetails.practice_area} in {selectedConsultationDetails.location} is reviewing your case brief. Escrow payment will only be released upon completed legal consultation.
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer Actions */}
+            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+              <button
+                onClick={() => setSelectedConsultationDetails(null)}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 4. CLIENT MATCHING WIZARD */}
       {activeTab === 'match' && (
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
-          {/* Progress Header */}
           <div className="flex items-center justify-between max-w-md mx-auto mb-8">
             {[
               { num: 1, label: 'Category' },
