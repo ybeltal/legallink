@@ -7,7 +7,7 @@ import {
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
-  Video, Send, MessageSquare, User, MessageCircle, Smartphone, Receipt, QrCode
+  Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -15,8 +15,137 @@ export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
   const [activeTab, setActiveTab] = useState<'home' | 'match' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
   const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts' | 'receipts'>('consultations');
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // -------------------------------------------------------------
+  // SUPABASE USER AUTHENTICATION STATE
+  // -------------------------------------------------------------
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [userProfile, setUserProfile] = useState<any | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authFullName, setAuthFullName] = useState('');
+  const [authRole, setAuthRole] = useState<'client' | 'advocate'>('client');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Check and maintain active session
+  const checkSession = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUser(session.user);
+        // Fetch public profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        if (profile) {
+          setUserProfile(profile);
+        } else {
+          setUserProfile({
+            full_name: session.user.user_metadata?.full_name || 'LegalLink User',
+            role: session.user.user_metadata?.role || 'client'
+          });
+        }
+      } else {
+        setCurrentUser(null);
+        setUserProfile(null);
+      }
+    } catch (err) {
+      console.error('Session check error:', err);
+    }
+  };
+
+  useEffect(() => {
+    checkSession();
+
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setCurrentUser(session.user);
+        checkSession();
+      } else {
+        setCurrentUser(null);
+        setUserProfile(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthLoading(true);
+
+    try {
+      const supabase = createClient();
+
+      if (authMode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({
+          email: authEmail.trim(),
+          password: authPassword,
+          options: {
+            data: {
+              full_name: authFullName.trim() || 'LegalLink Member',
+              role: authRole,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          setCurrentUser(data.user);
+          setUserProfile({ full_name: authFullName, role: authRole });
+          setAuthModalOpen(false);
+          setClientName(authFullName);
+          if (authRole === 'advocate') {
+            setActiveTab('for-lawyers');
+          } else {
+            setActiveTab('my-consultations');
+          }
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authEmail.trim(),
+          password: authPassword,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          setCurrentUser(data.user);
+          await checkSession();
+          setAuthModalOpen(false);
+          setActiveTab('my-consultations');
+        }
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Authentication failed. Please verify credentials.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+      setUserProfile(null);
+      setActiveTab('home');
+    } catch (err) {
+      console.error('Sign out error:', err);
+    }
+  };
 
   // -------------------------------------------------------------
   // CLIENT MATCHING FLOW (4 STAGES)
@@ -35,7 +164,7 @@ export default function LegalLinkHome() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   // -------------------------------------------------------------
-  // USER DASHBOARD (MY CONSULTATIONS) & DETAILS MODAL
+  // USER DASHBOARD & DETAILS MODAL
   // -------------------------------------------------------------
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
   const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
@@ -46,7 +175,7 @@ export default function LegalLinkHome() {
   // TELEBIRR ESCROW PAYMENT CHECKOUT STATE
   // -------------------------------------------------------------
   const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
-  const [telebirrPhone, setTelebirrPhone] = useState('0911234567');
+  const [telebirrPhone, setTelebirrPhone] = useState('0905941865');
   const [paymentStep, setPaymentStep] = useState<'phone' | 'ussd_confirm' | 'success'>('phone');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [lastPaymentReceipt, setLastPaymentReceipt] = useState<any | null>(null);
@@ -95,7 +224,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // Live Realtime listener for cross-tab database synchronization
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
@@ -133,7 +261,6 @@ export default function LegalLinkHome() {
     }
   }, [activeTab]);
 
-  // Load and subscribe to real-time chat messages when Room is opened
   useEffect(() => {
     if (selectedConsultationDetails && modalTab === 'room') {
       const consultationId = selectedConsultationDetails.id;
@@ -187,7 +314,6 @@ export default function LegalLinkHome() {
     }
   }, [messages, modalTab]);
 
-  // Send a message into the secure consultation thread
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessageText.trim() || !selectedConsultationDetails) return;
@@ -196,7 +322,7 @@ export default function LegalLinkHome() {
     try {
       const supabase = createClient();
       const senderName = senderRole === 'client' 
-        ? (selectedConsultationDetails.client_name || 'Client') 
+        ? (userProfile?.full_name || selectedConsultationDetails.client_name || 'Client') 
         : 'Advocate Mulu Haile (Senior Counsel)';
 
       const { error } = await supabase
@@ -222,9 +348,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // -------------------------------------------------------------
-  // TELEBIRR ESCROW PAYMENT EXECUTION
-  // -------------------------------------------------------------
   const handleTriggerTelebirrCheckout = (consultation: any) => {
     setPayingConsultation(consultation);
     setPaymentStep('phone');
@@ -233,7 +356,7 @@ export default function LegalLinkHome() {
 
   const handleSimulateTelebirrUSSD = () => {
     if (!telebirrPhone.trim() || telebirrPhone.length < 9) {
-      alert('Please enter a valid Ethiopian phone number (e.g. 0911234567).');
+      alert('Please enter a valid Ethiopian phone number.');
       return;
     }
     setPaymentStep('ussd_confirm');
@@ -249,8 +372,7 @@ export default function LegalLinkHome() {
     try {
       const supabase = createClient();
 
-      // 1. Update the consultation status to 'escrow_locked' in Supabase
-      const { error: updateError } = await supabase
+      await supabase
         .from('consultations')
         .update({
           payment_status: 'escrow_locked',
@@ -260,11 +382,6 @@ export default function LegalLinkHome() {
         })
         .eq('id', payingConsultation.id);
 
-      if (updateError) {
-        console.error(updateError);
-      }
-
-      // 2. Insert into escrow_transactions audit table
       await supabase
         .from('escrow_transactions')
         .insert([
@@ -279,7 +396,6 @@ export default function LegalLinkHome() {
           }
         ]);
 
-      // 3. Update local state
       const receiptData = {
         txnRef: generatedTxnRef,
         amount: feeAmount,
@@ -309,7 +425,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // Submit client matching consultation to Supabase
   const handleBookingSubmit = async () => {
     if (!situationText.trim()) {
       alert('Please describe your legal situation before submitting.');
@@ -321,7 +436,7 @@ export default function LegalLinkHome() {
       const supabase = createClient();
       const { error } = await supabase.from('consultations').insert([
         {
-          client_name: clientName.trim() || 'Anonymous Client',
+          client_name: userProfile?.full_name || clientName.trim() || 'Client',
           practice_area: selectedCategory,
           location: location,
           situation_description: situationText.trim(),
@@ -345,9 +460,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // -------------------------------------------------------------
-  // LEXDRAFT STATE
-  // -------------------------------------------------------------
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [docFormData, setDocFormData] = useState<Record<string, string>>({});
   const [docGenerated, setDocGenerated] = useState(false);
@@ -356,17 +468,9 @@ export default function LegalLinkHome() {
     { id: 'cnt-2', title: 'Bilingual Mutual NDA', date: '2026-10-09', fee: 'ETB 300', status: 'Ready' }
   ]);
 
-  // -------------------------------------------------------------
-  // LEGALTALK STATE
-  // -------------------------------------------------------------
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
-
-  // -------------------------------------------------------------
-  // LAWYER ONBOARDING (4 STEPS)
-  // -------------------------------------------------------------
   const [lawyerStep, setLawyerStep] = useState<1 | 2 | 3 | 4>(1);
 
-  // 8 Practice Areas
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
     { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce, custody, adoption, inheritance disputes.' },
@@ -378,7 +482,6 @@ export default function LegalLinkHome() {
     { id: 'NGO & Compliance', title: 'NGO & Compliance', amTitle: 'የድርጅቶችና ማህበራት ሕግ', icon: Building, desc: 'Registration, compliance, grant agreements.' },
   ];
 
-  // Matched Lawyers Pool
   const mockMatchedLawyers = [
     {
       id: 'l1',
@@ -434,7 +537,6 @@ export default function LegalLinkHome() {
     },
   ];
 
-  // LexDraft Templates
   const lexdraftTemplates = [
     {
       id: 'emp',
@@ -483,7 +585,6 @@ export default function LegalLinkHome() {
     },
   ];
 
-  // LegalTalk Articles
   const legalTalkArticles = [
     {
       id: 'art-1',
@@ -531,7 +632,7 @@ export default function LegalLinkHome() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
       
-      {/* 1. TOP NAVIGATION */}
+      {/* 1. TOP NAVIGATION WITH LIVE AUTH STATE */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -581,7 +682,7 @@ export default function LegalLinkHome() {
               ))}
             </nav>
 
-            {/* Language & Action CTAs */}
+            {/* Language & Authentication CTAs */}
             <div className="hidden md:flex items-center gap-3">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
@@ -591,19 +692,57 @@ export default function LegalLinkHome() {
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
               </button>
 
-              <button 
-                onClick={() => setIsRoleModalOpen(true)}
-                className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-[#0A1128] cursor-pointer"
-              >
-                {lang === 'am' ? 'ግባ' : 'Sign in'}
-              </button>
+              {currentUser ? (
+                /* Authenticated User Capsule */
+                <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                  <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                    <div className="w-7 h-7 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-xs">
+                      {(userProfile?.full_name || currentUser.email || 'U')[0].toUpperCase()}
+                    </div>
+                    <div className="text-left">
+                      <span className="text-xs font-bold text-[#0A1128] block leading-tight">
+                        {userProfile?.full_name || currentUser.email?.split('@')[0]}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+                        {userProfile?.role || 'Client'}
+                      </span>
+                    </div>
+                  </div>
 
-              <button
-                onClick={() => setIsRoleModalOpen(true)}
-                className="px-5 py-2.5 text-sm font-bold text-white bg-[#0A1128] hover:bg-[#102A43] rounded-xl shadow-sm transition-all cursor-pointer"
-              >
-                {lang === 'am' ? 'ጀምር' : 'Get Started'}
-              </button>
+                  <button
+                    onClick={handleSignOut}
+                    title="Sign Out"
+                    className="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                /* Unauthenticated Actions */
+                <>
+                  <button 
+                    onClick={() => {
+                      setAuthMode('signin');
+                      setAuthError(null);
+                      setAuthModalOpen(true);
+                    }}
+                    className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-[#0A1128] cursor-pointer"
+                  >
+                    {lang === 'am' ? 'ግባ' : 'Sign in'}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setAuthError(null);
+                      setAuthModalOpen(true);
+                    }}
+                    className="px-5 py-2.5 text-sm font-bold text-white bg-[#0A1128] hover:bg-[#102A43] rounded-xl shadow-sm transition-all cursor-pointer"
+                  >
+                    {lang === 'am' ? 'ጀምር' : 'Get Started'}
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Icon */}
@@ -679,7 +818,11 @@ export default function LegalLinkHome() {
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
-                      onClick={() => setIsRoleModalOpen(true)}
+                      onClick={() => {
+                        setAuthMode('signup');
+                        setAuthError(null);
+                        setAuthModalOpen(true);
+                      }}
                       className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer"
                     >
                       {lang === 'am' ? 'ጀምር' : 'Get Started'}
@@ -828,8 +971,10 @@ export default function LegalLinkHome() {
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
-              <h1 className="text-2xl sm:text-3xl font-black mt-1">Welcome to Your Legal Workspace</h1>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                {currentUser ? `WELCOME BACK, ${userProfile?.full_name?.toUpperCase() || 'CLIENT'}` : 'CLIENT ACCOUNT HUB'}
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
                 Manage your consultations, secure retainers in Telebirr escrow, and launch live consultation rooms.
               </p>
@@ -913,7 +1058,6 @@ export default function LegalLinkHome() {
                         <div className="flex items-center gap-2">
                           <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
                           
-                          {/* Case Status Badge */}
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                             c.status === 'approved' 
                               ? 'bg-blue-50 text-blue-700 border-blue-200' 
@@ -926,7 +1070,6 @@ export default function LegalLinkHome() {
                             {c.status || 'pending'}
                           </span>
 
-                          {/* Telebirr Escrow Badge */}
                           {isPaid ? (
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                               <Lock className="w-3 h-3 text-emerald-600" />
@@ -949,7 +1092,6 @@ export default function LegalLinkHome() {
                       </div>
 
                       <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-                        {/* If unpaid, show Telebirr Pay button */}
                         {!isPaid && (
                           <button
                             onClick={() => handleTriggerTelebirrCheckout(c)}
@@ -960,7 +1102,6 @@ export default function LegalLinkHome() {
                           </button>
                         )}
 
-                        {/* Active Live Room Launcher */}
                         <button
                           onClick={() => {
                             setSelectedConsultationDetails(c);
@@ -1070,12 +1211,149 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 4. TELEBIRR ESCROW CHECKOUT MODAL */}
+      {/* 4. SUPABASE AUTHENTICATION MODAL (SIGN IN / SIGN UP) */}
+      {authModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+            
+            {/* Header */}
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  SECURITY CREDENTIALS
+                </span>
+                <h3 className="font-black text-xl">
+                  {authMode === 'signup' ? 'Create LegalLink Account' : 'Sign in to LegalLink'}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setAuthModalOpen(false)}
+                className="text-white/70 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAuthSubmit} className="p-6 space-y-4">
+              {/* Tab Selector */}
+              <div className="flex border-b border-slate-200 text-xs font-bold mb-4">
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('signin'); setAuthError(null); }}
+                  className={`flex-1 pb-2.5 border-b-2 text-center transition-all cursor-pointer ${
+                    authMode === 'signin' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('signup'); setAuthError(null); }}
+                  className={`flex-1 pb-2.5 border-b-2 text-center transition-all cursor-pointer ${
+                    authMode === 'signup' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  Create Account
+                </button>
+              </div>
+
+              {authError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              {/* Full Name & Role when Signing Up */}
+              {authMode === 'signup' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Legal Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={authFullName}
+                      onChange={(e) => setAuthFullName(e.target.value)}
+                      placeholder="e.g. Ybeltal Semagn"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Account Role</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAuthRole('client')}
+                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                          authRole === 'client' ? 'border-[#0A1128] bg-slate-100 text-[#0A1128]' : 'border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        Individual / Client
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAuthRole('advocate')}
+                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                          authRole === 'advocate' ? 'border-[#0A1128] bg-slate-100 text-[#0A1128]' : 'border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        Verified Advocate
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="yourname@gmail.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0A1128]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0A1128]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow flex items-center justify-center gap-2"
+              >
+                {authLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying with Supabase...</span>
+                  </>
+                ) : (
+                  <span>{authMode === 'signup' ? 'Complete Registration' : 'Authenticate Session'}</span>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. TELEBIRR ESCROW CHECKOUT MODAL */}
       {payingConsultation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
             
-            {/* Modal Header */}
             <div className="p-6 bg-gradient-to-r from-[#0072CE] to-[#005ba4] text-white flex justify-between items-start">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider mb-1">
@@ -1092,10 +1370,7 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="p-6 space-y-5">
-              
-              {/* Payment Summary */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Practice Area:</span>
@@ -1111,7 +1386,6 @@ export default function LegalLinkHome() {
                 </div>
               </div>
 
-              {/* Step 1: Phone input */}
               {paymentStep === 'phone' && (
                 <div className="space-y-4">
                   <div>
@@ -1128,9 +1402,6 @@ export default function LegalLinkHome() {
                         className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:outline-none focus:border-[#0072CE]"
                       />
                     </div>
-                    <span className="text-[11px] text-slate-400 mt-1 block">
-                      A USSD payment prompt (*127#) will be pushed to your mobile device.
-                    </span>
                   </div>
 
                   <button
@@ -1143,7 +1414,6 @@ export default function LegalLinkHome() {
                 </div>
               )}
 
-              {/* Step 2: USSD prompt simulation */}
               {paymentStep === 'ussd_confirm' && (
                 <div className="space-y-4 text-center">
                   <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 animate-pulse">
@@ -1155,10 +1425,6 @@ export default function LegalLinkHome() {
                     <p className="text-xs text-slate-500 mt-1">
                       Please enter your 4-digit Telebirr PIN on your mobile screen to authorize the ETB 1,500 transfer into LegalLink Escrow.
                     </p>
-                  </div>
-
-                  <div className="p-3 bg-slate-50 rounded-xl text-xs font-mono text-slate-600 border border-slate-200">
-                    USSD: *127# ➔ Merchant Pay ➔ LegalLink Trust
                   </div>
 
                   <div className="flex gap-2">
@@ -1186,7 +1452,6 @@ export default function LegalLinkHome() {
                 </div>
               )}
 
-              {/* Step 3: Success Receipt */}
               {paymentStep === 'success' && lastPaymentReceipt && (
                 <div className="space-y-4 text-center">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
@@ -1205,7 +1470,6 @@ export default function LegalLinkHome() {
                     <p><strong>Payer Phone:</strong> {lastPaymentReceipt.phone}</p>
                     <p><strong>Amount:</strong> ETB {lastPaymentReceipt.amount}.00</p>
                     <p><strong>Status:</strong> Held in Trust (NBE Escrow)</p>
-                    <p><strong>Timestamp:</strong> {lastPaymentReceipt.date}</p>
                   </div>
 
                   <button
@@ -1219,24 +1483,16 @@ export default function LegalLinkHome() {
                   </button>
                 </div>
               )}
-
-              {/* Compliance footer */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Compliant with National Bank of Ethiopia Escrow Directives</span>
-              </div>
-
             </div>
           </div>
         </div>
       )}
 
-      {/* 5. INTERACTIVE CASE MODAL WITH LIVE CONSULTATION ROOM & REALTIME CHAT */}
+      {/* 6. INTERACTIVE CASE MODAL WITH LIVE CONSULTATION ROOM & REALTIME CHAT */}
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
             
-            {/* Modal Header */}
             <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
                 <div className="flex items-center gap-2">
@@ -1254,11 +1510,6 @@ export default function LegalLinkHome() {
                   }`}>
                     {selectedConsultationDetails.status || 'pending'}
                   </span>
-                  {selectedConsultationDetails.payment_status === 'escrow_locked' && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
-                      Escrow Paid (Telebirr)
-                    </span>
-                  )}
                 </div>
                 <h3 className="font-black text-xl text-[#0A1128] mt-1">Consultation Hub</h3>
                 <span className="text-[11px] font-mono text-slate-400">
@@ -1274,7 +1525,6 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Modal Tabs */}
             <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
               <button
                 onClick={() => setModalTab('overview')}
@@ -1300,10 +1550,7 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6">
-              
-              {/* TAB A: OVERVIEW */}
               {modalTab === 'overview' && (
                 <div className="space-y-6">
                   <div>
@@ -1314,7 +1561,6 @@ export default function LegalLinkHome() {
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           <span>1. Submitted</span>
                         </div>
-                        <span className="text-[10px] text-emerald-600 block mt-0.5">Database verified</span>
                       </div>
 
                       <div className={`p-3 rounded-xl border ${
@@ -1326,9 +1572,6 @@ export default function LegalLinkHome() {
                           <Clock className="w-4 h-4" />
                           <span>2. Review</span>
                         </div>
-                        <span className="text-[10px] block mt-0.5">
-                          {selectedConsultationDetails.status === 'approved' ? 'Approved & Assigned' : 'Under Review'}
-                        </span>
                       </div>
 
                       <div className={`p-3 rounded-xl border ${
@@ -1340,7 +1583,6 @@ export default function LegalLinkHome() {
                           <ShieldCheck className="w-4 h-4" />
                           <span>3. Resolved</span>
                         </div>
-                        <span className="text-[10px] block mt-0.5">Final decree</span>
                       </div>
                     </div>
                   </div>
@@ -1359,18 +1601,6 @@ export default function LegalLinkHome() {
                         {selectedConsultationDetails.location}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">Budget Range</span>
-                      <span className="font-bold text-[#0A1128] text-sm">
-                        {selectedConsultationDetails.budget_range || 'ETB 1,000–2,000'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[11px]">Submission Date</span>
-                      <span className="font-bold text-[#0A1128] text-sm">
-                        {selectedConsultationDetails.created_at ? new Date(selectedConsultationDetails.created_at).toLocaleString() : 'Recent'}
-                      </span>
-                    </div>
                   </div>
 
                   <div>
@@ -1379,26 +1609,9 @@ export default function LegalLinkHome() {
                       {selectedConsultationDetails.situation_description}
                     </div>
                   </div>
-
-                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <MessageSquare className="w-5 h-5 text-amber-600" />
-                      <div>
-                        <span className="text-xs font-bold text-amber-900 block">Consultation Room Active</span>
-                        <span className="text-[11px] text-amber-700">Communicate directly with your advocate via chat and secure video.</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setModalTab('room')}
-                      className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
-                    >
-                      Enter Room →
-                    </button>
-                  </div>
                 </div>
               )}
 
-              {/* TAB B: LIVE ROOM & MESSAGING */}
               {modalTab === 'room' && (
                 <div className="space-y-4">
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -1423,36 +1636,7 @@ export default function LegalLinkHome() {
                     >
                       <Video className="w-3.5 h-3.5" />
                       <span>Launch Video Call (P2P Encrypted)</span>
-                      <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
                     </a>
-                  </div>
-
-                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-semibold">Testing Persona Switcher:</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setSenderRole('client')}
-                        className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                          senderRole === 'client' 
-                            ? 'bg-[#0A1128] text-white shadow-sm' 
-                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        Client (You)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSenderRole('advocate')}
-                        className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                          senderRole === 'advocate' 
-                            ? 'bg-amber-500 text-slate-950 shadow-sm' 
-                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        Advocate (Mulu)
-                      </button>
-                    </div>
                   </div>
 
                   <div className="h-72 bg-slate-50/80 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
@@ -1465,7 +1649,6 @@ export default function LegalLinkHome() {
                       <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs text-center p-6">
                         <MessageCircle className="w-8 h-8 mb-2 opacity-30 text-[#0A1128]" />
                         <span className="font-semibold text-slate-600">No messages in this case thread yet.</span>
-                        <span className="text-[11px] mt-0.5">Start by sending an inquiry or case document to Advocate Mulu Haile below.</span>
                       </div>
                     ) : (
                       messages.map((m) => {
@@ -1500,7 +1683,7 @@ export default function LegalLinkHome() {
                   <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
                     <input
                       type="text"
-                      placeholder={`Type message as ${senderRole === 'client' ? 'Client' : 'Advocate'}...`}
+                      placeholder={`Type message as ${userProfile?.full_name || 'Client'}...`}
                       value={newMessageText}
                       onChange={(e) => setNewMessageText(e.target.value)}
                       className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128] shadow-sm"
@@ -1510,19 +1693,12 @@ export default function LegalLinkHome() {
                       disabled={isSendingMessage || !newMessageText.trim()}
                       className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all"
                     >
-                      {isSendingMessage ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <>
-                          <span>Send</span>
-                          <Send className="w-3 h-3" />
-                        </>
-                      )}
+                      <span>Send</span>
+                      <Send className="w-3 h-3" />
                     </button>
                   </form>
                 </div>
               )}
-
             </div>
 
             <div className="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50">
@@ -1538,25 +1714,18 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 6. LEXDRAFT MODULE */}
+      {/* 7. LEXDRAFT MODULE */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
           <div className="text-center max-w-xl mx-auto mb-10">
             <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">LEXDRAFT AUTOMATION</span>
             <h2 className="text-3xl font-black text-[#0A1128] mt-1">Legal documents, ready in minutes.</h2>
-            <p className="text-sm text-slate-600 mt-2">
-              Automate the creation of employment contracts, NDAs, lease agreements, and checklists tailored to Ethiopian law.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {lexdraftTemplates.map((tpl) => (
               <div key={tpl.id} className="p-6 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between">
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-bold uppercase text-slate-400">{tpl.category}</span>
-                    {tpl.popular && <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Popular</span>}
-                  </div>
                   <h3 className="font-bold text-base text-[#0A1128]">{tpl.title}</h3>
                   <p className="text-xs text-slate-500 mt-2 leading-relaxed">{tpl.desc}</p>
                 </div>
@@ -1579,79 +1748,12 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* LexDraft Modal */}
-      {selectedTemplate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-              <div>
-                <h3 className="font-bold text-lg text-[#0A1128]">{selectedTemplate.title}</h3>
-                <span className="text-xs text-slate-500">Statutory Fee: ETB {selectedTemplate.priceETB}</span>
-              </div>
-              <button onClick={() => setSelectedTemplate(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-[#0A1128] uppercase">Fill Document Variables</h4>
-                {selectedTemplate.fields.map((f: string) => (
-                  <div key={f}>
-                    <label className="block text-xs font-semibold text-slate-700 capitalize mb-1">
-                      {f.replace(/([A-Z])/g, ' $1')}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={`Enter ${f}...`}
-                      value={docFormData[f] || ''}
-                      onChange={(e) => setDocFormData({ ...docFormData, [f]: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
-                    />
-                  </div>
-                ))}
-                <button
-                  onClick={() => setDocGenerated(true)}
-                  className="w-full py-2.5 bg-amber-500 font-bold text-xs text-[#0A1128] rounded-xl mt-2 cursor-pointer hover:bg-amber-600"
-                >
-                  Generate Preview
-                </button>
-              </div>
-
-              {/* Document Preview */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs flex flex-col justify-between">
-                <div>
-                  <h5 className="font-sans font-bold text-center underline mb-3">{selectedTemplate.title.toUpperCase()}</h5>
-                  <p className="text-slate-600 mb-2 leading-relaxed">
-                    This legally binding document is drafted under the laws and proclamations of the Federal Democratic Republic of Ethiopia.
-                  </p>
-                  {Object.entries(docFormData).map(([k, v]) => (
-                    <p key={k} className="text-slate-800">
-                      <strong>{k.replace(/([A-Z])/g, ' $1')}:</strong> {v || '___________'}
-                    </p>
-                  ))}
-                </div>
-
-                {docGenerated && (
-                  <div className="pt-4 border-t border-slate-200 mt-4 flex justify-end">
-                    <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A1128] text-white rounded-lg text-xs font-bold cursor-pointer">
-                      <Printer className="w-3.5 h-3.5" /> Print / Save PDF
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7. LEGALTALK ARTICLES */}
+      {/* 8. LEGALTALK ARTICLES */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
           <div className="text-center max-w-xl mx-auto mb-10">
             <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">LEGAL EDUCATION</span>
             <h2 className="text-3xl font-black text-[#0A1128] mt-1">Legal insights for everyday Ethiopians.</h2>
-            <p className="text-sm text-slate-600 mt-2">Plain-language guides on business setup, family rights, and labor proclamations.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1661,17 +1763,11 @@ export default function LegalLinkHome() {
                 onClick={() => setSelectedArticle(art)}
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden cursor-pointer hover:shadow-md transition-all flex flex-col justify-between"
               >
-                <div>
-                  <img src={art.cover} alt={art.title} className="w-full h-44 object-cover" />
-                  <div className="p-5">
-                    <span className="text-xs font-bold text-amber-600 block mb-1">{art.category}</span>
-                    <h3 className="font-bold text-base text-[#0A1128] leading-snug">{art.title}</h3>
-                    <p className="text-xs text-slate-500 mt-2 line-clamp-2">{art.excerpt}</p>
-                  </div>
-                </div>
-                <div className="p-5 pt-0 border-t border-slate-100 flex justify-between text-xs text-slate-400">
-                  <span>{art.author}</span>
-                  <span className="text-[#0A1128] font-bold">Read →</span>
+                <img src={art.cover} alt={art.title} className="w-full h-44 object-cover" />
+                <div className="p-5">
+                  <span className="text-xs font-bold text-amber-600 block mb-1">{art.category}</span>
+                  <h3 className="font-bold text-base text-[#0A1128] leading-snug">{art.title}</h3>
+                  <p className="text-xs text-slate-500 mt-2 line-clamp-2">{art.excerpt}</p>
                 </div>
               </div>
             ))}
@@ -1679,143 +1775,78 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* Article Reader Modal */}
-      {selectedArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start pb-4 border-b border-slate-100">
-              <div>
-                <span className="text-xs font-bold text-amber-600 uppercase">{selectedArticle.category}</span>
-                <h3 className="font-extrabold text-xl text-[#0A1128] mt-1">{selectedArticle.title}</h3>
-                <span className="text-xs text-slate-400">By {selectedArticle.author}</span>
-              </div>
-              <button onClick={() => setSelectedArticle(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="mt-4 text-xs text-slate-700 leading-relaxed whitespace-pre-line space-y-3">
-              {selectedArticle.content}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 8. FOR LAWYERS ONBOARDING */}
+      {/* 9. FOR LAWYERS ONBOARDING */}
       {activeTab === 'for-lawyers' && (
         <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full">
-          <div className="grid grid-cols-4 gap-2 mb-6 text-center text-xs">
-            {[
-              { num: 1, label: '01 Apply & Verify' },
-              { num: 2, label: '02 Build Profile' },
-              { num: 3, label: '03 Availability' },
-              { num: 4, label: '04 Payout Setup' },
-            ].map((s) => (
-              <div key={s.num} className={`p-2.5 rounded-xl border font-bold ${lawyerStep === s.num ? 'bg-[#0A1128] text-white' : 'bg-slate-50 text-slate-400'}`}>
-                {s.label}
-              </div>
-            ))}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
+            <h3 className="font-bold text-lg text-[#0A1128]">Advocate Practice Registration</h3>
+            <p className="text-xs text-slate-500">Register under the Federal Democratic Republic of Ethiopia Ministry of Justice.</p>
+            <input type="text" placeholder="Full Legal Advocate Name" defaultValue={userProfile?.full_name || ''} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" />
+            <input type="text" placeholder="MOJ Advocacy License Number (e.g. MOJ/FED/2020/1234)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" />
+            <button
+              onClick={() => alert('Advocate credentials submitted to Ministry of Justice verification queue.')}
+              className="w-full py-3 bg-amber-500 font-bold text-sm text-[#0A1128] rounded-xl shadow cursor-pointer hover:bg-amber-600"
+            >
+              Submit Advocate Credentials
+            </button>
           </div>
+        </main>
+      )}
 
+      {/* 10. CLIENT MATCHING WIZARD */}
+      {activeTab === 'match' && (
+        <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            {lawyerStep === 1 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg text-[#0A1128]">Step 01: Advocate Credentials</h3>
-                <input type="text" placeholder="Full Legal Advocate Name" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" />
-                <input type="text" placeholder="Advocacy License Number (e.g. MOJ/FED/2020/1234)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" />
-                <button onClick={() => setLawyerStep(2)} className="w-full py-2.5 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800">
-                  Continue to Profile →
-                </button>
+            {matchStep === 1 && (
+              <div>
+                <h2 className="text-2xl font-black text-[#0A1128] mb-6 text-center">What do you need help with?</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {practiceAreas.map((p) => {
+                    const Icon = p.icon;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => { setSelectedCategory(p.id); setMatchStep(2); }}
+                        className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                          selectedCategory === p.id ? 'border-[#0A1128] bg-slate-50 ring-2 ring-[#0A1128]' : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 text-[#0A1128] mb-2" />
+                        <h4 className="font-bold text-xs text-[#0A1128]">{p.title}</h4>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
-            {lawyerStep === 2 && (
+
+            {matchStep === 2 && (
               <div className="space-y-4">
-                <h3 className="font-bold text-lg text-[#0A1128]">Step 02: Profile & Hourly Rates</h3>
-                <input type="number" defaultValue={1500} placeholder="Hourly Rate (ETB)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold" />
-                <textarea rows={3} placeholder="Write a short advocate bio..." className="w-full p-3 rounded-xl border border-slate-200 text-sm" />
+                <h2 className="text-2xl font-black text-[#0A1128] text-center">Case Brief</h2>
+                <textarea
+                  rows={4}
+                  value={situationText}
+                  onChange={(e) => setSituationText(e.target.value)}
+                  placeholder="Explain your legal situation..."
+                  className="w-full p-3 rounded-xl border border-slate-200 text-sm"
+                />
                 <div className="flex justify-between">
-                  <button onClick={() => setLawyerStep(1)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
-                  <button onClick={() => setLawyerStep(3)} className="px-6 py-2 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800">Next →</button>
+                  <button onClick={() => setMatchStep(1)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
+                  <button 
+                    disabled={isSubmitting}
+                    onClick={handleBookingSubmit} 
+                    className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Submit Consultation Request'}
+                  </button>
                 </div>
-              </div>
-            )}
-            {lawyerStep === 3 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg text-[#0A1128]">Step 03: Weekly Availability</h3>
-                <p className="text-xs text-slate-500">Clients book consultations based on your active slots.</p>
-                <div className="p-3 bg-slate-50 rounded-xl text-xs space-y-1">
-                  <p>✔ Monday - Friday: 09:00 AM - 05:00 PM</p>
-                  <p>✔ Saturday: 09:00 AM - 01:00 PM</p>
-                </div>
-                <div className="flex justify-between">
-                  <button onClick={() => setLawyerStep(2)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
-                  <button onClick={() => setLawyerStep(4)} className="px-6 py-2 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800">Next →</button>
-                </div>
-              </div>
-            )}
-            {lawyerStep === 4 && (
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg text-[#0A1128]">Step 04: Payout Setup (CBE / Telebirr)</h3>
-                <input type="text" placeholder="Commercial Bank of Ethiopia (CBE) Account Number" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono" />
-                <button
-                  onClick={() => {
-                    alert('Advocate onboarding submitted! Verification takes under 48 hours.');
-                    setActiveTab('home');
-                  }}
-                  className="w-full py-3 bg-amber-500 font-bold text-sm text-[#0A1128] rounded-xl shadow cursor-pointer hover:bg-amber-600"
-                >
-                  Complete Advocate Application
-                </button>
               </div>
             )}
           </div>
         </main>
       )}
 
-      {/* 9. ROLE SELECT MODAL */}
-      {isRoleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-              <h3 className="font-bold text-lg text-[#0A1128]">Choose your portal</h3>
-              <button onClick={() => setIsRoleModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="mt-4 space-y-3">
-              <div 
-                onClick={() => { setIsRoleModalOpen(false); setActiveTab('my-consultations'); }}
-                className="p-4 rounded-xl border border-slate-200 hover:border-[#0A1128] cursor-pointer hover:bg-slate-50 transition-all"
-              >
-                <h4 className="font-bold text-[#0A1128] text-sm">Client Portal</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Track your consultations, requests, and drafted contracts</p>
-              </div>
-
-              <div 
-                onClick={() => { setIsRoleModalOpen(false); setActiveTab('for-lawyers'); }}
-                className="p-4 rounded-xl border border-slate-200 hover:border-[#0A1128] cursor-pointer hover:bg-slate-50 transition-all"
-              >
-                <h4 className="font-bold text-[#0A1128] text-sm">Advocate Portal</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Manage schedule, verify advocacy license, receive payouts</p>
-              </div>
-
-              <Link 
-                href="/admin"
-                onClick={() => setIsRoleModalOpen(false)}
-                className="block p-4 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/50 transition-all"
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[#0A1128] text-sm">Admin Oversight Portal →</h4>
-                  <span className="text-[10px] font-bold bg-[#0A1128] text-white px-2 py-0.5 rounded">Admin</span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5">Platform management, approve/complete consultations, metrics</p>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 10. FOOTER */}
+      {/* 11. FOOTER */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -1829,18 +1860,12 @@ export default function LegalLinkHome() {
               <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
                 Ethiopia's premier legal marketplace connecting individuals and businesses with verified advocates for trusted advice, dispute resolution, and document automation.
               </p>
-              <div className="text-xs text-slate-400 space-y-1 pt-2">
-                <p>📍 Bole Road, Addis Ababa, Ethiopia</p>
-                <p>📞 +251 911 000 000</p>
-                <p>✉️ hello@legallink.et</p>
-              </div>
             </div>
             <div>
               <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Platform</h5>
               <ul className="text-xs space-y-2 text-slate-400">
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('lexdraft')}>LexDraft</li>
-                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('legaltalk')}>LegalTalk</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
               </ul>
             </div>
@@ -1853,14 +1878,8 @@ export default function LegalLinkHome() {
                     <span className="text-[10px] text-amber-400">↗</span>
                   </Link>
                 </li>
-                <li className="hover:text-white">Privacy Policy</li>
-                <li className="hover:text-white">Terms of Service</li>
               </ul>
             </div>
-          </div>
-          <div className="mt-12 pt-6 border-t border-slate-800 text-xs text-slate-500 flex justify-between">
-            <span>© 2026 LegalLink Ethiopia. All rights reserved.</span>
-            <span>Addis Ababa, Ethiopia</span>
           </div>
         </div>
       </footer>
