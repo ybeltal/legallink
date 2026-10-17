@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   Scale, Briefcase, Heart, Home, Lightbulb, Users, Shield, Globe, Building, 
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
-  X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, UserCheck, Calendar, CreditCard, Eye, RefreshCw
+  X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-export default function LegalLinkFullApp() {
+export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
-  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -31,64 +32,32 @@ export default function LegalLinkFullApp() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   // -------------------------------------------------------------
-  // LEXDRAFT STATE
+  // USER DASHBOARD (MY CONSULTATIONS)
   // -------------------------------------------------------------
-  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-  const [docFormData, setDocFormData] = useState<Record<string, string>>({});
-  const [docGenerated, setDocGenerated] = useState(false);
+  const [myConsultations, setMyConsultations] = useState<any[]>([]);
+  const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
 
-  // -------------------------------------------------------------
-  // LEGALTALK STATE
-  // -------------------------------------------------------------
-  const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
-
-  // -------------------------------------------------------------
-  // LAWYER ONBOARDING (4 STEPS)
-  // -------------------------------------------------------------
-  const [lawyerStep, setLawyerStep] = useState<1 | 2 | 3 | 4>(1);
-
-  // -------------------------------------------------------------
-  // ADMIN DASHBOARD STATE (FETCHED FROM SUPABASE)
-  // -------------------------------------------------------------
-  const [dbConsultations, setDbConsultations] = useState<any[]>([]);
-  const [loadingConsultations, setLoadingConsultations] = useState(false);
-  const [adminStatusMessage, setAdminStatusMessage] = useState<string | null>(null);
-
-  // Fetch consultations from Supabase with full error reporting
-  const fetchConsultations = async () => {
-    setLoadingConsultations(true);
-    setAdminStatusMessage(null);
+  const fetchMyConsultations = async () => {
+    setLoadingMyConsultations(true);
     try {
       const supabase = createClient();
       const { data, error } = await supabase
         .from('consultations')
         .select('*')
         .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase query error:', error);
-        setAdminStatusMessage(`Supabase error: ${error.message}`);
-        alert(`Supabase error: ${error.message}`);
-      } else if (data) {
-        setDbConsultations(data);
-        if (data.length === 0) {
-          setAdminStatusMessage('Connected to Supabase! No consultation requests found yet.');
-        } else {
-          setAdminStatusMessage(`Successfully loaded ${data.length} consultation request(s).`);
-        }
+      if (!error && data) {
+        setMyConsultations(data);
       }
-    } catch (err: any) {
-      console.error('Fetch exception:', err);
-      setAdminStatusMessage(`Failed to reach Supabase: ${err?.message || 'Check network / keys'}`);
-      alert(`Connection failed: ${err?.message || 'Check your Supabase keys in Vercel'}`);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setLoadingConsultations(false);
+      setLoadingMyConsultations(false);
     }
   };
 
   useEffect(() => {
-    if (activeTab === 'admin') {
-      fetchConsultations();
+    if (activeTab === 'my-consultations') {
+      fetchMyConsultations();
     }
   }, [activeTab]);
 
@@ -115,18 +84,33 @@ export default function LegalLinkFullApp() {
       ]);
 
       if (error) {
-        console.error('Insert error:', error);
         alert('Could not save booking: ' + error.message);
       } else {
         setBookingConfirmed(true);
       }
     } catch (err: any) {
-      console.error('Insert exception:', err);
       alert('Unexpected error occurred saving your consultation.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // -------------------------------------------------------------
+  // LEXDRAFT STATE
+  // -------------------------------------------------------------
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+  const [docFormData, setDocFormData] = useState<Record<string, string>>({});
+  const [docGenerated, setDocGenerated] = useState(false);
+
+  // -------------------------------------------------------------
+  // LEGALTALK STATE
+  // -------------------------------------------------------------
+  const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
+
+  // -------------------------------------------------------------
+  // LAWYER ONBOARDING (4 STEPS)
+  // -------------------------------------------------------------
+  const [lawyerStep, setLawyerStep] = useState<1 | 2 | 3 | 4>(1);
 
   // 8 Practice Areas
   const practiceAreas = [
@@ -317,14 +301,14 @@ export default function LegalLinkFullApp() {
               </div>
             </div>
 
-            {/* Desktop Navigation Links */}
+            {/* Desktop Navigation Links (Public / User Facing) */}
             <nav className="hidden md:flex items-center gap-1">
               {[
                 { id: 'match', label: lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer' },
                 { id: 'for-lawyers', label: lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers' },
                 { id: 'legaltalk', label: 'LegalTalk' },
                 { id: 'lexdraft', label: 'LexDraft' },
-                { id: 'admin', label: 'Admin (Oversight)' },
+                { id: 'my-consultations', label: lang === 'am' ? 'የእኔ ምክክሮች' : 'My Consultations' },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -391,7 +375,7 @@ export default function LegalLinkFullApp() {
               { id: 'for-lawyers', label: lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers' },
               { id: 'legaltalk', label: 'LegalTalk' },
               { id: 'lexdraft', label: 'LexDraft' },
-              { id: 'admin', label: 'Admin (Oversight)' },
+              { id: 'my-consultations', label: lang === 'am' ? 'የእኔ ምክክሮች' : 'My Consultations' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -411,7 +395,6 @@ export default function LegalLinkFullApp() {
       {/* 2. LANDING VIEW */}
       {activeTab === 'home' && (
         <main className="flex-1">
-          {/* Hero Section */}
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -540,7 +523,7 @@ export default function LegalLinkFullApp() {
             </div>
           </section>
 
-          {/* 8 Featured Practice Areas */}
+          {/* Practice Areas */}
           <section className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
@@ -581,78 +564,86 @@ export default function LegalLinkFullApp() {
               </div>
             </div>
           </section>
-
-          {/* Why LegalLink (Navy Block) */}
-          <section className="py-20 bg-[#0A1128] text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center max-w-2xl mx-auto mb-16">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">WHY LEGALLINK</span>
-                <h2 className="text-3xl sm:text-4xl font-black mt-1">Built for Ethiopia. Trusted by thousands.</h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400 mb-4">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white mb-2">Fully Verified Lawyers</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">Every advocate undergoes identity and bar association license checks before onboarding.</p>
-                </div>
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400 mb-4">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white mb-2">Secure & Confidential</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">All communications and shared documents are end-to-end encrypted.</p>
-                </div>
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400 mb-4">
-                    <Scale className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white mb-2">Transparent Pricing</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">Clear upfront hourly fees in ETB with protected escrow payouts.</p>
-                </div>
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400 mb-4">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <h4 className="font-bold text-base text-white mb-2">Bilingual Support</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">Consult comfortably in Amharic, English, Oromo, or Tigrinya.</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Client Testimonial */}
-          <section className="py-20 bg-slate-50">
-            <div className="max-w-4xl mx-auto px-4 text-center">
-              <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">TESTIMONIALS</span>
-              <h2 className="text-3xl font-black text-[#0A1128] mt-1 mb-10">What Clients Say</h2>
-              <div className="bg-white p-8 sm:p-10 rounded-2xl border border-slate-200 shadow-sm text-left">
-                <div className="flex gap-1 text-amber-400 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-base sm:text-lg text-slate-700 italic leading-relaxed">
-                  "Being diaspora, I thought managing Ethiopian property matters remotely would be impossible. LegalLink's immigration and property lawyers made it seamless. Everything was handled professionally."
-                </p>
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#0A1128] text-white font-bold flex items-center justify-center text-xs">
-                    MG
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-[#0A1128] text-sm">Michael Girma</h4>
-                    <span className="text-xs text-slate-500">Diaspora Client • Washington D.C.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
         </main>
       )}
 
-      {/* 3. CLIENT MATCHING FLOW (4 STAGES) */}
+      {/* 3. USER DASHBOARD: "MY CONSULTATIONS" */}
+      {activeTab === 'my-consultations' && (
+        <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">CLIENT PORTAL</span>
+              <h2 className="text-2xl font-black text-[#0A1128] mt-1">My Legal Consultations</h2>
+              <p className="text-xs text-slate-500 mt-1">Track your consultation requests and assigned advocates.</p>
+            </div>
+            <button
+              onClick={fetchMyConsultations}
+              disabled={loadingMyConsultations}
+              className="flex items-center gap-2 px-4 py-2 bg-[#0A1128] text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-slate-800"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${loadingMyConsultations ? 'animate-spin' : ''}`} />
+              <span>Refresh Status</span>
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {loadingMyConsultations ? (
+              <div className="p-16 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">
+                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#0A1128]" />
+                Loading your consultation records...
+              </div>
+            ) : myConsultations.length === 0 ? (
+              <div className="p-16 text-center bg-white rounded-2xl border border-slate-200">
+                <Briefcase className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                <h3 className="font-bold text-sm text-[#0A1128]">No active requests found</h3>
+                <p className="text-xs text-slate-500 mt-1 mb-4">Request a consultation with a verified lawyer to get started.</p>
+                <button
+                  onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                  className="px-5 py-2 bg-amber-500 text-slate-900 font-bold rounded-xl text-xs shadow"
+                >
+                  Request Consultation
+                </button>
+              </div>
+            ) : (
+              myConsultations.map((c) => (
+                <div key={c.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                        c.status === 'approved' 
+                          ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                          : c.status === 'completed'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}>
+                        {c.status || 'pending'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-2 max-w-xl">{c.situation_description}</p>
+                    <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
+                      <span>📍 {c.location}</span>
+                      <span>💰 {c.budget_range || 'ETB 1,000–2,000'}</span>
+                      <span>📅 {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                    <button
+                      onClick={() => alert(`Details for consultation ${c.id}: Current advocate matching in progress.`)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#0A1128] text-xs font-bold rounded-xl"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </main>
+      )}
+
+      {/* 4. CLIENT MATCHING WIZARD */}
       {activeTab === 'match' && (
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
           {/* Progress Header */}
@@ -675,7 +666,6 @@ export default function LegalLinkFullApp() {
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            {/* Stage 1: Category */}
             {matchStep === 1 && (
               <div>
                 <div className="text-center max-w-md mx-auto mb-6">
@@ -708,7 +698,6 @@ export default function LegalLinkFullApp() {
               </div>
             )}
 
-            {/* Stage 2: Preferences */}
             {matchStep === 2 && (
               <div className="space-y-5">
                 <div className="text-center max-w-md mx-auto mb-4">
@@ -776,7 +765,6 @@ export default function LegalLinkFullApp() {
               </div>
             )}
 
-            {/* Stage 3: Match */}
             {matchStep === 3 && (
               <div>
                 <div className="text-center max-w-md mx-auto mb-6">
@@ -821,7 +809,6 @@ export default function LegalLinkFullApp() {
               </div>
             )}
 
-            {/* Stage 4: Confirm */}
             {matchStep === 4 && (
               <div>
                 {bookingConfirmed ? (
@@ -831,15 +818,17 @@ export default function LegalLinkFullApp() {
                     <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto">
                       Your consultation details have been recorded directly in the Supabase database.
                     </p>
-                    <button
-                      onClick={() => {
-                        setBookingConfirmed(false);
-                        setActiveTab('home');
-                      }}
-                      className="mt-6 px-6 py-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold cursor-pointer"
-                    >
-                      Return to Home
-                    </button>
+                    <div className="mt-6 flex items-center justify-center gap-3">
+                      <button
+                        onClick={() => {
+                          setBookingConfirmed(false);
+                          setActiveTab('my-consultations');
+                        }}
+                        className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold cursor-pointer"
+                      >
+                        View in My Consultations
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div>
@@ -869,7 +858,7 @@ export default function LegalLinkFullApp() {
         </main>
       )}
 
-      {/* 4. LEXDRAFT MODULE */}
+      {/* 5. LEXDRAFT MODULE */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
           <div className="text-center max-w-xl mx-auto mb-10">
@@ -976,7 +965,7 @@ export default function LegalLinkFullApp() {
         </div>
       )}
 
-      {/* 5. LEGALTALK ARTICLES */}
+      {/* 6. LEGALTALK ARTICLES */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
           <div className="text-center max-w-xl mx-auto mb-10">
@@ -1031,7 +1020,7 @@ export default function LegalLinkFullApp() {
         </div>
       )}
 
-      {/* 6. FOR LAWYERS ONBOARDING */}
+      {/* 7. FOR LAWYERS ONBOARDING */}
       {activeTab === 'for-lawyers' && (
         <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full">
           <div className="grid grid-cols-4 gap-2 mb-6 text-center text-xs">
@@ -1102,107 +1091,45 @@ export default function LegalLinkFullApp() {
         </main>
       )}
 
-      {/* 7. ADMIN DASHBOARD (CONNECTED TO SUPABASE) */}
-      {activeTab === 'admin' && (
-        <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div>
-              <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">ADMIN CONSOLE</span>
-              <h2 className="text-2xl font-black text-[#0A1128] mt-1">Live Consultations in Supabase</h2>
-              {adminStatusMessage && (
-                <p className="text-xs text-slate-500 mt-1">{adminStatusMessage}</p>
-              )}
-            </div>
-
-            {/* Interactive, animated Refresh Button */}
-            <button
-              disabled={loadingConsultations}
-              onClick={fetchConsultations}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] active:scale-95 disabled:opacity-50 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow select-none"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${loadingConsultations ? 'animate-spin' : ''}`} />
-              <span>{loadingConsultations ? 'Refreshing...' : 'Refresh Data'}</span>
-            </button>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            {loadingConsultations ? (
-              <div className="p-16 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin text-[#0A1128]" />
-                <span>Fetching live records from Supabase...</span>
-              </div>
-            ) : dbConsultations.length === 0 ? (
-              <div className="p-16 text-center text-xs text-slate-400">
-                <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p className="font-semibold text-slate-600">No consultation requests recorded yet.</p>
-                <p className="text-[11px] text-slate-400 mt-1">Go to "Find a Lawyer" to submit your first live consultation.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-200 font-bold text-[#0A1128] uppercase">
-                    <tr>
-                      <th className="p-4">Client Name</th>
-                      <th className="p-4">Practice Area</th>
-                      <th className="p-4">Location</th>
-                      <th className="p-4">Situation Description</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4 text-right">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {dbConsultations.map((c) => (
-                      <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-4 font-bold text-[#0A1128]">{c.client_name}</td>
-                        <td className="p-4">{c.practice_area}</td>
-                        <td className="p-4">{c.location}</td>
-                        <td className="p-4 max-w-xs truncate text-slate-500" title={c.situation_description}>
-                          {c.situation_description}
-                        </td>
-                        <td className="p-4">
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                            {c.status || 'pending'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right text-slate-400 text-[11px]">
-                          {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </main>
-      )}
-
       {/* 8. ROLE SELECT MODAL */}
       {isRoleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-              <h3 className="font-bold text-lg text-[#0A1128]">Choose your role</h3>
+              <h3 className="font-bold text-lg text-[#0A1128]">Choose your portal</h3>
               <button onClick={() => setIsRoleModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="mt-4 space-y-3">
-              {[
-                { title: 'Client', desc: 'Find verified lawyers and draft contracts', action: () => { setIsRoleModalOpen(false); setActiveTab('match'); setMatchStep(1); } },
-                { title: 'Lawyer', desc: 'List practice, receive consultations, get paid', action: () => { setIsRoleModalOpen(false); setActiveTab('for-lawyers'); } },
-                { title: 'Admin', desc: 'Verify lawyer licenses and oversee platform requests', action: () => { setIsRoleModalOpen(false); setActiveTab('admin'); } },
-              ].map((role) => (
-                <div 
-                  key={role.title} 
-                  onClick={role.action}
-                  className="p-4 rounded-xl border border-slate-200 hover:border-[#0A1128] cursor-pointer hover:bg-slate-50 transition-all"
-                >
-                  <h4 className="font-bold text-[#0A1128] text-sm">{role.title}</h4>
-                  <p className="text-xs text-slate-500 mt-0.5">{role.desc}</p>
+              <div 
+                onClick={() => { setIsRoleModalOpen(false); setActiveTab('my-consultations'); }}
+                className="p-4 rounded-xl border border-slate-200 hover:border-[#0A1128] cursor-pointer hover:bg-slate-50 transition-all"
+              >
+                <h4 className="font-bold text-[#0A1128] text-sm">Client Portal</h4>
+                <p className="text-xs text-slate-500 mt-0.5">Track your consultations, requests, and drafted contracts</p>
+              </div>
+
+              <div 
+                onClick={() => { setIsRoleModalOpen(false); setActiveTab('for-lawyers'); }}
+                className="p-4 rounded-xl border border-slate-200 hover:border-[#0A1128] cursor-pointer hover:bg-slate-50 transition-all"
+              >
+                <h4 className="font-bold text-[#0A1128] text-sm">Advocate Portal</h4>
+                <p className="text-xs text-slate-500 mt-0.5">Manage schedule, verify advocacy license, receive payouts</p>
+              </div>
+
+              <Link 
+                href="/admin"
+                onClick={() => setIsRoleModalOpen(false)}
+                className="block p-4 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/50 transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[#0A1128] text-sm">Admin Oversight Portal →</h4>
+                  <span className="text-[10px] font-bold bg-[#0A1128] text-white px-2 py-0.5 rounded">Admin</span>
                 </div>
-              ))}
+                <p className="text-xs text-slate-600 mt-0.5">Platform management, approve/complete consultations, metrics</p>
+              </Link>
             </div>
           </div>
         </div>
@@ -1234,15 +1161,20 @@ export default function LegalLinkFullApp() {
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('lexdraft')}>LexDraft</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('legaltalk')}>LegalTalk</li>
-                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('admin')}>Admin Console</li>
+                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>My Consultations</li>
               </ul>
             </div>
             <div>
-              <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Legal</h5>
+              <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Administration</h5>
               <ul className="text-xs space-y-2 text-slate-400">
+                <li>
+                  <Link href="/admin" className="text-slate-400 hover:text-amber-400 flex items-center gap-1">
+                    <span>Admin Portal</span>
+                    <span className="text-[10px] text-amber-400">↗</span>
+                  </Link>
+                </li>
                 <li className="hover:text-white">Privacy Policy</li>
                 <li className="hover:text-white">Terms of Service</li>
-                <li className="hover:text-white">Advocate Code of Conduct</li>
               </ul>
             </div>
           </div>
