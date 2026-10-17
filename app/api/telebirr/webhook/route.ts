@@ -10,7 +10,7 @@ function getSupabase() {
   return createBrowserClient(url, key);
 }
 
-// 1. GET endpoint for health-check / ping
+// GET endpoint for health-check / ping
 export async function GET() {
   return NextResponse.json({
     service: 'LegalLink Telebirr Webhook Gateway',
@@ -20,26 +20,24 @@ export async function GET() {
   });
 }
 
-// 2. POST endpoint to receive real-time payment notifications from Telebirr
+// POST endpoint to receive real-time payment notifications from Telebirr
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('[Telebirr Webhook] Received payload:', body);
 
-    // Support both direct Telebirr format and aggregator formats
     const consultationId = body.consultation_id || body.outTradeNo || body.case_id;
     const transactionRef = body.transaction_ref || body.transactionNo || body.txn_ref || `TLB-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
     const amount = Number(body.amount || body.totalAmount || 1500);
     const phone = body.phone_number || body.msisdn || '0905941865';
     const clientName = body.client_name || 'Client';
-    const tradeStatus = (body.status || body.tradeStatus || 'SUCCESS').toUpperCase();
+    const tradeStatus = String(body.status || body.tradeStatus || 'SUCCESS').toUpperCase();
     const paymentStatus = tradeStatus === 'FAILED' ? 'unpaid' : 'escrow_locked';
 
     const supabase = getSupabase();
 
-    // 1. If consultationId is supplied, update the case in public.consultations
+    // 1. Update the consultation record if an ID was supplied
     if (consultationId) {
-      const { error: consultError } = await supabase
+      await supabase
         .from('consultations')
         .update({
           payment_status: paymentStatus,
@@ -48,14 +46,10 @@ export async function POST(req: Request) {
           escrow_amount: amount,
         })
         .eq('id', consultationId);
-
-      if (consultError) {
-        console.error('[Telebirr Webhook] Consultation update error:', consultError);
-      }
     }
 
     // 2. Audit record inserted into public.escrow_transactions
-    const { error: txError } = await supabase
+    await supabase
       .from('escrow_transactions')
       .insert([
         {
@@ -69,11 +63,6 @@ export async function POST(req: Request) {
         },
       ]);
 
-    if (txError) {
-      console.error('[Telebirr Webhook] Transaction audit error:', txError);
-    }
-
-    // Return standard acknowledgment response to Telebirr server
     return NextResponse.json(
       {
         code: 0,
@@ -87,10 +76,10 @@ export async function POST(req: Request) {
       },
       { status: 200 }
     );
-  } catch (err: any) {
-    console.error('[Telebirr Webhook] Uncaught Error:', err);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown exception';
     return NextResponse.json(
-      { code: 500, message: 'Internal Webhook Failure', error: err?.message },
+      { code: 500, message: 'Internal Webhook Failure', error: errorMessage },
       { status: 500 }
     );
   }
