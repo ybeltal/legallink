@@ -7,7 +7,7 @@ import {
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
-  Video, Send, MessageSquare, User, MessageCircle
+  Video, Send, MessageSquare, User, MessageCircle, Smartphone, Receipt, QrCode
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -43,6 +43,16 @@ export default function LegalLinkHome() {
   const [modalTab, setModalTab] = useState<'overview' | 'room'>('overview');
 
   // -------------------------------------------------------------
+  // TELEBIRR ESCROW PAYMENT CHECKOUT STATE
+  // -------------------------------------------------------------
+  const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
+  const [telebirrPhone, setTelebirrPhone] = useState('0911234567');
+  const [paymentStep, setPaymentStep] = useState<'phone' | 'ussd_confirm' | 'success'>('phone');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [lastPaymentReceipt, setLastPaymentReceipt] = useState<any | null>(null);
+  const [liveTransactions, setLiveTransactions] = useState<any[]>([]);
+
+  // -------------------------------------------------------------
   // LIVE CONSULTATION ROOM & REALTIME CHAT STATE
   // -------------------------------------------------------------
   const [messages, setMessages] = useState<any[]>([]);
@@ -70,10 +80,26 @@ export default function LegalLinkHome() {
     }
   };
 
+  const fetchTransactions = async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('escrow_transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (data) {
+        setLiveTransactions(data);
+      }
+    } catch (err) {
+      console.error('Transactions fetch error:', err);
+    }
+  };
+
   // Live Realtime listener for cross-tab database synchronization
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
+      fetchTransactions();
 
       const supabase = createClient();
       const channel = supabase
@@ -115,7 +141,6 @@ export default function LegalLinkHome() {
 
       const supabase = createClient();
 
-      // 1. Fetch initial message history
       const fetchHistory = async () => {
         const { data, error } = await supabase
           .from('consultation_messages')
@@ -131,7 +156,6 @@ export default function LegalLinkHome() {
 
       fetchHistory();
 
-      // 2. Subscribe to new messages for this consultation in real-time
       const chatChannel = supabase
         .channel(`chat_${consultationId}`)
         .on(
@@ -157,7 +181,6 @@ export default function LegalLinkHome() {
     }
   }, [selectedConsultationDetails, modalTab]);
 
-  // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (modalTab === 'room') {
       chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -199,6 +222,93 @@ export default function LegalLinkHome() {
     }
   };
 
+  // -------------------------------------------------------------
+  // TELEBIRR ESCROW PAYMENT EXECUTION
+  // -------------------------------------------------------------
+  const handleTriggerTelebirrCheckout = (consultation: any) => {
+    setPayingConsultation(consultation);
+    setPaymentStep('phone');
+    setIsProcessingPayment(false);
+  };
+
+  const handleSimulateTelebirrUSSD = () => {
+    if (!telebirrPhone.trim() || telebirrPhone.length < 9) {
+      alert('Please enter a valid Ethiopian phone number (e.g. 0911234567).');
+      return;
+    }
+    setPaymentStep('ussd_confirm');
+  };
+
+  const handleAuthorizeTelebirrPayment = async () => {
+    if (!payingConsultation) return;
+    setIsProcessingPayment(true);
+
+    const generatedTxnRef = `TLB-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    const feeAmount = 1500;
+
+    try {
+      const supabase = createClient();
+
+      // 1. Update the consultation status to 'escrow_locked' in Supabase
+      const { error: updateError } = await supabase
+        .from('consultations')
+        .update({
+          payment_status: 'escrow_locked',
+          payment_method: 'telebirr',
+          transaction_ref: generatedTxnRef,
+          escrow_amount: feeAmount
+        })
+        .eq('id', payingConsultation.id);
+
+      if (updateError) {
+        console.error(updateError);
+      }
+
+      // 2. Insert into escrow_transactions audit table
+      await supabase
+        .from('escrow_transactions')
+        .insert([
+          {
+            consultation_id: payingConsultation.id,
+            client_name: payingConsultation.client_name || 'Client',
+            phone_number: telebirrPhone,
+            payment_channel: 'telebirr',
+            amount_etb: feeAmount,
+            transaction_ref: generatedTxnRef,
+            status: 'escrow_locked'
+          }
+        ]);
+
+      // 3. Update local state
+      const receiptData = {
+        txnRef: generatedTxnRef,
+        amount: feeAmount,
+        phone: telebirrPhone,
+        date: new Date().toLocaleString(),
+        caseId: payingConsultation.id,
+        practiceArea: payingConsultation.practice_area,
+        clientName: payingConsultation.client_name || 'Client'
+      };
+
+      setLastPaymentReceipt(receiptData);
+      setLiveTransactions((prev) => [receiptData, ...prev]);
+
+      setMyConsultations((prev) =>
+        prev.map((c) =>
+          c.id === payingConsultation.id
+            ? { ...c, payment_status: 'escrow_locked', transaction_ref: generatedTxnRef }
+            : c
+        )
+      );
+
+      setPaymentStep('success');
+    } catch (err: any) {
+      alert('Payment processing failed: ' + err.message);
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   // Submit client matching consultation to Supabase
   const handleBookingSubmit = async () => {
     if (!situationText.trim()) {
@@ -218,6 +328,8 @@ export default function LegalLinkHome() {
           budget_range: budgetRange,
           urgency: urgency,
           status: 'pending',
+          payment_status: 'unpaid',
+          escrow_amount: 1500
         },
       ]);
 
@@ -719,7 +831,7 @@ export default function LegalLinkHome() {
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Welcome to Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage your consultations with Ethiopian advocates, enter live consultation rooms, and download legal contracts.
+                Manage your consultations, secure retainers in Telebirr escrow, and launch live consultation rooms.
               </p>
             </div>
             <button
@@ -754,7 +866,7 @@ export default function LegalLinkHome() {
                 clientSubTab === 'receipts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
               }`}
             >
-              Escrow Receipts & Clearing
+              Telebirr Escrow Receipts ({liveTransactions.length})
             </button>
           </div>
 
@@ -793,60 +905,90 @@ export default function LegalLinkHome() {
                   </button>
                 </div>
               ) : (
-                myConsultations.map((c) => (
-                  <div key={c.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-300 transition-all">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                          c.status === 'approved' 
-                            ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                            : c.status === 'completed'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : c.status === 'cancelled'
-                            ? 'bg-red-50 text-red-700 border-red-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
-                          {c.status || 'pending'}
-                        </span>
+                myConsultations.map((c) => {
+                  const isPaid = c.payment_status === 'escrow_locked' || c.payment_status === 'released';
+                  return (
+                    <div key={c.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-300 transition-all">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
+                          
+                          {/* Case Status Badge */}
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                            c.status === 'approved' 
+                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                              : c.status === 'completed'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : c.status === 'cancelled'
+                              ? 'bg-red-50 text-red-700 border-red-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            {c.status || 'pending'}
+                          </span>
+
+                          {/* Telebirr Escrow Badge */}
+                          {isPaid ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                              <Lock className="w-3 h-3 text-emerald-600" />
+                              <span>Escrow Locked (Telebirr)</span>
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                              Retainer Unpaid (ETB 1,500)
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-600 line-clamp-2 max-w-xl">{c.situation_description}</p>
+                        <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
+                          <span>📍 {c.location}</span>
+                          <span>💰 Retainer: ETB 1,500</span>
+                          <span>📅 {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}</span>
+                          {c.transaction_ref && <span className="font-mono text-emerald-600 font-bold">{c.transaction_ref}</span>}
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-600 line-clamp-2 max-w-xl">{c.situation_description}</p>
-                      <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
-                        <span>📍 {c.location}</span>
-                        <span>💰 {c.budget_range || 'ETB 1,000–2,000'}</span>
-                        <span>📅 {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}</span>
+
+                      <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                        {/* If unpaid, show Telebirr Pay button */}
+                        {!isPaid && (
+                          <button
+                            onClick={() => handleTriggerTelebirrCheckout(c)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-[#0072CE] hover:bg-[#005ba4] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow"
+                          >
+                            <Smartphone className="w-3.5 h-3.5" />
+                            <span>Pay ETB 1,500 (Telebirr)</span>
+                          </button>
+                        )}
+
+                        {/* Active Live Room Launcher */}
+                        <button
+                          onClick={() => {
+                            setSelectedConsultationDetails(c);
+                            setModalTab('room');
+                          }}
+                          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm ${
+                            c.status === 'approved'
+                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black'
+                              : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
+                          }`}
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>{c.status === 'approved' ? 'Join Live Room' : 'Case Room'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setSelectedConsultationDetails(c);
+                            setModalTab('overview');
+                          }}
+                          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        >
+                          Details
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-                      {/* Active Live Room Launcher */}
-                      <button
-                        onClick={() => {
-                          setSelectedConsultationDetails(c);
-                          setModalTab('room');
-                        }}
-                        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm ${
-                          c.status === 'approved'
-                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black animate-pulse'
-                            : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
-                        }`}
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>{c.status === 'approved' ? 'Join Live Room & Chat' : 'Case Room'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setSelectedConsultationDetails(c);
-                          setModalTab('overview');
-                        }}
-                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                      >
-                        Details
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}
@@ -873,21 +1015,54 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 3: RECEIPTS */}
+          {/* SUB-TAB 3: RECEIPTS & SETTLEMENT */}
           {clientSubTab === 'receipts' && (
-            <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
-              <h3 className="font-bold text-sm text-[#0A1128]">Escrow Protection & Payment Security</h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
-                All client consultation retainers and LexDraft template fees in Ethiopia are safeguarded in an NBE-compliant escrow trust account. Advocate payouts are authorized solely following client case sign-off.
-              </p>
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-[#0A1128] block">Escrow Clearance Node</span>
-                  <span className="text-slate-500">Telebirr & CBE Partner Gateway (Addis Ababa)</span>
+            <div className="space-y-4">
+              <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#0072CE]/10 text-[#0072CE] flex items-center justify-center font-black">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-[#0A1128]">Telebirr Escrow Audit Receipts</h3>
+                    <p className="text-xs text-slate-500">
+                      National Bank of Ethiopia (NBE) regulatory trust ledger. Retainers are disbursed solely upon client sign-off.
+                    </p>
+                  </div>
                 </div>
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-lg text-[10px]">
-                  SSL Encrypted & Insured
-                </span>
+
+                {liveTransactions.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-400 border border-dashed rounded-xl">
+                    No Telebirr payments initiated yet. Complete a consultation payment to generate audit receipts.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {liveTransactions.map((tx, idx) => (
+                      <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-xs text-[#0A1128]">{tx.transaction_ref || tx.txnRef}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              Escrow Locked
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">
+                            Client: {tx.client_name || tx.clientName} • Channel: Telebirr ({tx.phone_number || tx.phone})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="font-black text-sm text-[#0A1128]">ETB {tx.amount_etb || tx.amount || 1500}</span>
+                          <button
+                            onClick={() => window.print()}
+                            className="px-3 py-1.5 bg-white border border-slate-200 text-xs font-semibold rounded-lg hover:bg-slate-100 cursor-pointer"
+                          >
+                            Print Receipt
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -895,7 +1070,168 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 4. INTERACTIVE CASE MODAL WITH LIVE CONSULTATION ROOM & REALTIME CHAT */}
+      {/* 4. TELEBIRR ESCROW CHECKOUT MODAL */}
+      {payingConsultation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-[#0072CE] to-[#005ba4] text-white flex justify-between items-start">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <span>Ethio Telecom Partner</span>
+                </div>
+                <h3 className="font-black text-xl">Telebirr Escrow Gateway</h3>
+                <span className="text-xs text-white/80">Securing Legal Retainer in Trust Account</span>
+              </div>
+              <button 
+                onClick={() => setPayingConsultation(null)}
+                className="text-white/70 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-5">
+              
+              {/* Payment Summary */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Practice Area:</span>
+                  <span className="font-bold text-[#0A1128]">{payingConsultation.practice_area}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Assigned Advocate:</span>
+                  <span className="font-bold text-[#0A1128]">Advocate Mulu Haile</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
+                  <span className="font-bold text-[#0A1128]">Total Retainer Fee:</span>
+                  <span className="font-black text-[#0072CE]">ETB 1,500.00</span>
+                </div>
+              </div>
+
+              {/* Step 1: Phone input */}
+              {paymentStep === 'phone' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      Enter Registered Telebirr Mobile Number
+                    </label>
+                    <div className="relative">
+                      <Smartphone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <input
+                        type="tel"
+                        value={telebirrPhone}
+                        onChange={(e) => setTelebirrPhone(e.target.value)}
+                        placeholder="e.g. 0911234567"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:outline-none focus:border-[#0072CE]"
+                      />
+                    </div>
+                    <span className="text-[11px] text-slate-400 mt-1 block">
+                      A USSD payment prompt (*127#) will be pushed to your mobile device.
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={handleSimulateTelebirrUSSD}
+                    className="w-full py-3 bg-[#0072CE] hover:bg-[#005ba4] text-white font-bold rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Proceed to USSD Authentication</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Step 2: USSD prompt simulation */}
+              {paymentStep === 'ussd_confirm' && (
+                <div className="space-y-4 text-center">
+                  <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 animate-pulse">
+                    <Smartphone className="w-6 h-6" />
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-sm text-[#0A1128]">USSD Push Sent to {telebirrPhone}</h4>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Please enter your 4-digit Telebirr PIN on your mobile screen to authorize the ETB 1,500 transfer into LegalLink Escrow.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl text-xs font-mono text-slate-600 border border-slate-200">
+                    USSD: *127# ➔ Merchant Pay ➔ LegalLink Trust
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPaymentStep('phone')}
+                      className="w-1/3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                    >
+                      Back
+                    </button>
+                    <button
+                      disabled={isProcessingPayment}
+                      onClick={handleAuthorizeTelebirrPayment}
+                      className="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      {isProcessingPayment ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Confirming with Telebirr...</span>
+                        </>
+                      ) : (
+                        <span>Simulate PIN Entered & Lock Escrow</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Success Receipt */}
+              {paymentStep === 'success' && lastPaymentReceipt && (
+                <div className="space-y-4 text-center">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-base text-[#0A1128]">Payment Secured in Escrow!</h4>
+                    <span className="text-xs text-slate-500 block mt-0.5">
+                      Transaction Reference: <strong className="text-slate-800">{lastPaymentReceipt.txnRef}</strong>
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-1.5 font-mono">
+                    <p><strong>Channel:</strong> Telebirr Mobile Money</p>
+                    <p><strong>Payer Phone:</strong> {lastPaymentReceipt.phone}</p>
+                    <p><strong>Amount:</strong> ETB {lastPaymentReceipt.amount}.00</p>
+                    <p><strong>Status:</strong> Held in Trust (NBE Escrow)</p>
+                    <p><strong>Timestamp:</strong> {lastPaymentReceipt.date}</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setPayingConsultation(null);
+                      setPaymentStep('phone');
+                    }}
+                    className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    Done & Return to Cases
+                  </button>
+                </div>
+              )}
+
+              {/* Compliance footer */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Compliant with National Bank of Ethiopia Escrow Directives</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. INTERACTIVE CASE MODAL WITH LIVE CONSULTATION ROOM & REALTIME CHAT */}
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
@@ -918,6 +1254,11 @@ export default function LegalLinkHome() {
                   }`}>
                     {selectedConsultationDetails.status || 'pending'}
                   </span>
+                  {selectedConsultationDetails.payment_status === 'escrow_locked' && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      Escrow Paid (Telebirr)
+                    </span>
+                  )}
                 </div>
                 <h3 className="font-black text-xl text-[#0A1128] mt-1">Consultation Hub</h3>
                 <span className="text-[11px] font-mono text-slate-400">
@@ -965,7 +1306,6 @@ export default function LegalLinkHome() {
               {/* TAB A: OVERVIEW */}
               {modalTab === 'overview' && (
                 <div className="space-y-6">
-                  {/* Progression */}
                   <div>
                     <span className="text-xs font-bold text-slate-400 uppercase block mb-3">Case Progression</span>
                     <div className="grid grid-cols-3 gap-2">
@@ -1005,7 +1345,6 @@ export default function LegalLinkHome() {
                     </div>
                   </div>
 
-                  {/* Metadata Grid */}
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="text-slate-400 block text-[11px]">Client Name</span>
@@ -1034,7 +1373,6 @@ export default function LegalLinkHome() {
                     </div>
                   </div>
 
-                  {/* Situation Text */}
                   <div>
                     <span className="text-xs font-bold text-slate-700 uppercase block mb-2">Situation Description</span>
                     <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -1042,7 +1380,6 @@ export default function LegalLinkHome() {
                     </div>
                   </div>
 
-                  {/* Room CTA */}
                   <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <MessageSquare className="w-5 h-5 text-amber-600" />
@@ -1064,8 +1401,6 @@ export default function LegalLinkHome() {
               {/* TAB B: LIVE ROOM & MESSAGING */}
               {modalTab === 'room' && (
                 <div className="space-y-4">
-                  
-                  {/* Video Call Launcher Header */}
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-sm shadow">
@@ -1092,7 +1427,6 @@ export default function LegalLinkHome() {
                     </a>
                   </div>
 
-                  {/* Sender Persona Switcher (For demo and dual testing) */}
                   <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
                     <span className="text-slate-500 font-semibold">Testing Persona Switcher:</span>
                     <div className="flex items-center gap-1">
@@ -1121,7 +1455,6 @@ export default function LegalLinkHome() {
                     </div>
                   </div>
 
-                  {/* Chat Message Window */}
                   <div className="h-72 bg-slate-50/80 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
                     {loadingMessages ? (
                       <div className="h-full flex items-center justify-center text-xs text-slate-400 gap-2">
@@ -1164,7 +1497,6 @@ export default function LegalLinkHome() {
                     <div ref={chatBottomRef} />
                   </div>
 
-                  {/* Input Form */}
                   <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
                     <input
                       type="text"
@@ -1188,13 +1520,11 @@ export default function LegalLinkHome() {
                       )}
                     </button>
                   </form>
-
                 </div>
               )}
 
             </div>
 
-            {/* Modal Footer */}
             <div className="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50">
               <button
                 onClick={() => setSelectedConsultationDetails(null)}
@@ -1208,7 +1538,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 5. LEXDRAFT MODULE */}
+      {/* 6. LEXDRAFT MODULE */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
           <div className="text-center max-w-xl mx-auto mb-10">
@@ -1315,7 +1645,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 6. LEGALTALK ARTICLES */}
+      {/* 7. LEGALTALK ARTICLES */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
           <div className="text-center max-w-xl mx-auto mb-10">
@@ -1370,7 +1700,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 7. FOR LAWYERS ONBOARDING */}
+      {/* 8. FOR LAWYERS ONBOARDING */}
       {activeTab === 'for-lawyers' && (
         <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full">
           <div className="grid grid-cols-4 gap-2 mb-6 text-center text-xs">
@@ -1441,7 +1771,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 8. ROLE SELECT MODAL */}
+      {/* 9. ROLE SELECT MODAL */}
       {isRoleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
@@ -1485,7 +1815,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 9. FOOTER */}
+      {/* 10. FOOTER */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
