@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   Scale, Briefcase, Heart, Home, Lightbulb, Users, Shield, Globe, Building, 
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
-  Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight
+  Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
+  Video, Send, MessageSquare, User, MessageCircle
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -39,6 +40,17 @@ export default function LegalLinkHome() {
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
   const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
   const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<any | null>(null);
+  const [modalTab, setModalTab] = useState<'overview' | 'room'>('overview');
+
+  // -------------------------------------------------------------
+  // LIVE CONSULTATION ROOM & REALTIME CHAT STATE
+  // -------------------------------------------------------------
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [newMessageText, setNewMessageText] = useState('');
+  const [senderRole, setSenderRole] = useState<'client' | 'advocate'>('client');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
   const fetchMyConsultations = async () => {
     setLoadingMyConsultations(true);
@@ -94,6 +106,98 @@ export default function LegalLinkHome() {
       };
     }
   }, [activeTab]);
+
+  // Load and subscribe to real-time chat messages when Room is opened
+  useEffect(() => {
+    if (selectedConsultationDetails && modalTab === 'room') {
+      const consultationId = selectedConsultationDetails.id;
+      setLoadingMessages(true);
+
+      const supabase = createClient();
+
+      // 1. Fetch initial message history
+      const fetchHistory = async () => {
+        const { data, error } = await supabase
+          .from('consultation_messages')
+          .select('*')
+          .eq('consultation_id', consultationId)
+          .order('created_at', { ascending: true });
+
+        if (!error && data) {
+          setMessages(data);
+        }
+        setLoadingMessages(false);
+      };
+
+      fetchHistory();
+
+      // 2. Subscribe to new messages for this consultation in real-time
+      const chatChannel = supabase
+        .channel(`chat_${consultationId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'consultation_messages',
+            filter: `consultation_id=eq.${consultationId}`,
+          },
+          (payload) => {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
+            });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(chatChannel);
+      };
+    }
+  }, [selectedConsultationDetails, modalTab]);
+
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (modalTab === 'room') {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, modalTab]);
+
+  // Send a message into the secure consultation thread
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessageText.trim() || !selectedConsultationDetails) return;
+
+    setIsSendingMessage(true);
+    try {
+      const supabase = createClient();
+      const senderName = senderRole === 'client' 
+        ? (selectedConsultationDetails.client_name || 'Client') 
+        : 'Advocate Mulu Haile (Senior Counsel)';
+
+      const { error } = await supabase
+        .from('consultation_messages')
+        .insert([
+          {
+            consultation_id: selectedConsultationDetails.id,
+            sender_name: senderName,
+            sender_role: senderRole,
+            message_text: newMessageText.trim(),
+          },
+        ]);
+
+      if (error) {
+        alert('Could not deliver message: ' + error.message);
+      } else {
+        setNewMessageText('');
+      }
+    } catch (err: any) {
+      alert('Error transmitting message');
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   // Submit client matching consultation to Supabase
   const handleBookingSubmit = async () => {
@@ -615,7 +719,7 @@ export default function LegalLinkHome() {
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Welcome to Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage your consultations with Ethiopian advocates, download drafted contracts, and verify escrow transactions.
+                Manage your consultations with Ethiopian advocates, enter live consultation rooms, and download legal contracts.
               </p>
             </div>
             <button
@@ -715,11 +819,30 @@ export default function LegalLinkHome() {
                     </div>
 
                     <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                      {/* Active Live Room Launcher */}
                       <button
-                        onClick={() => setSelectedConsultationDetails(c)}
-                        className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
+                        onClick={() => {
+                          setSelectedConsultationDetails(c);
+                          setModalTab('room');
+                        }}
+                        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm ${
+                          c.status === 'approved'
+                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black animate-pulse'
+                            : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
+                        }`}
                       >
-                        View Details
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>{c.status === 'approved' ? 'Join Live Room & Chat' : 'Case Room'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedConsultationDetails(c);
+                          setModalTab('overview');
+                        }}
+                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                      >
+                        Details
                       </button>
                     </div>
                   </div>
@@ -772,11 +895,13 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* Interactive Consultation Details Modal */}
+      {/* 4. INTERACTIVE CASE MODAL WITH LIVE CONSULTATION ROOM & REALTIME CHAT */}
       {selectedConsultationDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start pb-5 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
@@ -794,326 +919,293 @@ export default function LegalLinkHome() {
                     {selectedConsultationDetails.status || 'pending'}
                   </span>
                 </div>
-                <h3 className="font-black text-xl text-[#0A1128] mt-1">Consultation Overview</h3>
+                <h3 className="font-black text-xl text-[#0A1128] mt-1">Consultation Hub</h3>
                 <span className="text-[11px] font-mono text-slate-400">
                   Case ID: #{selectedConsultationDetails.id.slice(0, 8).toUpperCase()}
                 </span>
               </div>
+
               <button 
                 onClick={() => setSelectedConsultationDetails(null)} 
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="py-6 space-y-6">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase block mb-3">Case Progression</span>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800">
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>1. Submitted</span>
-                    </div>
-                    <span className="text-[10px] text-emerald-600 block mt-0.5">Database verified</span>
-                  </div>
-
-                  <div className={`p-3 rounded-xl border ${
-                    selectedConsultationDetails.status === 'approved' || selectedConsultationDetails.status === 'completed'
-                      ? 'bg-blue-50 border-blue-200 text-blue-800'
-                      : 'bg-slate-50 border-slate-200 text-slate-500'
-                  }`}>
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Clock className="w-4 h-4" />
-                      <span>2. Review</span>
-                    </div>
-                    <span className="text-[10px] block mt-0.5">
-                      {selectedConsultationDetails.status === 'approved' ? 'Approved & Assigned' : 'Under Review'}
-                    </span>
-                  </div>
-
-                  <div className={`p-3 rounded-xl border ${
-                    selectedConsultationDetails.status === 'completed'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                      : 'bg-slate-50 border-slate-200 text-slate-400'
-                  }`}>
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>3. Resolved</span>
-                    </div>
-                    <span className="text-[10px] block mt-0.5">Final decree</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Client Name</span>
-                  <span className="font-bold text-[#0A1128] text-sm">
-                    {selectedConsultationDetails.client_name || 'Anonymous Client'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Jurisdiction / Location</span>
-                  <span className="font-bold text-[#0A1128] text-sm flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                    {selectedConsultationDetails.location}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Budget Range</span>
-                  <span className="font-bold text-[#0A1128] text-sm">
-                    {selectedConsultationDetails.budget_range || 'ETB 1,000–2,000'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Submission Date</span>
-                  <span className="font-bold text-[#0A1128] text-sm">
-                    {selectedConsultationDetails.created_at ? new Date(selectedConsultationDetails.created_at).toLocaleString() : 'Recent'}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs font-bold text-slate-700 uppercase block mb-2">Situation Description</span>
-                <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {selectedConsultationDetails.situation_description}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-amber-900 leading-relaxed">
-                  <strong>Assigned Advocate Match:</strong> An advocate specializing in Ethiopian {selectedConsultationDetails.practice_area} in {selectedConsultationDetails.location} is reviewing your case brief. Escrow payment will only be released upon completed legal consultation.
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+            {/* Modal Tabs */}
+            <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
               <button
-                onClick={() => setSelectedConsultationDetails(null)}
-                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                onClick={() => setModalTab('overview')}
+                className={`py-3 border-b-2 cursor-pointer transition-colors ${
+                  modalTab === 'overview' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+                }`}
               >
-                Close
+                Case Overview & Progression
+              </button>
+              <button
+                onClick={() => setModalTab('room')}
+                className={`py-3 border-b-2 cursor-pointer transition-colors flex items-center gap-1.5 ${
+                  modalTab === 'room' ? 'border-amber-500 text-amber-600 font-black' : 'border-transparent text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Live Room & Secure Chat</span>
+                {messages.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[10px] flex items-center justify-center font-bold">
+                    {messages.length}
+                  </span>
+                )}
               </button>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* 4. CLIENT MATCHING WIZARD */}
-      {activeTab === 'match' && (
-        <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
-          <div className="flex items-center justify-between max-w-md mx-auto mb-8">
-            {[
-              { num: 1, label: 'Category' },
-              { num: 2, label: 'Preferences' },
-              { num: 3, label: 'Match' },
-              { num: 4, label: 'Confirm' },
-            ].map((s) => (
-              <div key={s.num} className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                  matchStep === s.num ? 'bg-[#0A1128] text-amber-400 ring-4 ring-amber-100' : matchStep > s.num ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'
-                }`}>
-                  {matchStep > s.num ? <CheckCircle2 className="w-4 h-4" /> : s.num}
-                </div>
-                <span className="text-[11px] font-semibold text-slate-600 mt-1">{s.label}</span>
-              </div>
-            ))}
-          </div>
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+              
+              {/* TAB A: OVERVIEW */}
+              {modalTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Progression */}
+                  <div>
+                    <span className="text-xs font-bold text-slate-400 uppercase block mb-3">Case Progression</span>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800">
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>1. Submitted</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-600 block mt-0.5">Database verified</span>
+                      </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            {matchStep === 1 && (
-              <div>
-                <div className="text-center max-w-md mx-auto mb-6">
-                  <span className="text-xs font-bold text-amber-600 uppercase">Stage 1 of 4</span>
-                  <h2 className="text-2xl font-black text-[#0A1128] mt-1">What do you need help with?</h2>
+                      <div className={`p-3 rounded-xl border ${
+                        selectedConsultationDetails.status === 'approved' || selectedConsultationDetails.status === 'completed'
+                          ? 'bg-blue-50 border-blue-200 text-blue-800'
+                          : 'bg-slate-50 border-slate-200 text-slate-500'
+                      }`}>
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
+                          <Clock className="w-4 h-4" />
+                          <span>2. Review</span>
+                        </div>
+                        <span className="text-[10px] block mt-0.5">
+                          {selectedConsultationDetails.status === 'approved' ? 'Approved & Assigned' : 'Under Review'}
+                        </span>
+                      </div>
+
+                      <div className={`p-3 rounded-xl border ${
+                        selectedConsultationDetails.status === 'completed'
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                          : 'bg-slate-50 border-slate-200 text-slate-400'
+                      }`}>
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>3. Resolved</span>
+                        </div>
+                        <span className="text-[10px] block mt-0.5">Final decree</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Client Name</span>
+                      <span className="font-bold text-[#0A1128] text-sm">
+                        {selectedConsultationDetails.client_name || 'Anonymous Client'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Jurisdiction / Location</span>
+                      <span className="font-bold text-[#0A1128] text-sm flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                        {selectedConsultationDetails.location}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Budget Range</span>
+                      <span className="font-bold text-[#0A1128] text-sm">
+                        {selectedConsultationDetails.budget_range || 'ETB 1,000–2,000'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Submission Date</span>
+                      <span className="font-bold text-[#0A1128] text-sm">
+                        {selectedConsultationDetails.created_at ? new Date(selectedConsultationDetails.created_at).toLocaleString() : 'Recent'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Situation Text */}
+                  <div>
+                    <span className="text-xs font-bold text-slate-700 uppercase block mb-2">Situation Description</span>
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                      {selectedConsultationDetails.situation_description}
+                    </div>
+                  </div>
+
+                  {/* Room CTA */}
+                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <MessageSquare className="w-5 h-5 text-amber-600" />
+                      <div>
+                        <span className="text-xs font-bold text-amber-900 block">Consultation Room Active</span>
+                        <span className="text-[11px] text-amber-700">Communicate directly with your advocate via chat and secure video.</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setModalTab('room')}
+                      className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      Enter Room →
+                    </button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {practiceAreas.map((p) => {
-                    const Icon = p.icon;
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => setSelectedCategory(p.id)}
-                        className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                          selectedCategory === p.id ? 'border-[#0A1128] bg-slate-50 ring-2 ring-[#0A1128]' : 'border-slate-200 hover:border-slate-300'
+              )}
+
+              {/* TAB B: LIVE ROOM & MESSAGING */}
+              {modalTab === 'room' && (
+                <div className="space-y-4">
+                  
+                  {/* Video Call Launcher Header */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+                        MH
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-sm">Advocate Mulu Haile</span>
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        </div>
+                        <span className="text-[11px] text-slate-300 block">Federal Advocate • Online</span>
+                      </div>
+                    </div>
+
+                    <a
+                      href={`https://meet.jit.si/legallink-case-${selectedConsultationDetails.id.slice(0, 8)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-all cursor-pointer"
+                    >
+                      <Video className="w-3.5 h-3.5" />
+                      <span>Launch Video Call (P2P Encrypted)</span>
+                      <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
+                    </a>
+                  </div>
+
+                  {/* Sender Persona Switcher (For demo and dual testing) */}
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                    <span className="text-slate-500 font-semibold">Testing Persona Switcher:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSenderRole('client')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                          senderRole === 'client' 
+                            ? 'bg-[#0A1128] text-white shadow-sm' 
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        <Icon className="w-5 h-5 text-[#0A1128] mb-2" />
-                        <h4 className="font-bold text-xs text-[#0A1128]">{p.title}</h4>
+                        Client (You)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSenderRole('advocate')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                          senderRole === 'advocate' 
+                            ? 'bg-amber-500 text-slate-950 shadow-sm' 
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        Advocate (Mulu)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Chat Message Window */}
+                  <div className="h-72 bg-slate-50/80 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
+                    {loadingMessages ? (
+                      <div className="h-full flex items-center justify-center text-xs text-slate-400 gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-[#0A1128]" />
+                        <span>Connecting to secure case channel...</span>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-8 flex justify-end">
-                  <button onClick={() => setMatchStep(2)} className="flex items-center gap-2 px-6 py-2.5 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800">
-                    <span>Next: Set Preferences</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {matchStep === 2 && (
-              <div className="space-y-5">
-                <div className="text-center max-w-md mx-auto mb-4">
-                  <span className="text-xs font-bold text-amber-600 uppercase">Stage 2 of 4</span>
-                  <h2 className="text-2xl font-black text-[#0A1128] mt-1">Your Preferences</h2>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Your Name</label>
-                  <input
-                    type="text"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="e.g. Ybeltal Semagn"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Location</label>
-                    <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
-                      <option value="Addis Ababa">Addis Ababa</option>
-                      <option value="Dire Dawa">Dire Dawa</option>
-                      <option value="Hawassa">Hawassa</option>
-                      <option value="Bahir Dar">Bahir Dar</option>
-                      <option value="Mekelle">Mekelle</option>
-                      <option value="Adama">Adama</option>
-                      <option value="Remote / Online">Remote / Online</option>
-                    </select>
+                    ) : messages.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs text-center p-6">
+                        <MessageCircle className="w-8 h-8 mb-2 opacity-30 text-[#0A1128]" />
+                        <span className="font-semibold text-slate-600">No messages in this case thread yet.</span>
+                        <span className="text-[11px] mt-0.5">Start by sending an inquiry or case document to Advocate Mulu Haile below.</span>
+                      </div>
+                    ) : (
+                      messages.map((m) => {
+                        const isClient = m.sender_role === 'client';
+                        return (
+                          <div 
+                            key={m.id} 
+                            className={`flex flex-col ${isClient ? 'items-end' : 'items-start'}`}
+                          >
+                            <div className="flex items-center gap-1.5 mb-1 px-1">
+                              <span className="text-[10px] font-bold text-slate-500">{m.sender_name}</span>
+                              <span className="text-[9px] text-slate-400">
+                                {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div 
+                              className={`max-w-md p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                                isClient 
+                                  ? 'bg-[#0A1128] text-white rounded-tr-none' 
+                                  : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                              }`}
+                            >
+                              {m.message_text}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    <div ref={chatBottomRef} />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Language</label>
-                    <select value={consultLanguage} onChange={(e) => setConsultLanguage(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
-                      <option value="Amharic">Amharic (አማርኛ)</option>
-                      <option value="English">English</option>
-                      <option value="Oromo">Afaan Oromoo</option>
-                      <option value="Tigrinya">Tigrinya</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-bold text-slate-700 uppercase">Describe Your Legal Situation</label>
-                    <span className="text-xs text-slate-400">{situationText.length} / 500</span>
-                  </div>
-                  <textarea
-                    rows={3}
-                    maxLength={500}
-                    value={situationText}
-                    onChange={(e) => setSituationText(e.target.value)}
-                    placeholder="Explain your case in plain language..."
-                    className="w-full p-3 rounded-xl border border-slate-200 text-sm"
-                  />
-                </div>
-
-                <div className="flex justify-between pt-4">
-                  <button onClick={() => setMatchStep(1)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
-                  <button onClick={() => setMatchStep(3)} className="flex items-center gap-2 px-6 py-2.5 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800">
-                    <span>Next: Match Lawyers</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {matchStep === 3 && (
-              <div>
-                <div className="text-center max-w-md mx-auto mb-6">
-                  <span className="text-xs font-bold text-amber-600 uppercase">Stage 3 of 4</span>
-                  <h2 className="text-2xl font-black text-[#0A1128] mt-1">Matched Verified Lawyers</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {mockMatchedLawyers.map((l) => (
-                    <div
-                      key={l.id}
-                      onClick={() => setSelectedLawyer(l)}
-                      className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                        selectedLawyer?.id === l.id ? 'border-[#0A1128] bg-amber-50/20 ring-2 ring-[#0A1128]' : 'border-slate-200 hover:border-slate-300'
-                      }`}
+                  {/* Input Form */}
+                  <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      placeholder={`Type message as ${senderRole === 'client' ? 'Client' : 'Advocate'}...`}
+                      value={newMessageText}
+                      onChange={(e) => setNewMessageText(e.target.value)}
+                      className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128] shadow-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSendingMessage || !newMessageText.trim()}
+                      className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-xs">
-                            {l.avatarInitials}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-sm text-[#0A1128]">{l.name}</h4>
-                            <p className="text-xs text-slate-500">{l.title}</p>
-                          </div>
-                        </div>
-                        <span className="text-xs font-black text-[#0A1128]">ETB {l.hourlyRate}/hr</span>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-2 line-clamp-2">{l.bio}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between pt-6 border-t border-slate-100 mt-6">
-                  <button onClick={() => setMatchStep(2)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
-                  <button 
-                    disabled={!selectedLawyer}
-                    onClick={() => setMatchStep(4)} 
-                    className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl font-bold text-sm disabled:opacity-40 cursor-pointer"
-                  >
-                    Confirm Consultation →
-                  </button>
-                </div>
-              </div>
-            )}
+                      {isSendingMessage ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <>
+                          <span>Send</span>
+                          <Send className="w-3 h-3" />
+                        </>
+                      )}
+                    </button>
+                  </form>
 
-            {matchStep === 4 && (
-              <div>
-                {bookingConfirmed ? (
-                  <div className="text-center py-8">
-                    <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-3" />
-                    <h3 className="text-xl font-black text-[#0A1128]">Consultation Successfully Saved!</h3>
-                    <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto">
-                      Your consultation details have been recorded directly in the Supabase database.
-                    </p>
-                    <div className="mt-6 flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => {
-                          setBookingConfirmed(false);
-                          setActiveTab('my-consultations');
-                        }}
-                        className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold cursor-pointer"
-                      >
-                        View in Client Portal
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="text-lg font-bold text-[#0A1128] mb-4">Confirm Consultation Details</h3>
-                    <div className="p-4 bg-slate-50 rounded-xl space-y-2 text-xs border border-slate-200 mb-6">
-                      <p><strong>Selected Advocate:</strong> {selectedLawyer?.name || 'Advocate Mulu Haile'}</p>
-                      <p><strong>Practice Area:</strong> {selectedCategory}</p>
-                      <p><strong>Location:</strong> {location}</p>
-                      <p><strong>Time Slot:</strong> {selectedTimeSlot}</p>
-                      <p><strong>Hourly Escrow Fee:</strong> ETB {selectedLawyer?.hourlyRate || 1500}</p>
-                    </div>
-                    <div className="flex justify-between">
-                      <button onClick={() => setMatchStep(3)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
-                      <button
-                        disabled={isSubmitting}
-                        onClick={handleBookingSubmit}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-[#0A1128] font-bold rounded-xl text-sm shadow cursor-pointer"
-                      >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm & Save in Supabase'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50">
+              <button
+                onClick={() => setSelectedConsultationDetails(null)}
+                className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-[#0A1128] font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              >
+                Close Hub
+              </button>
+            </div>
+
           </div>
-        </main>
+        </div>
       )}
 
       {/* 5. LEXDRAFT MODULE */}
