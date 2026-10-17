@@ -6,13 +6,14 @@ import {
   Scale, Briefcase, Heart, Home, Lightbulb, Users, Shield, Globe, Building, 
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
-  Calendar, Check, AlertCircle
+  Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
   const [activeTab, setActiveTab] = useState<'home' | 'match' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
+  const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts' | 'receipts'>('consultations');
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -31,6 +32,11 @@ export default function LegalLinkHome() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('10:00 AM');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+
+  // Payment Modal State
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPaymentProvider, setSelectedPaymentProvider] = useState<'telebirr' | 'cbe' | 'chapa'>('telebirr');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // -------------------------------------------------------------
   // USER DASHBOARD (MY CONSULTATIONS) & DETAILS MODAL
@@ -66,7 +72,7 @@ export default function LegalLinkHome() {
   // Submit client matching consultation to Supabase
   const handleBookingSubmit = async () => {
     if (!situationText.trim()) {
-      alert('Please briefly describe your legal situation.');
+      alert('Please describe your legal situation before confirming.');
       return;
     }
 
@@ -103,6 +109,10 @@ export default function LegalLinkHome() {
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [docFormData, setDocFormData] = useState<Record<string, string>>({});
   const [docGenerated, setDocGenerated] = useState(false);
+  const [savedContracts, setSavedContracts] = useState<any[]>([
+    { id: 'cnt-1', title: 'Employment Contract - Senior Developer', date: '2026-10-14', fee: 'ETB 450', status: 'Ready' },
+    { id: 'cnt-2', title: 'Bilingual Mutual NDA', date: '2026-10-09', fee: 'ETB 300', status: 'Ready' }
+  ]);
 
   // -------------------------------------------------------------
   // LEGALTALK STATE
@@ -310,7 +320,7 @@ export default function LegalLinkHome() {
                 { id: 'for-lawyers', label: lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers' },
                 { id: 'legaltalk', label: 'LegalTalk' },
                 { id: 'lexdraft', label: 'LexDraft' },
-                { id: 'my-consultations', label: lang === 'am' ? 'የእኔ ምክክሮች' : 'My Consultations' },
+                { id: 'my-consultations', label: lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal' },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -377,7 +387,7 @@ export default function LegalLinkHome() {
               { id: 'for-lawyers', label: lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers' },
               { id: 'legaltalk', label: 'LegalTalk' },
               { id: 'lexdraft', label: 'LexDraft' },
-              { id: 'my-consultations', label: lang === 'am' ? 'የእኔ ምክክሮች' : 'My Consultations' },
+              { id: 'my-consultations', label: lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -394,7 +404,7 @@ export default function LegalLinkHome() {
         )}
       </header>
 
-      {/* 2. LANDING VIEW */}
+      {/* 2. PUBLIC LANDING VIEW */}
       {activeTab === 'home' && (
         <main className="flex-1">
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
@@ -569,81 +579,168 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 3. USER DASHBOARD: "MY CONSULTATIONS" */}
+      {/* 3. DEDICATED USER DASHBOARD (CLIENT PORTAL) */}
       {activeTab === 'my-consultations' && (
-        <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full">
-          <div className="flex justify-between items-center mb-6">
+        <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
+          
+          {/* Client Portal Header */}
+          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">CLIENT PORTAL</span>
-              <h2 className="text-2xl font-black text-[#0A1128] mt-1">My Legal Consultations</h2>
-              <p className="text-xs text-slate-500 mt-1">Track your consultation requests and assigned advocates.</p>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
+              <h1 className="text-2xl sm:text-3xl font-black mt-1">Welcome to Your Legal Workspace</h1>
+              <p className="text-xs text-slate-300 mt-1 max-w-md">
+                Manage your consultations with Ethiopian advocates, download drafted contracts, and verify escrow transactions.
+              </p>
             </div>
             <button
-              onClick={fetchMyConsultations}
-              disabled={loadingMyConsultations}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0A1128] text-white rounded-xl text-xs font-bold cursor-pointer hover:bg-slate-800"
+              onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-bold rounded-xl text-xs shadow-lg transition-all cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${loadingMyConsultations ? 'animate-spin' : ''}`} />
-              <span>Refresh Status</span>
+              + Book New Advocate
             </button>
           </div>
 
-          <div className="space-y-4">
-            {loadingMyConsultations ? (
-              <div className="p-16 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#0A1128]" />
-                Loading your consultation records...
-              </div>
-            ) : myConsultations.length === 0 ? (
-              <div className="p-16 text-center bg-white rounded-2xl border border-slate-200">
-                <Briefcase className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                <h3 className="font-bold text-sm text-[#0A1128]">No active requests found</h3>
-                <p className="text-xs text-slate-500 mt-1 mb-4">Request a consultation with a verified lawyer to get started.</p>
+          {/* Sub Navigation */}
+          <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
+            <button
+              onClick={() => setClientSubTab('consultations')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'consultations' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Consultations & Cases ({myConsultations.length})
+            </button>
+            <button
+              onClick={() => setClientSubTab('contracts')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'contracts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              My Saved Contracts ({savedContracts.length})
+            </button>
+            <button
+              onClick={() => setClientSubTab('receipts')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'receipts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Escrow Receipts & Clearing
+            </button>
+          </div>
+
+          {/* SUB-TAB 1: CONSULTATIONS */}
+          {clientSubTab === 'consultations' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-slate-500">Showing all cases synchronized with Supabase PostgreSQL</span>
                 <button
-                  onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                  className="px-5 py-2 bg-amber-500 text-slate-900 font-bold rounded-xl text-xs shadow"
+                  onClick={fetchMyConsultations}
+                  disabled={loadingMyConsultations}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] text-xs font-bold rounded-lg cursor-pointer"
                 >
-                  Request Consultation
+                  <RefreshCw className={`w-3 h-3 text-amber-500 ${loadingMyConsultations ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
                 </button>
               </div>
-            ) : (
-              myConsultations.map((c) => (
-                <div key={c.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        c.status === 'approved' 
-                          ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                          : c.status === 'completed'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : c.status === 'cancelled'
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
-                      }`}>
-                        {c.status || 'pending'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 line-clamp-2 max-w-xl">{c.situation_description}</p>
-                    <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
-                      <span>📍 {c.location}</span>
-                      <span>💰 {c.budget_range || 'ETB 1,000–2,000'}</span>
-                      <span>📅 {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}</span>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-                    <button
-                      onClick={() => setSelectedConsultationDetails(c)}
-                      className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
-                    >
-                      View Details
-                    </button>
-                  </div>
+              {loadingMyConsultations ? (
+                <div className="p-16 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[#0A1128]" />
+                  Loading your consultation records...
                 </div>
-              ))
-            )}
-          </div>
+              ) : myConsultations.length === 0 ? (
+                <div className="p-16 text-center bg-white rounded-2xl border border-slate-200">
+                  <Briefcase className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                  <h3 className="font-bold text-sm text-[#0A1128]">No active requests found</h3>
+                  <p className="text-xs text-slate-500 mt-1 mb-4">Request a consultation with a verified lawyer to get started.</p>
+                  <button
+                    onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                    className="px-5 py-2 bg-amber-500 text-slate-900 font-bold rounded-xl text-xs shadow cursor-pointer"
+                  >
+                    Request Consultation
+                  </button>
+                </div>
+              ) : (
+                myConsultations.map((c) => (
+                  <div key={c.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-300 transition-all">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                          c.status === 'approved' 
+                            ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                            : c.status === 'completed'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : c.status === 'cancelled'
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {c.status || 'pending'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 line-clamp-2 max-w-xl">{c.situation_description}</p>
+                      <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
+                        <span>📍 {c.location}</span>
+                        <span>💰 {c.budget_range || 'ETB 1,000–2,000'}</span>
+                        <span>📅 {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                      <button
+                        onClick={() => setSelectedConsultationDetails(c)}
+                        className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* SUB-TAB 2: CONTRACTS */}
+          {clientSubTab === 'contracts' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedContracts.map((doc) => (
+                <div key={doc.id} className="p-5 rounded-2xl border border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-bold text-amber-600 uppercase">LexDraft Stored Document</span>
+                    <h4 className="font-bold text-sm text-[#0A1128] mt-0.5">{doc.title}</h4>
+                    <span className="text-[11px] text-slate-400 block mt-1">Generated: {doc.date} • {doc.fee}</span>
+                  </div>
+                  <button 
+                    onClick={() => window.print()}
+                    className="p-2.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Print PDF</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* SUB-TAB 3: RECEIPTS */}
+          {clientSubTab === 'receipts' && (
+            <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
+              <h3 className="font-bold text-sm text-[#0A1128]">Escrow Protection & Payment Security</h3>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
+                All client consultation retainers and LexDraft template fees in Ethiopia are safeguarded in an NBE-compliant escrow trust account. Advocate payouts are authorized solely following client case sign-off.
+              </p>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-[#0A1128] block">Escrow Clearance Node</span>
+                  <span className="text-slate-500">Telebirr & CBE Partner Gateway (Addis Ababa)</span>
+                </div>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-lg text-[10px]">
+                  SSL Encrypted & Insured
+                </span>
+              </div>
+            </div>
+          )}
+
         </main>
       )}
 
@@ -651,7 +748,6 @@ export default function LegalLinkHome() {
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
             <div className="flex justify-between items-start pb-5 border-b border-slate-100">
               <div>
                 <div className="flex items-center gap-2">
@@ -683,10 +779,7 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Case Details Grid */}
             <div className="py-6 space-y-6">
-              
-              {/* Progress Tracker */}
               <div>
                 <span className="text-xs font-bold text-slate-400 uppercase block mb-3">Case Progression</span>
                 <div className="grid grid-cols-3 gap-2">
@@ -726,7 +819,6 @@ export default function LegalLinkHome() {
                 </div>
               </div>
 
-              {/* Case Specifications */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[11px]">Client Name</span>
@@ -755,7 +847,6 @@ export default function LegalLinkHome() {
                 </div>
               </div>
 
-              {/* Case Description */}
               <div>
                 <span className="text-xs font-bold text-slate-700 uppercase block mb-2">Situation Description</span>
                 <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -763,17 +854,14 @@ export default function LegalLinkHome() {
                 </div>
               </div>
 
-              {/* Advocate Matching Notice */}
               <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-amber-900 leading-relaxed">
                   <strong>Assigned Advocate Match:</strong> An advocate specializing in Ethiopian {selectedConsultationDetails.practice_area} in {selectedConsultationDetails.location} is reviewing your case brief. Escrow payment will only be released upon completed legal consultation.
                 </div>
               </div>
-
             </div>
 
-            {/* Footer Actions */}
             <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
               <button
                 onClick={() => setSelectedConsultationDetails(null)}
@@ -968,7 +1056,7 @@ export default function LegalLinkHome() {
                         }}
                         className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold cursor-pointer"
                       >
-                        View in My Consultations
+                        View in Client Portal
                       </button>
                     </div>
                   </div>
@@ -1041,7 +1129,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* LexDraft Interactive Form / PDF Modal */}
+      {/* LexDraft Modal */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
@@ -1303,7 +1391,7 @@ export default function LegalLinkHome() {
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('lexdraft')}>LexDraft</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('legaltalk')}>LegalTalk</li>
-                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>My Consultations</li>
+                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
               </ul>
             </div>
             <div>
