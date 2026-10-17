@@ -33,11 +33,6 @@ export default function LegalLinkHome() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
-  // Payment Modal State
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [selectedPaymentProvider, setSelectedPaymentProvider] = useState<'telebirr' | 'cbe' | 'chapa'>('telebirr');
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-
   // -------------------------------------------------------------
   // USER DASHBOARD (MY CONSULTATIONS) & DETAILS MODAL
   // -------------------------------------------------------------
@@ -57,22 +52,53 @@ export default function LegalLinkHome() {
         setMyConsultations(data);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Fetch error:', err);
     } finally {
       setLoadingMyConsultations(false);
     }
   };
 
+  // Live Realtime listener for cross-tab database synchronization
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
+
+      const supabase = createClient();
+      const channel = supabase
+        .channel('client_consultations_realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'consultations' },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              setMyConsultations((prev) =>
+                prev.map((item) => (item.id === payload.new.id ? { ...item, ...payload.new } : item))
+              );
+              setSelectedConsultationDetails((prev: any) =>
+                prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev
+              );
+            } else if (payload.eventType === 'INSERT') {
+              setMyConsultations((prev) => [payload.new, ...prev]);
+            } else if (payload.eventType === 'DELETE') {
+              setMyConsultations((prev) => prev.filter((item) => item.id !== payload.old.id));
+              setSelectedConsultationDetails((prev: any) =>
+                prev?.id === payload.old.id ? null : prev
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [activeTab]);
 
   // Submit client matching consultation to Supabase
   const handleBookingSubmit = async () => {
     if (!situationText.trim()) {
-      alert('Please describe your legal situation before confirming.');
+      alert('Please describe your legal situation before submitting.');
       return;
     }
 
@@ -109,7 +135,7 @@ export default function LegalLinkHome() {
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [docFormData, setDocFormData] = useState<Record<string, string>>({});
   const [docGenerated, setDocGenerated] = useState(false);
-  const [savedContracts, setSavedContracts] = useState<any[]>([
+  const [savedContracts] = useState<any[]>([
     { id: 'cnt-1', title: 'Employment Contract - Senior Developer', date: '2026-10-14', fee: 'ETB 450', status: 'Ready' },
     { id: 'cnt-2', title: 'Bilingual Mutual NDA', date: '2026-10-09', fee: 'ETB 300', status: 'Ready' }
   ]);
@@ -444,7 +470,7 @@ export default function LegalLinkHome() {
                     </button>
                   </div>
 
-                  {/* 4 Stats */}
+                  {/* Stats */}
                   <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100">
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">500+</span>
@@ -465,7 +491,7 @@ export default function LegalLinkHome() {
                   </div>
                 </div>
 
-                {/* Right Hero Card: Advocate Mulu Haile */}
+                {/* Right Hero Card */}
                 <div className="lg:col-span-5 relative flex justify-center">
                   <div className="w-full max-w-md bg-white rounded-2xl p-6 sm:p-7 shadow-2xl border border-slate-100">
                     <div className="flex items-start justify-between">
@@ -583,7 +609,7 @@ export default function LegalLinkHome() {
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           
-          {/* Client Portal Header */}
+          {/* Header Banner */}
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
@@ -632,7 +658,9 @@ export default function LegalLinkHome() {
           {clientSubTab === 'consultations' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Showing all cases synchronized with Supabase PostgreSQL</span>
+                <span className="text-xs text-slate-500">
+                  Live synchronized with Supabase PostgreSQL (Updates automatically)
+                </span>
                 <button
                   onClick={fetchMyConsultations}
                   disabled={loadingMyConsultations}
@@ -801,7 +829,7 @@ export default function LegalLinkHome() {
                       <span>2. Review</span>
                     </div>
                     <span className="text-[10px] block mt-0.5">
-                      {selectedConsultationDetails.status === 'approved' ? 'Assigned' : 'Under Review'}
+                      {selectedConsultationDetails.status === 'approved' ? 'Approved & Assigned' : 'Under Review'}
                     </span>
                   </div>
 
