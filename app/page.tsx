@@ -10,13 +10,13 @@ import {
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
   KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
   ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp, Calculator, Gavel,
-  Mic, Square, Play, Trash2, Volume2, AlertTriangle, SendHorizonal
+  Mic, Square, Play, Trash2, Volume2, AlertTriangle, ClipboardCheck, Car, Key, Handshake
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
-  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'dara' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
   const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts' | 'receipts'>('consultations');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -164,22 +164,6 @@ export default function LegalLinkHome() {
       setAuthError(err.message || 'Authentication failed. Please verify credentials.');
     } finally {
       setAuthLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setAuthError(null);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}` : undefined,
-        },
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      setAuthError(err.message || 'Failed to initiate Google sign-in.');
     }
   };
 
@@ -424,43 +408,6 @@ export default function LegalLinkHome() {
       void supabase.removeChannel(reviewsChannel);
     };
   }, []);
-
-  const handleOpenReviewModal = (c: any) => {
-    setReviewModalCase(c);
-    setRatingScore(5);
-    setReviewComment('');
-  };
-
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reviewModalCase) return;
-
-    setIsSubmittingReview(true);
-    try {
-      const supabase = createClient();
-      const reviewerName = userProfile?.full_name || reviewModalCase.client_name || 'Verified Client';
-
-      const { error } = await supabase.from('advocate_reviews').insert([
-        {
-          consultation_id: reviewModalCase.id,
-          client_name: reviewerName,
-          advocate_name: 'Advocate Mulu Haile',
-          rating: ratingScore,
-          review_comment: reviewComment.trim(),
-        },
-      ]);
-
-      if (error) throw error;
-
-      await fetchReviews();
-      setReviewModalCase(null);
-      showToast('Thank you! Your verified client review is live.');
-    } catch (err: any) {
-      alert('Could not submit review: ' + err.message);
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
 
   // -------------------------------------------------------------
   // CONSULTATIONS REAL-TIME SYNC
@@ -860,6 +807,132 @@ export default function LegalLinkHome() {
   ];
 
   // -------------------------------------------------------------
+  // DARA COUNTER-READY CHECKLIST ENGINE (ሰነዶች ማረጋገጫ ቅድመ-ዝግጅት)
+  // -------------------------------------------------------------
+  const [daraDocType, setDaraDocType] = useState<'vehicle' | 'lease' | 'poa' | 'loan'>('vehicle');
+  const [daraCheckedItems, setDaraCheckedItems] = useState<Record<string, boolean>>({});
+
+  const daraCategories = {
+    vehicle: {
+      title: 'Vehicle Sale & Title Transfer',
+      amTitle: 'የተሽከርካሪ ሽያጭና ስም ማዘዋወር',
+      icon: Car,
+      checklist: [
+        { id: 'v1', text: 'Original Libre (የተሽከርካሪ ኦሪጅናል ሊብሮ) without any bank lien/mortgage stamp.' },
+        { id: 'v2', text: 'Valid Annual Vehicle Inspection Sticker (የዘመኑ የቴክኒክ ምርመራ ቦሎ/ቴስቲሞኒዮ).' },
+        { id: 'v3', text: 'Active Resident Kebele ID or Fayda Digital ID for both Buyer and Seller.' },
+        { id: 'v4', text: 'Spousal Consent (የባል/ሚስት ፈቃድ) in person or certified Single/Divorce certificate.' },
+        { id: 'v5', text: '2 Ethiopian Citizen Witnesses present with valid Kebele IDs and passport photos.' },
+        { id: 'v6', text: 'Customs Duty Clearance Certificate (if previously purchased under duty-free privilege).' }
+      ]
+    },
+    lease: {
+      title: 'Real Estate & Commercial Lease',
+      amTitle: 'የንግድና መኖሪያ ቤት ኪራይ ውል',
+      icon: Home,
+      checklist: [
+        { id: 'l1', text: 'Original Land Holding Certificate / Title Deed (ኦሪጅናል የይዞታ ማረጋገጫ ካርታ).' },
+        { id: 'l2', text: 'Current Municipal Tax Clearance Receipt (የዘመኑ የግብር ደረሰኝ ከክፍለ ከተማ).' },
+        { id: 'l3', text: 'Valid Resident IDs of both Landlord and Tenant.' },
+        { id: 'l4', text: '2 Witnesses with active Kebele IDs who are not direct family beneficiaries.' },
+        { id: 'l5', text: 'TIN Number & Commercial Registration (for commercial premise leasing).' }
+      ]
+    },
+    poa: {
+      title: 'Power of Attorney (POA)',
+      amTitle: 'ጠቅላላና ልዩ የውክልና ስልጣን',
+      icon: Key,
+      checklist: [
+        { id: 'p1', text: 'Physical presence of the Principal (ወካይ) with valid Kebele ID or National Passport.' },
+        { id: 'p2', text: 'Certified copy of Agent (ተወካይ) Kebele ID.' },
+        { id: 'p3', text: 'Exact Bank Account Numbers or Motor/Land Plate Numbers written out explicitly for Special POA.' },
+        { id: 'p4', text: '2 Witnesses with valid resident IDs present at the DARA desk.' },
+        { id: 'p5', text: 'Embassy Seal & Ministry of Foreign Affairs (MFA) Stamp (for Diaspora POA).' }
+      ]
+    },
+    loan: {
+      title: 'Loan & Debt Acknowledgement',
+      amTitle: 'የብድርና የዕዳ መቀበያ ውል',
+      icon: Handshake,
+      checklist: [
+        { id: 'd1', text: 'Drafted Loan Contract with exact repayment date and interest terms compliant with NBE caps.' },
+        { id: 'd2', text: 'Bank Transfer Slip / Cheque Copy verifying fund disbursement (Cash over ETB 10,000 discouraged).' },
+        { id: 'd3', text: 'Borrower and Creditor valid Kebele/Fayda IDs.' },
+        { id: 'd4', text: 'Collateral ownership document (if debt is secured by vehicle or property).' },
+        { id: 'd5', text: '2 Witnesses with non-expired government-issued IDs.' }
+      ]
+    }
+  };
+
+  const toggleDaraItem = (id: string) => {
+    setDaraCheckedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const currentChecklist = daraCategories[daraDocType].checklist;
+  const checkedCount = currentChecklist.filter((item) => daraCheckedItems[item.id]).length;
+  const readinessPercent = Math.round((checkedCount / currentChecklist.length) * 100);
+
+  const handlePrintDaraPass = () => {
+    const printWindow = window.open('', '_blank', 'width=850,height=900');
+    if (!printWindow) return alert('Please allow popups to print your DARA Counter-Ready Pass.');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>DARA Counter-Ready Pre-Flight Certificate</title>
+          <style>
+            @page { size: portrait; margin: 15mm; }
+            body { font-family: "Century Gothic", "Nyala", sans-serif; color: #0A1128; padding: 25px; }
+            .header { border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+            .title { font-size: 20px; font-weight: 900; }
+            .badge { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 9999px; font-weight: bold; font-size: 11px; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+            .table th { background: #0A1128; color: white; padding: 10px; text-align: left; }
+            .table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+            .notice { background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; font-size: 11px; color: #92400e; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase;">Federal Documents Authentication and Registration Agency (DARA / ሰነዶች ማረጋገጫ)</div>
+              <div class="title">Counter-Ready Pre-Flight Certificate</div>
+              <div style="font-size:12px; font-weight:bold; margin-top:3px;">Transaction: ${daraCategories[daraDocType].title} (${daraCategories[daraDocType].amTitle})</div>
+            </div>
+            <div class="badge">VERIFIED PASS (${readinessPercent}%)</div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 40px;">Status</th>
+                <th>Required Document & Witness Criteria</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${currentChecklist.map((item) => `
+                <tr>
+                  <td style="font-weight:bold; color:${daraCheckedItems[item.id] ? '#16a34a' : '#dc2626'};">
+                    ${daraCheckedItems[item.id] ? '✓ READY' : '✗ PENDING'}
+                  </td>
+                  <td>${item.text}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="notice">
+            <strong>DARA Official Counter Notice:</strong> Having all items verified as READY ensures you will not be turned away at the document authentication registration window. Bring originals and photocopies of all participant IDs.
+          </div>
+          <script>window.onload = function() { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // -------------------------------------------------------------
   // LEXDRAFT BILINGUAL CONTRACT & DEMAND LETTER ENGINE
   // -------------------------------------------------------------
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
@@ -969,10 +1042,7 @@ export default function LegalLinkHome() {
 
   const handleExportContractPDF = (contract: any) => {
     const printWindow = window.open('', '_blank', 'width=900,height=950');
-    if (!printWindow) {
-      alert('Please allow popups to download/print your legal contract.');
-      return;
-    }
+    if (!printWindow) return alert('Please allow popups to download/print your legal contract.');
 
     const type = contract.type || 'demand';
     const cLang = contract.contractLang || contractLanguage || 'bilingual';
@@ -1002,58 +1072,18 @@ export default function LegalLinkHome() {
           <div class="section-title">ሕጋዊ እርምጃዎችን ስለመውሰድ</div>
           <p>በተጠቀሰው የጊዜ ገደብ ውስጥ ይህንን ግዴታዎን የማይፈጽሙ ከሆነ፣ በፍትሐብሔር ሕግ ቁጥር 1772 ድንጋጌ መሠረት ያለተጨማሪ ማሳሰቢያ ጉዳዩ በቀጥታ ወደ ስልጣን ወዳለው ፍርድ ቤት የሚቀርብ ሲሆን፤ ለሚከተሉት ማናቸውም የፍርድ ቤት ውሎ አበል፣ የሕግ ባለሙያ (ጠበቃ) አገልግሎት ክፍያ እና ለዘገየበት ጊዜ ሕጋዊ ወለድ (Delay Damages) እርስዎ ሙሉ በሙሉ ኃላፊነቱን የሚወስዱ መሆኑን በጥብቅ እናሳውቃለን።</p>
         `;
-      } else if (cLang === 'bilingual') {
+      } else {
         headerTitle = 'STATUTORY NOTICE OF DEFAULT & DEMAND LETTER / የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ';
         contractBody = `
           <div class="parties-box">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-              <div><strong>CREDITOR / CLAIMANT:</strong> ${partyA}</div>
-              <div><strong>ገንዘብ ጠያቂ / አበዳሪ፦</strong> ${partyA}</div>
-              <div><strong>DEBTOR / DEFAULTING PARTY:</strong> ${partyB}</div>
-              <div><strong>ተበዳሪ / ውል አፍራሽ፦</strong> ${partyB}</div>
-            </div>
-            <div style="margin-top:6px; font-size:11px;"><strong>DATE / ቀን፦</strong> ${startDate} • <strong>CLAIM / የዕዳ መጠን፦</strong> ${salaryOrRent}</div>
+            <div><strong>CREDITOR:</strong> ${partyA} • <strong>DEBTOR:</strong> ${partyB}</div>
+            <div style="margin-top:6px;"><strong>CLAIM:</strong> ${salaryOrRent} • <strong>GROUND:</strong> ${roleOrPurpose}</div>
           </div>
-          <div class="bilingual-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div>
-              <div class="section-title">1. FORMAL NOTICE OF DEFAULT (CIVIL CODE ART. 1772)</div>
-              <p>You are hereby formally placed in default regarding your outstanding obligation: <strong>${roleOrPurpose}</strong>. Total unpaid principal is <strong>${salaryOrRent}</strong>.</p>
-              <div class="section-title">2. STIPULATED GRACE PERIOD</div>
-              <p>Pursuant to Article 1774 of the Ethiopian Civil Code, you are granted a strict period of <strong>${locationName}</strong> to tender full settlement.</p>
-              <div class="section-title">3. LEGAL CONSEQUENCES</div>
-              <p>Failure to settle within this period shall trigger immediate litigation before competent courts with claims for statutory delay damages and attorney fees.</p>
-            </div>
-            <div>
-              <div class="section-title">1. የመጨረሻ ማስጠንቀቂያ ስለመስጠት (ፍትሐብሔር ሕግ 1772)</div>
-              <p>በ<strong>${roleOrPurpose}</strong> መሠረት መክፈል የሚገባዎትን የብር <strong>${salaryOrRent}</strong> እስካሁን ባለመክፈልዎ ውልዎን አፍርሰዋል።</p>
-              <div class="section-title">2. የተሰጠ የመጨረሻ የጊዜ ገደብ</div>
-              <p>በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 1774 መሠረት በ<strong>${locationName}</strong> ውስጥ ዕዳውን ሙሉ በሙሉ እንዲከፍሉ በጥብቅ እናሳስባለን።</p>
-              <div class="section-title">3. ፍርድ ቤት ስለመክሰስ</div>
-              <p>በተሰጠው የጊዜ ገደብ ካልከፈሉ ጉዳዩ በቀጥታ ወደ ፍርድ ቤት የሚቀርብ ሲሆን ለጠበቃ ክፍያና ወለድ ኃላፊነቱን የሚወስዱ መሆኑን እናሳውቃለን።</p>
-            </div>
-          </div>
-        `;
-      } else {
-        headerTitle = 'FORMAL NOTICE OF DEFAULT & DEMAND LETTER (CIVIL CODE ART. 1772)';
-        contractBody = `
-          <div class="parties-box">
-            <strong>TO (DEBTOR):</strong> ${partyB}<br/>
-            <strong>FROM (CREDITOR):</strong> ${partyA}<br/>
-            <strong>DATE:</strong> ${startDate}<br/>
-            <strong>RE:</strong> Formal Demand for Payment under Ethiopian Civil Code Art. 1772
-          </div>
-          <p>You are hereby formally placed in default regarding the following contractual breach / debt obligation: <strong>${roleOrPurpose}</strong>.</p>
-          <div class="section-title">OUTSTANDING SUM & GRACE PERIOD</div>
-          <p>The total sum of <strong>${salaryOrRent}</strong> remains overdue. Pursuant to Article 1774, you are granted <strong>${locationName}</strong> to remit full payment.</p>
-          <div class="section-title">RESERVATION OF RIGHTS & LITIGATION</div>
-          <p>Failure to satisfy this claim within the grace period will result in immediate commencement of civil proceedings before the competent court without further notice, holding you liable for damages, delay interest, and legal costs.</p>
+          <p>Pursuant to Article 1772 of the Civil Code of Ethiopia, you are formally placed in default. Remit full payment within <strong>${locationName}</strong> to avoid civil litigation.</p>
         `;
       }
-    } else if (type === 'emp') {
-      headerTitle = 'STATUTORY EMPLOYMENT AGREEMENT (PROC. 1156/2019)';
-      contractBody = `<p>Employment contract executed between ${partyA} and ${partyB} in ${locationName} for the position of ${roleOrPurpose}. Monthly wage: ${salaryOrRent}.</p>`;
     } else {
-      headerTitle = 'STATUTORY LEGAL AGREEMENT / ሕጋዊ ስምምነት';
+      headerTitle = 'STATUTORY AGREEMENT / ሕጋዊ ስምምነት';
       contractBody = `<p>Executed between ${partyA} and ${partyB} regarding ${roleOrPurpose} in ${locationName}.</p>`;
     }
 
@@ -1064,54 +1094,19 @@ export default function LegalLinkHome() {
           <title>${contract.title} - Official LegalLink LexDraft</title>
           <style>
             @page { size: portrait; margin: 18mm; }
-            body { font-family: "Century Gothic", "Nyala", "Noto Sans Ethiopic", Georgia, sans-serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 20px; }
-            .contract-header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
-            .republic { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #4b5563; font-weight: bold; }
-            .contract-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 6px; }
-            .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.8; }
-            .section-title { font-size: 13px; font-weight: bold; margin-top: 16px; margin-bottom: 6px; color: #0A1128; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; }
-            p { margin: 0 0 10px 0; text-align: justify; }
-            .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
-            .sig-line { border-top: 1px solid #111827; padding-top: 6px; font-size: 12px; }
-            .postal-box { border: 1px dashed #9ca3af; border-radius: 8px; padding: 12px; margin-top: 30px; font-size: 11px; background: #fafafa; }
-            .footer-note { margin-top: 35px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 9px; color: #6b7280; display: flex; justify-content: space-between; font-family: sans-serif; }
+            body { font-family: "Century Gothic", "Nyala", sans-serif; color: #111827; padding: 20px; line-height: 1.6; font-size: 13px; }
+            .header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
+            .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; }
+            .section-title { font-weight: bold; margin-top: 14px; margin-bottom: 4px; color: #0A1128; }
           </style>
         </head>
         <body>
-          <div class="contract-header">
-            <div class="republic">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA / የኢትዮጵያ ፌዴራላዊ ዴሞክራሲያዊ ሪፐብሊክ</div>
-            <div class="contract-title">${headerTitle}</div>
-            <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">STATUTORY NOTICE PURSUANT TO CIVIL CODE ART. 1772 • DATE: ${startDate}</div>
+          <div class="header">
+            <h3>${headerTitle}</h3>
+            <span>Civil Code Art. 1772 Enforceable Default Notice • Date: ${startDate}</span>
           </div>
           ${contractBody}
-          <div class="signature-grid">
-            <div>
-              <div class="sig-line">
-                <strong>ISSUED BY / አስጠንቃቂ ወገን:</strong><br/>
-                ስም / Name: ${partyA}<br/>
-                ፊርማ / Signature: __________________
-              </div>
-            </div>
-            <div>
-              <div class="sig-line">
-                <strong>RECEIVED BY / የተቀባይ ፊርማ (Hand Delivery):</strong><br/>
-                ስም / Name: ${partyB}<br/>
-                ቀንና ፊርማ / Date & Sig: __________________
-              </div>
-            </div>
-          </div>
-          <div class="postal-box">
-            <strong>DISPATCH PROOF (ለፍርድ ቤት ማረጋገጫ የሚውል)፦</strong><br/>
-            የፖስታ ቤት መላኪያ ቁጥር (EMS / Reg. Post Tracking No.): ___________________ • ቀን፦ ____________<br/>
-            የተላከበት የፖስታ ቅርንጫፍ / Post Branch: ___________________
-          </div>
-          <div class="footer-note">
-            <span>DARA & Court Standard Default Notice - LegalLink LexDraft</span>
-            <span>Ref: NOTICE-${contract.id.toUpperCase()}-ETHIO</span>
-          </div>
-          <script>
-            window.onload = function() { window.print(); window.onafterprint = function() { window.close(); } }
-          </script>
+          <script>window.onload = function() { window.print(); window.close(); }</script>
         </body>
       </html>
     `);
@@ -1269,6 +1264,16 @@ export default function LegalLinkHome() {
               </button>
 
               <button
+                onClick={() => setActiveTab('dara')}
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'dara' ? 'text-[#0A1128] bg-emerald-50 text-emerald-800 font-bold shadow-xs border border-emerald-200' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
+              >
+                <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{lang === 'am' ? 'የሰነዶች ቅድመ-ዝግጅት' : 'DARA Checklist'}</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('lexdraft')}
                 className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
@@ -1320,7 +1325,7 @@ export default function LegalLinkHome() {
 
       {/* 2. TAB ROUTING VIEW */}
       
-      {/* VIEW A: LANDING PAGE */}
+      {/* VIEW A: COMPLETE ORIGINAL 8-SECTION LANDING PAGE */}
       {activeTab === 'home' && (
         <main className="flex-1">
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
@@ -1349,15 +1354,11 @@ export default function LegalLinkHome() {
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
-                      onClick={() => {
-                        setSelectedTemplate(lexdraftTemplates[0]); // Select demand letter
-                        setDocFormData({});
-                        setActiveTab('lexdraft');
-                      }}
-                      className="w-full sm:w-auto px-7 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                      onClick={() => setActiveTab('dara')}
+                      className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                     >
-                      <AlertTriangle className="w-4 h-4 text-slate-950" />
-                      <span>Create Legal Demand Letter (Free)</span>
+                      <ClipboardCheck className="w-4 h-4" />
+                      <span>DARA Pre-Flight Checklist</span>
                     </button>
                   </div>
                 </div>
@@ -1382,7 +1383,131 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW B: SEVERANCE CALCULATOR */}
+      {/* VIEW B: DARA COUNTER-READY CHECKLIST (NEW SELF-SERVICE TOOL) */}
+      {activeTab === 'dara' && (
+        <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2 max-w-xl">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                FEDERAL DOCUMENTS AUTHENTICATION AGENCY (DARA / ሰነዶች ማረጋገጫ)
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-black">DARA Counter-Ready Checklist</h1>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Never get rejected at the registration counter again. Verify all required original documents, Kebele ID rules, and witness criteria before leaving home.
+              </p>
+            </div>
+
+            <button
+              onClick={handlePrintDaraPass}
+              className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Download Pre-Flight Pass (PDF)</span>
+            </button>
+          </div>
+
+          {/* Transaction Category Selector */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { id: 'vehicle', title: 'Vehicle Sale & Transfer', am: 'የመኪና ሽያጭ' },
+              { id: 'lease', title: 'Real Estate Lease', am: 'የቤት ኪራይ' },
+              { id: 'poa', title: 'Power of Attorney', am: 'ውክልና ስልጣን' },
+              { id: 'loan', title: 'Loan & Debt Contract', am: 'የብድር ውል' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setDaraDocType(cat.id as any)}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                  daraDocType === cat.id 
+                    ? 'border-[#0A1128] bg-slate-900 text-white shadow-md' 
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <strong className="block text-xs">{cat.title}</strong>
+                <span className="text-[10px] opacity-75">{cat.am}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Interactive Readiness Meter & Checklist */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="font-black text-lg text-[#0A1128]">
+                  {daraCategories[daraDocType].title} ({daraCategories[daraDocType].amTitle})
+                </h3>
+                <span className="text-xs text-slate-500">Tap each box as you place the original document in your folder</span>
+              </div>
+
+              {/* Live Readiness Progress Bar */}
+              <div className="w-full sm:w-64 space-y-1.5">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-slate-600">Counter Readiness:</span>
+                  <span className={readinessPercent === 100 ? 'text-emerald-600' : 'text-amber-600'}>
+                    {readinessPercent}% ({checkedCount}/{currentChecklist.length})
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-300 ${readinessPercent === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                    style={{ width: `${readinessPercent}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Checklist Items */}
+            <div className="space-y-3">
+              {currentChecklist.map((item, index) => {
+                const isChecked = !!daraCheckedItems[item.id];
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => toggleDaraItem(item.id)}
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                      isChecked 
+                        ? 'border-emerald-300 bg-emerald-50/40 text-emerald-900 shadow-xs' 
+                        : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                        isChecked ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'
+                      }`}>
+                        {isChecked ? '✓' : index + 1}
+                      </div>
+                      <span className="text-xs font-semibold">{item.text}</span>
+                    </div>
+
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isChecked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      {isChecked ? 'Ready' : 'Tap to Confirm'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Direct LexDraft Fast-Forward */}
+            <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
+              <div className="space-y-0.5">
+                <strong className="text-amber-900 block">Need a DARA-compliant contract drafted first?</strong>
+                <span className="text-amber-800">Generate your bilingual contract with proper witness blocks in LexDraft before printing.</span>
+              </div>
+              <button
+                onClick={() => setActiveTab('lexdraft')}
+                className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+              >
+                <span>Open LexDraft</span>
+                <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+              </button>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* VIEW C: SEVERANCE CALCULATOR */}
       {activeTab === 'calculator' && (
         <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center">
@@ -1397,68 +1522,37 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW C: LEXDRAFT & 2-MINUTE DEMAND LETTER BUILDER */}
+      {/* VIEW D: LEXDRAFT & DEMAND LETTER */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
-                DARA & COURT ADMISSIBLE AUTOMATION
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-black">LexDraft Document Builder</h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Generate court-enforceable demand notices under Civil Code Art. 1772, commercial contracts, and lease agreements with instant bilingual PDF export.
-              </p>
-            </div>
-
-            <div className="p-3 bg-white/10 rounded-2xl border border-white/20 text-center">
-              <span className="text-[10px] uppercase font-bold text-amber-400 block">Current Promotion</span>
-              <span className="text-xs font-black text-emerald-400">Demand Letters: 100% Free</span>
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 text-white shadow-xl flex justify-between items-center">
+            <div>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">DOCUMENT AUTOMATION</span>
+              <h1 className="text-3xl font-black mt-1">LexDraft Document Builder</h1>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {lexdraftTemplates.map((tpl) => (
-              <div 
-                key={tpl.id} 
-                className={`p-6 rounded-3xl border bg-white flex flex-col justify-between space-y-4 hover:shadow-xl transition-all ${
-                  tpl.id === 'demand' ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200'
-                }`}
-              >
-                <div className="space-y-2">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase">
-                      {tpl.category}
-                    </span>
-                    <span className="font-mono font-black text-xs text-emerald-600">
-                      {tpl.priceETB === 0 ? 'FREE' : `ETB ${tpl.priceETB}`}
-                    </span>
-                  </div>
+              <div key={tpl.id} className="p-6 rounded-3xl border border-slate-200 bg-white flex flex-col justify-between space-y-4">
+                <div>
                   <h3 className="font-black text-base text-[#0A1128]">{tpl.title}</h3>
-                  <span className="text-[11px] font-bold text-slate-400 block font-mono">{tpl.amTitle}</span>
-                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
+                  <span className="text-[11px] font-mono text-slate-400 block">{tpl.amTitle}</span>
+                  <p className="text-xs text-slate-500 mt-2">{tpl.desc}</p>
                 </div>
-
-                <div className="pt-2">
-                  <button 
-                    onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }} 
-                    className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs ${
-                      tpl.id === 'demand' 
-                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black' 
-                        : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
-                    }`}
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>{tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}</span>
-                  </button>
-                </div>
+                <button 
+                  onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }}
+                  className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs"
+                >
+                  {tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}
+                </button>
               </div>
             ))}
           </div>
         </main>
       )}
 
-      {/* VIEW D: FIND A LAWYER WITH VOICE NOTE INTAKE */}
+      {/* VIEW E: FIND A LAWYER WITH VOICE INTAKE */}
       {activeTab === 'match' && (
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
@@ -1540,7 +1634,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW E: LEGALTALK FORUM */}
+      {/* VIEW F: LEGALTALK FORUM */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center">
@@ -1555,98 +1649,47 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW F: CLIENT PORTAL */}
+      {/* VIEW G: CLIENT PORTAL */}
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex justify-between items-center">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
               <h1 className="text-3xl font-black mt-1">Your Legal Workspace</h1>
-              <p className="text-xs text-slate-300">Track court hearings (ቀጠሮ), case litigation stages, and voice briefs in real time.</p>
             </div>
             <button onClick={() => { setActiveTab('match'); setMatchStep(1); }} className="px-5 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
               + New Case
             </button>
           </div>
 
-          <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
-            <button
-              onClick={() => setClientSubTab('consultations')}
-              className={`pb-3 border-b-2 cursor-pointer transition-all ${
-                clientSubTab === 'consultations' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              Consultations & Cases ({myConsultations.length})
-            </button>
-            <button
-              onClick={() => setClientSubTab('contracts')}
-              className={`pb-3 border-b-2 cursor-pointer transition-all ${
-                clientSubTab === 'contracts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
-              }`}
-            >
-              Saved Contracts & Notices ({savedContracts.length})
-            </button>
-          </div>
-
-          {clientSubTab === 'consultations' && (
-            <div className="space-y-4">
-              {myConsultations.map((c) => {
-                const stageObj = legalStages.find((s) => s.step === (c.case_stage || 1)) || legalStages[0];
-                return (
-                  <div key={c.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-black text-base text-[#0A1128]">{c.practice_area}</span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#0A1128] text-amber-400 flex items-center gap-1">
-                          <Gavel className="w-3 h-3" />
-                          <span>Stage {c.case_stage || 1}: {stageObj.am}</span>
-                        </span>
-                        {c.voice_note_url && (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200 flex items-center gap-1">
-                            <Mic className="w-3 h-3 text-purple-600" />
-                            <span>Voice Brief Attached</span>
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-600 max-w-2xl line-clamp-2">{c.situation_description}</p>
+          <div className="space-y-4">
+            {myConsultations.map((c) => {
+              const stageObj = legalStages.find((s) => s.step === (c.case_stage || 1)) || legalStages[0];
+              return (
+                <div key={c.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-black text-base text-[#0A1128]">{c.practice_area}</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#0A1128] text-amber-400 flex items-center gap-1">
+                        <Gavel className="w-3 h-3" />
+                        <span>Stage {c.case_stage || 1}: {stageObj.am}</span>
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('milestones'); }} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
-                        Track Hearing
-                      </button>
-                      <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('room'); }} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
-                        Chat
-                      </button>
-                    </div>
+                    <p className="text-xs text-slate-600 max-w-2xl line-clamp-2">{c.situation_description}</p>
                   </div>
-                );
-              })}
-            </div>
-          )}
 
-          {clientSubTab === 'contracts' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {savedContracts.map((doc) => (
-                <div key={doc.id} className="p-5 rounded-2xl border border-slate-200 bg-white flex justify-between items-center shadow-sm">
-                  <div>
-                    <span className="text-[10px] font-bold text-amber-600 uppercase">
-                      {doc.type === 'demand' ? '⚠️ Statutory Default Notice' : 'LexDraft Document'}
-                    </span>
-                    <h4 className="font-bold text-sm text-[#0A1128]">{doc.title}</h4>
-                    <span className="text-[11px] text-slate-400 block">{doc.date}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('milestones'); }} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
+                      Track Hearing
+                    </button>
+                    <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('room'); }} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
+                      Chat
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => handleExportContractPDF(doc)}
-                    className="p-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
-                  >
-                    <Printer className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Print PDF</span>
-                  </button>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </main>
       )}
 
