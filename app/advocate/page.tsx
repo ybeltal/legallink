@@ -6,7 +6,7 @@ import {
   Scale, Briefcase, ShieldCheck, CheckCircle2, Clock, Lock, Unlock, 
   Smartphone, MessageSquare, Video, Send, Loader2, RefreshCw, DollarSign, 
   User, MapPin, ExternalLink, ArrowRight, Award, LogOut, Check, AlertCircle, 
-  ChevronRight, Calendar, FileText
+  ChevronRight, Calendar, FileText, Paperclip, UploadCloud, Download
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -18,7 +18,7 @@ export default function AdvocateWorkspace() {
   const [licenseNo, setLicenseNo] = useState('MOJ/FED/2019/8412');
 
   // Tab & Data State
-  const [activeTab, setActiveTab] = useState<'cases' | 'payouts' | 'profile'>('cases');
+  const [activeTab, setActiveTab] = useState<'cases' | 'payouts'>('cases');
   const [consultations, setConsultations] = useState<any[]>([]);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,11 +26,18 @@ export default function AdvocateWorkspace() {
 
   // Live Consultation Room Modal State
   const [activeRoomCase, setActiveRoomCase] = useState<any | null>(null);
+  const [roomModalTab, setRoomModalTab] = useState<'chat' | 'documents'>('chat');
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessageText, setNewMessageText] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Evidence & Case Documents State
+  const [caseDocuments, setCaseDocuments] = useState<any[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState<boolean>(false);
+  const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
+  const fileUploadInputRef = useRef<HTMLInputElement>(null);
 
   // Load User & Advocate Data
   const fetchAdvocateData = async () => {
@@ -38,7 +45,6 @@ export default function AdvocateWorkspace() {
     try {
       const supabase = createClient();
 
-      // Check current session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setCurrentUser(session.user);
@@ -53,7 +59,6 @@ export default function AdvocateWorkspace() {
         }
       }
 
-      // Fetch all marketplace consultations
       const { data: casesData } = await supabase
         .from('consultations')
         .select('*')
@@ -61,7 +66,6 @@ export default function AdvocateWorkspace() {
 
       if (casesData) setConsultations(casesData);
 
-      // Fetch outbound Telebirr B2C payouts
       const { data: txData } = await supabase
         .from('escrow_transactions')
         .select('*')
@@ -73,6 +77,85 @@ export default function AdvocateWorkspace() {
       console.error('Advocate data fetch error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCaseDocuments = async (consultationId: string) => {
+    setLoadingDocs(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('case_documents')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setCaseDocuments(data);
+      }
+    } catch (err) {
+      console.error('Error fetching advocate documents:', err);
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
+  const handleAdvocateFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeRoomCase) return;
+
+    setIsUploadingFile(true);
+    try {
+      const supabase = createClient();
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${activeRoomCase.id}/${Date.now()}_${cleanFileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('case-documents')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('case-documents')
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      const formattedSize = file.size > 1024 * 1024 
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+        : `${Math.round(file.size / 1024)} KB`;
+
+      // Save record in public.case_documents
+      const { data: newDocRecord, error: insertError } = await supabase
+        .from('case_documents')
+        .insert([
+          {
+            consultation_id: activeRoomCase.id,
+            file_name: file.name,
+            file_url: publicUrl,
+            file_size: formattedSize,
+            uploader_name: advocateName,
+            uploader_role: 'advocate',
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      if (newDocRecord) {
+        setCaseDocuments((prev) => [newDocRecord, ...prev]);
+      }
+      alert('Document uploaded and shared with client.');
+    } catch (err: any) {
+      alert('Failed to upload document: ' + (err.message || 'Storage error'));
+    } finally {
+      setIsUploadingFile(false);
+      if (fileUploadInputRef.current) {
+        fileUploadInputRef.current.value = '';
+      }
     }
   };
 
@@ -119,13 +202,14 @@ export default function AdvocateWorkspace() {
     };
   }, []);
 
-  // Real-time Chat in Consultation Room
+  // Real-time Chat & Documents in Consultation Room
   useEffect(() => {
     if (activeRoomCase) {
       const caseId = activeRoomCase.id;
-      setLoadingMessages(true);
+      fetchCaseDocuments(caseId);
 
       const supabase = createClient();
+      setLoadingMessages(true);
       const fetchChatHistory = async () => {
         const { data } = await supabase
           .from('consultation_messages')
@@ -158,15 +242,34 @@ export default function AdvocateWorkspace() {
         )
         .subscribe();
 
+      const docsSub = supabase
+        .channel(`advocate_docs_${caseId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'case_documents',
+            filter: `consultation_id=eq.${caseId}`,
+          },
+          (payload) => {
+            setCaseDocuments((prev) => [payload.new, ...prev]);
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(chatSub);
+        supabase.removeChannel(docsSub);
       };
     }
   }, [activeRoomCase]);
 
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeRoomCase]);
+    if (roomModalTab === 'chat') {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, roomModalTab]);
 
   const handleSendAdvocateMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,7 +294,7 @@ export default function AdvocateWorkspace() {
     }
   };
 
-  // Metrics Calculations (Advocate receives 85% of ETB 1,500 = ETB 1,275 per completed case)
+  // Metrics Calculations
   const totalEarnedETB = consultations
     .filter((c) => c.payment_status === 'released')
     .reduce((sum, c) => sum + (Number(c.escrow_amount || 1500) * 0.85), 0);
@@ -363,7 +466,6 @@ export default function AdvocateWorkspace() {
         {activeTab === 'cases' && (
           <div className="space-y-4">
             
-            {/* Filter Pills */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
                 {[
@@ -451,7 +553,10 @@ export default function AdvocateWorkspace() {
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2.5 w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-800">
                         <button
-                          onClick={() => setActiveRoomCase(c)}
+                          onClick={() => {
+                            setActiveRoomCase(c);
+                            setRoomModalTab('chat');
+                          }}
                           className="flex items-center gap-1.5 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all cursor-pointer shadow"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
@@ -535,7 +640,7 @@ export default function AdvocateWorkspace() {
 
       </main>
 
-      {/* 3. ADVOCATE LIVE CONSULTATION ROOM MODAL */}
+      {/* 3. ADVOCATE LIVE CONSULTATION ROOM & EVIDENCE VAULT MODAL */}
       {activeRoomCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
@@ -575,72 +680,198 @@ export default function AdvocateWorkspace() {
               </div>
             </div>
 
-            {/* Case Brief Summary */}
-            <div className="p-4 bg-slate-950/60 border-b border-slate-800 text-xs text-slate-300">
-              <strong className="text-white block mb-0.5">Client Situation:</strong>
-              <p className="line-clamp-2 text-slate-400">{activeRoomCase.situation_description}</p>
-            </div>
-
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-900/60 min-h-[300px] max-h-[420px]">
-              {loadingMessages ? (
-                <div className="h-full flex items-center justify-center text-xs text-slate-500 gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                  <span>Connecting to client secure channel...</span>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs text-center p-6">
-                  <MessageSquare className="w-8 h-8 mb-2 opacity-30 text-amber-400" />
-                  <span>No consultation messages in this thread yet. Send a greeting to the client below.</span>
-                </div>
-              ) : (
-                messages.map((m) => {
-                  const isAdvocate = m.sender_role === 'advocate';
-                  return (
-                    <div
-                      key={m.id}
-                      className={`flex flex-col ${isAdvocate ? 'items-end' : 'items-start'}`}
-                    >
-                      <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px]">
-                        <span className="font-bold text-slate-400">{m.sender_name}</span>
-                        <span className="text-slate-500">
-                          {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <div
-                        className={`max-w-md p-3 rounded-2xl text-xs leading-relaxed shadow-sm ${
-                          isAdvocate
-                            ? 'bg-amber-500 text-slate-950 font-medium rounded-tr-none'
-                            : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'
-                        }`}
-                      >
-                        {m.message_text}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={chatBottomRef} />
-            </div>
-
-            {/* Chat Input */}
-            <form onSubmit={handleSendAdvocateMessage} className="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
-              <input
-                type="text"
-                placeholder={`Advise client as ${advocateName}...`}
-                value={newMessageText}
-                onChange={(e) => setNewMessageText(e.target.value)}
-                className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
-              />
+            {/* Modal Navigation Sub-Tabs */}
+            <div className="flex border-b border-slate-800 bg-slate-950 px-5 gap-6 text-xs font-bold">
               <button
-                type="submit"
-                disabled={isSendingMessage || !newMessageText.trim()}
-                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all"
+                onClick={() => setRoomModalTab('chat')}
+                className={`py-3 border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  roomModalTab === 'chat' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
               >
-                <span>Send</span>
-                <Send className="w-3 h-3" />
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Live Room & Chat</span>
               </button>
-            </form>
+              <button
+                onClick={() => setRoomModalTab('documents')}
+                className={`py-3 border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  roomModalTab === 'documents' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+              >
+                <Paperclip className="w-3.5 h-3.5" />
+                <span>Evidence & Documents ({caseDocuments.length})</span>
+              </button>
+            </div>
+
+            {/* SUB-TAB 1: LIVE ROOM & CHAT */}
+            {roomModalTab === 'chat' && (
+              <>
+                <div className="p-4 bg-slate-950/60 border-b border-slate-800 text-xs text-slate-300">
+                  <strong className="text-white block mb-0.5">Client Situation:</strong>
+                  <p className="line-clamp-2 text-slate-400">{activeRoomCase.situation_description}</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-900/60 min-h-[300px] max-h-[420px]">
+                  {loadingMessages ? (
+                    <div className="h-full flex items-center justify-center text-xs text-slate-500 gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                      <span>Connecting to client secure channel...</span>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs text-center p-6">
+                      <MessageSquare className="w-8 h-8 mb-2 opacity-30 text-amber-400" />
+                      <span>No consultation messages in this thread yet. Send a greeting to the client below.</span>
+                    </div>
+                  ) : (
+                    messages.map((m) => {
+                      const isAdvocate = m.sender_role === 'advocate';
+                      return (
+                        <div
+                          key={m.id}
+                          className={`flex flex-col ${isAdvocate ? 'items-end' : 'items-start'}`}
+                        >
+                          <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px]">
+                            <span className="font-bold text-slate-400">{m.sender_name}</span>
+                            <span className="text-slate-500">
+                              {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div
+                            className={`max-w-md p-3 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                              isAdvocate
+                                ? 'bg-amber-500 text-slate-950 font-medium rounded-tr-none'
+                                : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'
+                            }`}
+                          >
+                            {m.message_text}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={chatBottomRef} />
+                </div>
+
+                <form onSubmit={handleSendAdvocateMessage} className="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
+                  <input
+                    type="text"
+                    placeholder={`Advise client as ${advocateName}...`}
+                    value={newMessageText}
+                    onChange={(e) => setNewMessageText(e.target.value)}
+                    className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSendingMessage || !newMessageText.trim()}
+                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all"
+                  >
+                    <span>Send</span>
+                    <Send className="w-3 h-3" />
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* SUB-TAB 2: EVIDENCE VAULT & ADVOCATE UPLOADS */}
+            {roomModalTab === 'documents' && (
+              <div className="p-5 overflow-y-auto space-y-5 text-xs flex-1">
+                
+                {/* Upload Action Box */}
+                <div className="p-5 bg-slate-950 border-2 border-dashed border-slate-800 rounded-2xl text-center space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto">
+                    <UploadCloud className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm">Upload Legal Brief or Document Review</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Upload formal legal counsel memos, contract amendments, or court motions for the client.
+                    </p>
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={fileUploadInputRef}
+                    onChange={handleAdvocateFileUpload}
+                    className="hidden"
+                    accept=".pdf,.png,.jpg,.jpeg,.docx"
+                  />
+
+                  <button
+                    type="button"
+                    disabled={isUploadingFile}
+                    onClick={() => fileUploadInputRef.current?.click()}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 cursor-pointer shadow transition-all"
+                  >
+                    {isUploadingFile ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Uploading Document...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Paperclip className="w-3.5 h-3.5 text-white" />
+                        <span>Upload Advocate Memo (PDF, DOCX)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Document List */}
+                <div className="space-y-2">
+                  <h5 className="font-bold text-slate-400 uppercase text-[11px]">
+                    Case Document Ledger ({caseDocuments.length})
+                  </h5>
+
+                  {loadingDocs ? (
+                    <div className="p-8 text-center text-slate-500 text-xs">
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2 text-amber-400" />
+                      Loading case files...
+                    </div>
+                  ) : caseDocuments.length === 0 ? (
+                    <div className="p-6 text-center text-slate-500 border border-slate-800 rounded-xl bg-slate-950 text-xs">
+                      No documents uploaded for this case yet. Client documents will sync here automatically.
+                    </div>
+                  ) : (
+                    caseDocuments.map((doc) => {
+                      const isClient = doc.uploader_role === 'client';
+                      return (
+                        <div
+                          key={doc.id}
+                          className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition-colors shadow-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                              isClient ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                            }`}>
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <strong className="text-white block text-xs">{doc.file_name}</strong>
+                              <span className="text-[10px] text-slate-400">
+                                Size: {doc.file_size || 'File'} • Uploaded by: <span className={isClient ? 'text-emerald-400' : 'text-amber-400'}>
+                                  {doc.uploader_name} ({isClient ? 'Client' : 'Advocate'})
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <a
+                            href={doc.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-lg text-xs cursor-pointer transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5 text-blue-400" />
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+              </div>
+            )}
 
           </div>
         </div>
