@@ -9,7 +9,7 @@ import {
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
   KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
-  ThumbsUp, Search, HelpCircle, ChevronDown, ChevronUp, Info, CheckCircle
+  ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -1061,7 +1061,6 @@ export default function LegalLinkHome() {
     return matchesCategory && matchesSearch;
   });
 
-  // Client FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const clientFaqs = [
     {
@@ -1209,17 +1208,35 @@ export default function LegalLinkHome() {
     },
   ];
 
-  // Client Triage Helper Handler
-  const handleTriageSelect = (category: string, scenarioText: string) => {
-    setSelectedCategory(category);
-    setSituationText(scenarioText);
-    setActiveTab('match');
-    setMatchStep(2);
-    showToast(`Category set: ${category}`);
-  };
+  const legalTalkArticles = [
+    {
+      id: 1,
+      tag: 'CORPORATE GOVERNANCE',
+      title: "Understanding the Ethiopian Commercial Code: Key Takeaways for PLCs & Share Companies",
+      author: 'Advocate Mulu Haile',
+      readTime: '6 min read',
+      excerpt: 'Crucial corporate compliance rules governing director liability, minimum capital allocations, shareholder resolutions, and regulatory auditing in Ethiopia.'
+    },
+    {
+      id: 2,
+      tag: 'REAL ESTATE & LAND',
+      title: 'Land Rights & Commercial Property Leasing in Addis Ababa: Buyer Due Diligence Guide',
+      author: 'Advocate Dawit Tesfaye',
+      readTime: '8 min read',
+      excerpt: 'Essential verification steps for land holding certificates, encumbrances, and municipal leasehold conversions under current city administration decrees.'
+    },
+    {
+      id: 3,
+      tag: 'LABOR & EMPLOYMENT',
+      title: 'Employment Protections under Labor Proclamation No. 1156/2019: Probation & Severance Rules',
+      author: 'Advocate Tigist Bekele',
+      readTime: '5 min read',
+      excerpt: 'A practical legal breakdown of probationary ceilings, statutory severance calculations, and mandatory dispute resolution procedures before the Labor Relations Board.'
+    }
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 selection:bg-amber-100 selection:text-amber-900">
       
       {/* Toast Feedback Banner */}
       {toastMessage && (
@@ -1400,52 +1417,11 @@ export default function LegalLinkHome() {
             </div>
           </div>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-2">
-            <button
-              onClick={() => { setActiveTab('match'); setMatchStep(1); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
-            </button>
-            <button
-              onClick={() => { setActiveTab('legaltalk'); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              LegalTalk Forum
-            </button>
-            <button
-              onClick={() => { setActiveTab('lexdraft'); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              LexDraft Builder
-            </button>
-            <button
-              onClick={() => { setActiveTab('my-consultations'); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              {lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal'}
-            </button>
-            <Link
-              href="/advocate"
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-[#0A1128] hover:bg-slate-100 rounded-lg"
-            >
-              Advocate Portal ↗
-            </Link>
-            <Link
-              href="/admin"
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-50 rounded-lg"
-            >
-              Admin Console ↗
-            </Link>
-          </div>
-        )}
       </header>
 
       {/* 2. TAB ROUTING VIEW */}
       
-      {/* VIEW A: LANDING PAGE */}
+      {/* VIEW A: COMPLETE LANDING PAGE (ALL 8 ORIGINAL SECTIONS) */}
       {activeTab === 'home' && (
         <main className="flex-1">
           
@@ -1457,15 +1433,15 @@ export default function LegalLinkHome() {
                 <div className="lg:col-span-7 space-y-6 reveal">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold shadow-xs">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                    <span>ETHIOPIA'S PREMIER LEGAL PROTECTION ECOSYSTEM</span>
+                    <span>ETHIOPIA'S #1 LEGAL MARKETPLACE</span>
                   </div>
 
                   <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-[#0A1128] leading-[1.1]">
-                    Direct Counsel.<br/><span className="text-amber-500">Guaranteed Escrow.</span>
+                    The Future of Law, Today.
                   </h1>
 
                   <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
-                    Connect with licensed Ethiopian advocates for consultations, contract drafting, and dispute representation. All retainers are locked safely in Telebirr escrow until work is delivered.
+                    Connect with verified Ethiopian lawyers for consultations, document drafting, and compliance support—safeguarded by Telebirr USSD escrow holding.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
@@ -1473,7 +1449,7 @@ export default function LegalLinkHome() {
                       onClick={() => { setActiveTab('match'); setMatchStep(1); }}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer hover:shadow-xl hover:-translate-y-0.5"
                     >
-                      <span>Find Verified Counsel</span>
+                      <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
@@ -1481,22 +1457,22 @@ export default function LegalLinkHome() {
                       className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs hover:border-slate-300"
                     >
                       <HelpCircle className="w-4 h-4 text-amber-500" />
-                      <span>Ask Free Legal Question</span>
+                      <span>LegalTalk Forum</span>
                     </button>
                   </div>
 
                   <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100">
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">500+</span>
-                      <span className="text-xs text-slate-500 font-medium">Licensed Advocates</span>
+                      <span className="text-xs text-slate-500 font-medium">Verified Lawyers</span>
                     </div>
                     <div>
-                      <span className="text-2xl font-black text-[#0A1128] block">100%</span>
-                      <span className="text-xs text-slate-500 font-medium">Escrow Protected</span>
+                      <span className="text-2xl font-black text-[#0A1128] block">12,000+</span>
+                      <span className="text-xs text-slate-500 font-medium">Consultations Done</span>
                     </div>
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">{dynamicRating} ★</span>
-                      <span className="text-xs text-slate-500 font-medium">Verified Client Rating</span>
+                      <span className="text-xs text-slate-500 font-medium">Average Rating</span>
                     </div>
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">&lt;2hrs</span>
@@ -1517,7 +1493,7 @@ export default function LegalLinkHome() {
                             <h3 className="font-bold text-[#0A1128] text-base">Advocate Mulu Haile</h3>
                             <ShieldCheck className="w-4 h-4 text-emerald-600" />
                           </div>
-                          <p className="text-xs text-slate-500">Federal Supreme Court Advocate</p>
+                          <p className="text-xs text-slate-500">Corporate & Business Law</p>
                           <div className="flex items-center gap-1 mt-1 text-xs font-bold text-amber-600">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                             <span>{dynamicRating}</span>
@@ -1535,14 +1511,14 @@ export default function LegalLinkHome() {
                       <span className="font-bold">Telebirr USSD Direct Push Enabled</span>
                     </div>
 
-                    <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 space-y-1.5">
+                    <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 space-y-1">
                       <div className="flex justify-between">
                         <span>Standard Legal Retainer:</span>
                         <strong className="text-[#0A1128]">ETB 1,500.00</strong>
                       </div>
-                      <div className="flex justify-between text-[11px] text-slate-500">
+                      <div className="flex justify-between text-[11px] text-slate-400">
                         <span>Escrow Trust Protection:</span>
-                        <span className="text-emerald-700 font-bold">100% Refundable if no show</span>
+                        <span className="text-emerald-700 font-semibold">100% Protected</span>
                       </div>
                     </div>
 
@@ -1554,7 +1530,7 @@ export default function LegalLinkHome() {
                       }}
                       className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-all shadow cursor-pointer flex items-center justify-center gap-2"
                     >
-                      <span>Book Consultation With Escrow</span>
+                      <span>Book Consultation</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                   </div>
@@ -1564,124 +1540,54 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* NEW SECTION: INSTANT LEGAL PROBLEM TRIAGE ASSISTANT */}
-          <section className="py-14 bg-white border-b border-slate-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="bg-slate-50 border border-slate-200/80 rounded-3xl p-6 sm:p-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                  <div>
-                    <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block">
-                      CLIENT GUIDANCE ASSISTANT
-                    </span>
-                    <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
-                      What legal challenge are you facing today?
-                    </h2>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Select your situation below for instant categorization, applicable proclamations, and matching advocates.
-                    </p>
-                  </div>
-                  <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-600">
-                    ⚡ 1-Click Intake
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div
-                    onClick={() => handleTriageSelect('Employment Law', 'My employer terminated my contract without notice or fair severance, violating Labor Proclamation 1156/2019.')}
-                    className="p-5 bg-white border border-slate-200 rounded-2xl hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect space-y-2 group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <strong className="text-sm text-[#0A1128] block group-hover:text-amber-600">Unlawful Job Termination</strong>
-                    <p className="text-xs text-slate-500">Unfair dismissals, severance calculation, probation rights under Proc. 1156/2019.</p>
-                  </div>
-
-                  <div
-                    onClick={() => handleTriageSelect('Property & Real Estate', 'Dispute over commercial/residential rent increases and leasehold deed verification in Addis Ababa.')}
-                    className="p-5 bg-white border border-slate-200 rounded-2xl hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect space-y-2 group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                      <Home className="w-4 h-4" />
-                    </div>
-                    <strong className="text-sm text-[#0A1128] block group-hover:text-amber-600">Rent & Property Disputes</strong>
-                    <p className="text-xs text-slate-500">Commercial lease hikes, Land Title (ካርታ) verification, municipal compliance.</p>
-                  </div>
-
-                  <div
-                    onClick={() => handleTriageSelect('Corporate & Business Law', 'Need statutory guidance on registering a PLC, shareholder resolutions, or foreign currency retention.')}
-                    className="p-5 bg-white border border-slate-200 rounded-2xl hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect space-y-2 group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-                      <Briefcase className="w-4 h-4" />
-                    </div>
-                    <strong className="text-sm text-[#0A1128] block group-hover:text-amber-600">Business & Contracts</strong>
-                    <p className="text-xs text-slate-500">Company registration, director liability, Commercial Code compliance, NBE FX.</p>
-                  </div>
-
-                  <div
-                    onClick={() => handleTriageSelect('Family Law', 'Seeking advocate representation for estate inheritance, division of marital assets, or child custody.')}
-                    className="p-5 bg-white border border-slate-200 rounded-2xl hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect space-y-2 group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-                      <Heart className="w-4 h-4" />
-                    </div>
-                    <strong className="text-sm text-[#0A1128] block group-hover:text-amber-600">Family & Estate Matters</strong>
-                    <p className="text-xs text-slate-500">Inheritance distribution, divorce asset settlement, legal wills under Civil Code.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 3: HOW TELEBIRR ESCROW PROTECTS CLIENTS */}
+          {/* SECTION 2: HOW IT WORKS (3 SIMPLE STEPS) */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center max-w-2xl mx-auto mb-14 space-y-2 reveal">
-                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
-                  100% FINANCIAL ASSURANCE
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+                  HOW IT WORKS
                 </span>
-                <h2 className="text-3xl font-black text-[#0A1128]">How Telebirr Escrow Protects You</h2>
+                <h2 className="text-3xl font-black text-[#0A1128]">Get Legal Help in 3 Simple Steps</h2>
                 <p className="text-xs sm:text-sm text-slate-500">
-                  No hidden fees, no lost money. Your legal consultation retainer is completely safe.
+                  Transparent, verified legal consultations backed by Ethiopian statutory compliance.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-1">
                   <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 font-black flex items-center justify-center text-lg border border-amber-200">
-                    <Lock className="w-6 h-6" />
+                    1
                   </div>
-                  <h3 className="font-black text-lg text-[#0A1128]">1. Locked in Trust</h3>
+                  <h3 className="font-black text-lg text-[#0A1128]">Describe Your Need</h3>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    You authorize your ETB 1,500 retainer using secure Telebirr USSD. Funds are locked into LegalLink's segregated regulatory trust pool—not paid directly to the lawyer.
+                    Tell us your situation in plain English or Amharic. Our matching engine categorizes your case and identifies the right jurisdiction.
                   </p>
                 </div>
 
                 <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-2">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 font-black flex items-center justify-center text-lg border border-blue-200">
-                    <Video className="w-6 h-6" />
+                    2
                   </div>
-                  <h3 className="font-black text-lg text-[#0A1128]">2. Dedicated Consultation</h3>
+                  <h3 className="font-black text-lg text-[#0A1128]">Match with an Advocate</h3>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Meet your assigned Ministry of Justice advocate in our encrypted case room. Upload contract scans, receive legal counsel memos, and ask follow-ups.
+                    Connect with licensed Ethiopian advocates holding active Ministry of Justice credentials and proven expertise in your case domain.
                   </p>
                 </div>
 
                 <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-3">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center text-lg border border-emerald-200">
-                    <CheckCircle className="w-6 h-6" />
+                    3
                   </div>
-                  <h3 className="font-black text-lg text-[#0A1128]">3. Satisfaction & Settlement</h3>
+                  <h3 className="font-black text-lg text-[#0A1128]">Escrow & Consult</h3>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Only after the consultation is completed does the system disburse 85% net fees to the advocate via Telebirr B2C. If the lawyer fails to attend, 100% is refunded.
+                    Authorize the ETB 1,500 retainer via Telebirr USSD. Funds remain securely locked in escrow until your consultation is completed.
                   </p>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* SECTION 4: PRACTICE AREAS */}
+          {/* SECTION 3: PRACTICE AREAS (8 DOMAINS) */}
           <section className="py-20 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
@@ -1724,7 +1630,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 5: FEATURED ADVOCATES */}
+          {/* SECTION 4: FEATURED ADVOCATES */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
@@ -1790,53 +1696,197 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 6: CLIENT FAQ ACCORDION (ANSWERS COMMON CLIENT HESITATIONS) */}
-          <section className="py-20 bg-white border-b border-slate-100">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-              <div className="text-center space-y-2 reveal">
-                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
-                  FREQUENTLY ASKED QUESTIONS
+          {/* SECTION 5: WHY LEGALLINK (MIDNIGHT NAVY #0A1128 PILLARS) */}
+          <section className="py-20 bg-[#0A1128] text-white relative overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
+              <div className="text-center max-w-2xl mx-auto space-y-2 reveal">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                  SECURITY & INTEGRITY
                 </span>
-                <h2 className="text-3xl font-black text-[#0A1128]">Answers for Clients & Businesses</h2>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Everything you need to know about lawyer matching, escrow security, and consultation guarantees.
+                <h2 className="text-3xl sm:text-4xl font-black">Why LegalLink</h2>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Built specifically to address transparency, escrow assurance, and regulatory compliance in Ethiopia.
                 </p>
               </div>
 
-              <div className="space-y-3">
-                {clientFaqs.map((faq, idx) => {
-                  const isOpen = openFaqIndex === idx;
-                  return (
-                    <div
-                      key={idx}
-                      className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 transition-all"
-                    >
-                      <button
-                        onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                        className="w-full p-5 text-left font-black text-sm text-[#0A1128] flex justify-between items-center gap-4 cursor-pointer hover:bg-slate-100 transition-colors"
-                      >
-                        <span>{faq.q}</span>
-                        {isOpen ? <ChevronUp className="w-4 h-4 text-amber-600 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />}
-                      </button>
-                      {isOpen && (
-                        <div className="p-5 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200/60 bg-white">
-                          {faq.a}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-b border-slate-800 pb-12 reveal reveal-delay-1">
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-amber-400 font-mono">100%</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">MOJ Bar Vetted</span>
+                </div>
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono">Telebirr</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">Direct USSD Escrow</span>
+                </div>
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-blue-400 font-mono">DARA</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">Compliant Contracts</span>
+                </div>
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-purple-400 font-mono">8421</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">Ethio Telecom SMS</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-1">
+                  <ShieldCheck className="w-8 h-8 text-amber-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Ministry of Justice Vetting</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    No anonymous profiles. Every advocate is verified against active Federal or Regional MOJ bar registration numbers.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-2">
+                  <Lock className="w-8 h-8 text-emerald-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Guaranteed Escrow Protection</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Retainers are locked in LegalLink's regulatory trust pool. Advocates receive disbursements only after consultation delivery.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-3">
+                  <Languages className="w-8 h-8 text-blue-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Bilingual Contract Drafting</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Generate agreements in Amharic script or dual-column English/Amharic matching Document Authentication agency requirements.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-4">
+                  <Smartphone className="w-8 h-8 text-purple-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Instant SMS Notifications</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Real-time updates delivered straight to mobile phones for escrow locking, lawyer greetings, and payout disbursements.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* SECTION 7: WHAT CLIENTS SAY */}
-          <section className="py-20 bg-slate-50/70">
+          {/* SECTION 6: LEGALTALK PREVIEW */}
+          <section className="py-20 bg-white border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">KNOWLEDGE HUB</span>
+                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">LegalTalk</h2>
+                  <p className="text-xs text-slate-500 mt-1">Legal updates, statutory analyses, and practical guides by licensed advocates.</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('legaltalk')}
+                  className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Explore LegalTalk Articles</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {legalTalkArticles.map((art, idx) => (
+                  <div
+                    key={art.id}
+                    onClick={() => setActiveTab('legaltalk')}
+                    className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect flex flex-col justify-between space-y-4 group reveal reveal-delay-${idx + 1}`}
+                  >
+                    <div className="space-y-3">
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 uppercase">
+                        {art.tag}
+                      </span>
+                      <h3 className="font-black text-base text-[#0A1128] group-hover:text-amber-600 transition-colors leading-snug">
+                        {art.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                        {art.excerpt}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                      <span className="font-bold text-slate-700">{art.author}</span>
+                      <span>{art.readTime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 7: GENERATE LEGAL DOCUMENTS IN MINUTES (LEXDRAFT SPOTLIGHT) */}
+          <section className="py-20 bg-slate-50/70 border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="bg-gradient-to-r from-slate-900 to-[#102A43] rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-10 reveal">
+                <div className="space-y-4 max-w-xl">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                    ETHIOPIAN STATUTORY CONTRACT BUILDER
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-black">Generate Legal Documents in Minutes</h2>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Create employment contracts, non-disclosure agreements, and commercial leases compliant with Ethiopian Labor Proclamation No. 1156/2019 and Civil Code provisions. Export with DARA-ready witness blocks.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-200 font-medium pt-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Bilingual Dual-Column</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Instant PDF Download</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Labor Proc. 1156/2019</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Official Stamp Ready</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <button
+                      onClick={() => setActiveTab('lexdraft')}
+                      className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span>Open LexDraft Contract Builder</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contract Mockup Visual */}
+                <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif card-hover-effect">
+                  <div className="text-center border-b pb-2">
+                    <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
+                      Federal Democratic Republic of Ethiopia
+                    </div>
+                    <strong className="text-xs block mt-0.5 uppercase">Employment Agreement / የሥራ ውል</strong>
+                  </div>
+                  <div className="p-2 bg-slate-50 rounded border text-[10px] space-y-1">
+                    <div><strong>Employer:</strong> Acme Technologies PLC</div>
+                    <div><strong>Employee:</strong> Abebe Bikila</div>
+                    <div><strong>Gross Remuneration:</strong> ETB 35,000.00</div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-tight">
+                    Pursuant to Article 11 of Labor Proclamation No. 1156/2019, probation shall not exceed 60 consecutive working days...
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                    <div className="border border-dashed p-2 text-center text-[9px] text-slate-400">[ Party A Seal ]</div>
+                    <div className="border border-dashed p-2 text-center text-[9px] text-slate-400">[ Party B Seal ]</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 8: WHAT CLIENTS SAY (REVIEWS & RATINGS) */}
+          <section className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
                 <div>
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">TRANSPARENT CLIENT TRUST</span>
-                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">Verified Client Reviews</h2>
+                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">What Clients Say</h2>
                   <p className="text-xs text-slate-500 mt-1">Authentic ratings from Ethiopian clients whose consultations completed through Telebirr escrow.</p>
                 </div>
                 <div className="mt-4 sm:mt-0 flex items-center gap-2">
@@ -1851,7 +1901,7 @@ export default function LegalLinkHome() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {reviewsList.map((rev, idx) => (
-                  <div key={rev.id} className={`p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 card-hover-effect reveal reveal-delay-${(idx % 3) + 1}`}>
+                  <div key={rev.id} className={`p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 card-hover-effect reveal reveal-delay-${(idx % 3) + 1}`}>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center text-amber-400">
@@ -2383,7 +2433,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 3. MODALS (ASK QUESTION, LEXDRAFT, TELEBIRR PUSH, ETC.) */}
+      {/* 3. MODALS */}
       
       {/* ASK QUESTION MODAL */}
       {askModalOpen && (
@@ -2438,10 +2488,6 @@ export default function LegalLinkHome() {
                   onChange={(e) => setNewQuestionDetails(e.target.value)}
                   className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 leading-relaxed"
                 />
-              </div>
-
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
-                LegalTalk questions are publicly visible to all advocates. Do not include confidential bank passwords or private personal identification numbers.
               </div>
 
               <div className="flex gap-2 pt-2">
