@@ -10,7 +10,7 @@ import {
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
   KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
   ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp, Calculator, Gavel,
-  Mic, Square, Play, Trash2, Volume2
+  Mic, Square, Play, Trash2, Volume2, AlertTriangle, SendHorizonal
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -463,31 +463,11 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // CONSULTATIONS & ESCROW REAL-TIME SYNC
+  // CONSULTATIONS REAL-TIME SYNC
   // -------------------------------------------------------------
-  const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
-  const [telebirrPhone, setTelebirrPhone] = useState('0905941865');
-  const [pushStatus, setPushStatus] = useState<'idle' | 'push_dispatched' | 'pin_processing' | 'confirmed'>('idle');
-  const [activeTxnRef, setActiveTxnRef] = useState<string>('');
-  const [liveTransactions, setLiveTransactions] = useState<any[]>([]);
-
-  const fetchTransactions = async () => {
-    try {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from('escrow_transactions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (data) setLiveTransactions(data);
-    } catch (err) {
-      console.error('Transactions fetch error:', err);
-    }
-  };
-
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
-      fetchTransactions();
 
       const supabase = createClient();
       const channel = supabase
@@ -643,7 +623,6 @@ export default function LegalLinkHome() {
       const supabase = createClient();
       let uploadedVoiceUrl: string | null = null;
 
-      // 1. Upload voice note blob if recorded
       if (audioBlob) {
         const audioPath = `voice-notes/${Date.now()}_voice_brief.webm`;
         const { error: audioUploadError } = await supabase.storage
@@ -658,7 +637,6 @@ export default function LegalLinkHome() {
         }
       }
 
-      // 2. Insert consultation record
       const briefDescription = situationText.trim() || (audioBlob ? '🎙️ [Client Voice Note Brief Attached]' : 'Legal Consultation Request');
 
       const { error } = await supabase.from('consultations').insert([
@@ -670,8 +648,8 @@ export default function LegalLinkHome() {
           budget_range: budgetRange,
           urgency: urgency,
           status: 'pending',
-          payment_status: 'unpaid',
-          escrow_amount: 1500,
+          payment_status: 'free_promotional',
+          escrow_amount: 0,
           case_stage: 1,
           voice_note_url: uploadedVoiceUrl
         },
@@ -881,6 +859,302 @@ export default function LegalLinkHome() {
     { step: 6, title: 'Final Judgment & Execution Decree', am: 'የመጨረሻ ፍርድና አፈፃፀም', desc: 'Final decree rendered and formal execution writ enforced.' },
   ];
 
+  // -------------------------------------------------------------
+  // LEXDRAFT BILINGUAL CONTRACT & DEMAND LETTER ENGINE
+  // -------------------------------------------------------------
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+  const [docFormData, setDocFormData] = useState<Record<string, string>>({});
+  const [contractLanguage, setContractLanguage] = useState<'en' | 'am' | 'bilingual'>('bilingual');
+  const [savedContracts, setSavedContracts] = useState<any[]>([
+    { 
+      id: 'cnt-1', 
+      title: 'Demand Letter - Commercial Loan Default', 
+      date: '2026-10-18', 
+      fee: 'FREE', 
+      status: 'Ready',
+      partyA: 'Ethio Capital Partners',
+      partyB: 'Alazar Solomon',
+      roleOrPurpose: 'Default on Loan Agreement dated 12/03/2026',
+      salaryOrRent: 'ETB 150,000.00',
+      jurisdiction: '7 Calendar Days (Addis Ababa)',
+      type: 'demand',
+      contractLang: 'bilingual'
+    },
+    { 
+      id: 'cnt-2', 
+      title: 'Bilingual Employment Contract', 
+      date: '2026-10-14', 
+      fee: 'ETB 450', 
+      status: 'Ready',
+      partyA: 'EthioTech Solutions PLC',
+      partyB: 'Ybeltal Semagn',
+      roleOrPurpose: 'Senior Software Engineer',
+      salaryOrRent: 'ETB 35,000.00',
+      jurisdiction: 'Addis Ababa',
+      type: 'emp',
+      contractLang: 'bilingual'
+    }
+  ]);
+
+  const lexdraftTemplates = [
+    {
+      id: 'demand',
+      title: 'Formal Legal Demand Letter',
+      amTitle: 'የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ',
+      category: 'Dispute & Debt Recovery',
+      priceETB: 0,
+      popular: true,
+      desc: 'Mandatory statutory default notice under Ethiopian Civil Code Art. 1772 for unpaid debts, tenant eviction, or breach of contract.',
+      statute: 'Civil Code of Ethiopia Art. 1772–1775 (ፍትሐብሔር ሕግ ቁጥር 1772-1775)',
+      fields: [
+        { key: 'partyA', label: 'Claimant / Creditor Name (ገንዘብ ጠያቂ / አበዳሪ)', placeholder: 'e.g. Bethlehem Desta (Creditor)' },
+        { key: 'partyB', label: 'Debtor / Defaulting Party (ተበዳሪ / ውል አፍራሽ)', placeholder: 'e.g. Yohannes Girma (Debtor)' },
+        { key: 'roleOrPurpose', label: 'Ground of Debt / Contract Breached (የዕዳው ወይም የውል ጥሰቱ መነሻ)', placeholder: 'e.g. Unpaid business loan pursuant to agreement signed on 15/01/2026' },
+        { key: 'salaryOrRent', label: 'Total Outstanding Claim Amount / የዕዳ መጠን (ETB)', placeholder: 'e.g. ETB 125,000.00' },
+        { key: 'jurisdiction', label: 'Grace Period & Place / የመጨረሻ የጊዜ ገደብና ከተማ', placeholder: 'e.g. 7 Calendar Days (Addis Ababa)' },
+      ],
+    },
+    {
+      id: 'emp',
+      title: 'Employment Contract',
+      amTitle: 'የሥራ ውል ስምምነት',
+      category: 'Labor Law',
+      priceETB: 450,
+      popular: true,
+      desc: 'Compliant with Ethiopian Labor Proclamation No. 1156/2019 for fixed or indefinite terms.',
+      statute: 'Labor Proclamation No. 1156/2019 (አዋጅ ቁጥር 1156/2011)',
+      fields: [
+        { key: 'partyA', label: 'Employer Entity Name / የአሰሪው ድርጅት ስም', placeholder: 'e.g. Safaricom Telecommunications PLC' },
+        { key: 'partyB', label: 'Employee Legal Name / የሠራተኛው ሙሉ ስም', placeholder: 'e.g. Abebe Bikila' },
+        { key: 'roleOrPurpose', label: 'Job Title & Responsibilities / የሥራ መደብ', placeholder: 'e.g. Senior Software Engineer' },
+        { key: 'salaryOrRent', label: 'Gross Monthly Salary / ወርሃዊ ደመወዝ (ETB)', placeholder: 'e.g. ETB 35,000.00' },
+        { key: 'jurisdiction', label: 'Workplace City / የሥራ ቦታ ከተማ', placeholder: 'e.g. Addis Ababa / አዲስ አበባ' },
+      ],
+    },
+    {
+      id: 'lease',
+      title: 'Commercial Lease Agreement',
+      amTitle: 'የንግድ ቤት ኪራይ ውል ስምምነት',
+      category: 'Property & Real Estate',
+      priceETB: 600,
+      popular: true,
+      desc: 'Commercial premises rental contract with deposit and municipal compliance terms under Ethiopian Civil Code.',
+      statute: 'Civil Code of Ethiopia Art. 2896 (ፍትሐብሔር ሕግ ቁጥር 2896)',
+      fields: [
+        { key: 'partyA', label: 'Lessor (Landlord) Full Legal Name / የአከራይ ስም', placeholder: 'e.g. Haile Gebreselassie' },
+        { key: 'partyB', label: 'Lessee (Tenant) Business Name / የተከራይ ስም', placeholder: 'e.g. Blue Nile Trading PLC' },
+        { key: 'roleOrPurpose', label: 'Permitted Commercial Use / የንግድ ቤት አገልግሎት', placeholder: 'e.g. Retail Office and Software Center' },
+        { key: 'salaryOrRent', label: 'Agreed Monthly Rent / ወርሃዊ ኪራይ (ETB)', placeholder: 'e.g. ETB 45,000.00' },
+        { key: 'jurisdiction', label: 'Property Location / የቤቱ አድራሻ', placeholder: 'e.g. Bole Sub-City, Woreda 03, Addis Ababa' },
+      ],
+    },
+    {
+      id: 'nda',
+      title: 'Non-Disclosure Agreement (NDA)',
+      amTitle: 'ሚስጥር የመጠበቅ ስምምነት',
+      category: 'Corporate & Business',
+      priceETB: 300,
+      popular: true,
+      desc: 'Protects proprietary secrets, financials, customer databases, and commercial partnerships in Ethiopia.',
+      statute: 'Civil Code of Ethiopia Art. 2027 (ፍትሐብሔር ሕግ ቁጥር 2027)',
+      fields: [
+        { key: 'partyA', label: 'Disclosing Party Name / መረጃ ሰጪ ወገን', placeholder: 'e.g. FinTech Innovators PLC' },
+        { key: 'partyB', label: 'Receiving Party / መረጃ ተቀባይ ወገን', placeholder: 'e.g. Addis Tech Partners' },
+        { key: 'roleOrPurpose', label: 'Confidential Business Purpose / ሚስጥራዊ የንግድ ዓላማ', placeholder: 'e.g. Payment Gateway Integration' },
+        { key: 'salaryOrRent', label: 'Liquidated Damages / የካሳ መጠን (ETB)', placeholder: 'e.g. ETB 100,000.00' },
+        { key: 'jurisdiction', label: 'Arbitration Jurisdiction / የግልግል ዳኝነት ቦታ', placeholder: 'e.g. Addis Ababa Chamber of Commerce' },
+      ],
+    },
+  ];
+
+  const handleExportContractPDF = (contract: any) => {
+    const printWindow = window.open('', '_blank', 'width=900,height=950');
+    if (!printWindow) {
+      alert('Please allow popups to download/print your legal contract.');
+      return;
+    }
+
+    const type = contract.type || 'demand';
+    const cLang = contract.contractLang || contractLanguage || 'bilingual';
+    const partyA = contract.partyA || 'Claimant / First Party / ገንዘብ ጠያቂ';
+    const partyB = contract.partyB || 'Debtor / Second Party / ተበዳሪ';
+    const roleOrPurpose = contract.roleOrPurpose || 'Outstanding Commercial Default';
+    const salaryOrRent = contract.salaryOrRent || 'ETB 50,000.00';
+    const locationName = contract.jurisdiction || 'Addis Ababa / 7 Calendar Days';
+    const startDate = contract.date || new Date().toISOString().split('T')[0];
+
+    let headerTitle = '';
+    let contractBody = '';
+
+    if (type === 'demand') {
+      if (cLang === 'am') {
+        headerTitle = 'በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 1772 መሠረት የተሰጠ የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ';
+        contractBody = `
+          <div class="parties-box">
+            <strong>ለ (ተበዳሪ/ውል አፍራሽ)፦</strong> ${partyB}<br/>
+            <strong>ከ (ገንዘብ ጠያቂ/አበዳሪ)፦</strong> ${partyA}<br/>
+            <strong>ቀን፦</strong> ${startDate}<br/>
+            <strong>ጉዳዩ፦</strong> በፍትሐብሔር ሕግ ቁጥር 1772 እና ተከታዮቹ ድንጋጌዎች መሠረት ዕዳን ስለማሳወቅና የመጨረሻ ማስጠንቀቂያ ስለመስጠት፤
+          </div>
+          <p>እርስዎ ከላይ ስምዎ የተጠቀሰው ተበዳሪ/ውል አፍራሽ ወገን ከ[${partyA}] ጋር በነበረዎት የ<strong>${roleOrPurpose}</strong> ስምምነት መሠረት መክፈል የሚገባዎትን ጠቅላላ የብር <strong>${salaryOrRent}</strong> እስካሁን ድረስ ባለመክፈልዎ በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 1771 መሠረት ግዴታዎን አላከበሩም።</p>
+          <div class="section-title">የመጨረሻ የጊዜ ገደብ (GRACE PERIOD)</div>
+          <p>ስለሆነም ይህ ሕጋዊ የጽሑፍ ማስጠንቀቂያ በደረስዎት በ<strong>${locationName}</strong> ውስጥ የተጠቀሰውን የብር <strong>${salaryOrRent}</strong> ሙሉ በሙሉ ገቢ እንዲያደርጉ በጥብቅ እናሳስባለን።</p>
+          <div class="section-title">ሕጋዊ እርምጃዎችን ስለመውሰድ</div>
+          <p>በተጠቀሰው የጊዜ ገደብ ውስጥ ይህንን ግዴታዎን የማይፈጽሙ ከሆነ፣ በፍትሐብሔር ሕግ ቁጥር 1772 ድንጋጌ መሠረት ያለተጨማሪ ማሳሰቢያ ጉዳዩ በቀጥታ ወደ ስልጣን ወዳለው ፍርድ ቤት የሚቀርብ ሲሆን፤ ለሚከተሉት ማናቸውም የፍርድ ቤት ውሎ አበል፣ የሕግ ባለሙያ (ጠበቃ) አገልግሎት ክፍያ እና ለዘገየበት ጊዜ ሕጋዊ ወለድ (Delay Damages) እርስዎ ሙሉ በሙሉ ኃላፊነቱን የሚወስዱ መሆኑን በጥብቅ እናሳውቃለን።</p>
+        `;
+      } else if (cLang === 'bilingual') {
+        headerTitle = 'STATUTORY NOTICE OF DEFAULT & DEMAND LETTER / የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ';
+        contractBody = `
+          <div class="parties-box">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div><strong>CREDITOR / CLAIMANT:</strong> ${partyA}</div>
+              <div><strong>ገንዘብ ጠያቂ / አበዳሪ፦</strong> ${partyA}</div>
+              <div><strong>DEBTOR / DEFAULTING PARTY:</strong> ${partyB}</div>
+              <div><strong>ተበዳሪ / ውል አፍራሽ፦</strong> ${partyB}</div>
+            </div>
+            <div style="margin-top:6px; font-size:11px;"><strong>DATE / ቀን፦</strong> ${startDate} • <strong>CLAIM / የዕዳ መጠን፦</strong> ${salaryOrRent}</div>
+          </div>
+          <div class="bilingual-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div>
+              <div class="section-title">1. FORMAL NOTICE OF DEFAULT (CIVIL CODE ART. 1772)</div>
+              <p>You are hereby formally placed in default regarding your outstanding obligation: <strong>${roleOrPurpose}</strong>. Total unpaid principal is <strong>${salaryOrRent}</strong>.</p>
+              <div class="section-title">2. STIPULATED GRACE PERIOD</div>
+              <p>Pursuant to Article 1774 of the Ethiopian Civil Code, you are granted a strict period of <strong>${locationName}</strong> to tender full settlement.</p>
+              <div class="section-title">3. LEGAL CONSEQUENCES</div>
+              <p>Failure to settle within this period shall trigger immediate litigation before competent courts with claims for statutory delay damages and attorney fees.</p>
+            </div>
+            <div>
+              <div class="section-title">1. የመጨረሻ ማስጠንቀቂያ ስለመስጠት (ፍትሐብሔር ሕግ 1772)</div>
+              <p>በ<strong>${roleOrPurpose}</strong> መሠረት መክፈል የሚገባዎትን የብር <strong>${salaryOrRent}</strong> እስካሁን ባለመክፈልዎ ውልዎን አፍርሰዋል።</p>
+              <div class="section-title">2. የተሰጠ የመጨረሻ የጊዜ ገደብ</div>
+              <p>በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 1774 መሠረት በ<strong>${locationName}</strong> ውስጥ ዕዳውን ሙሉ በሙሉ እንዲከፍሉ በጥብቅ እናሳስባለን።</p>
+              <div class="section-title">3. ፍርድ ቤት ስለመክሰስ</div>
+              <p>በተሰጠው የጊዜ ገደብ ካልከፈሉ ጉዳዩ በቀጥታ ወደ ፍርድ ቤት የሚቀርብ ሲሆን ለጠበቃ ክፍያና ወለድ ኃላፊነቱን የሚወስዱ መሆኑን እናሳውቃለን።</p>
+            </div>
+          </div>
+        `;
+      } else {
+        headerTitle = 'FORMAL NOTICE OF DEFAULT & DEMAND LETTER (CIVIL CODE ART. 1772)';
+        contractBody = `
+          <div class="parties-box">
+            <strong>TO (DEBTOR):</strong> ${partyB}<br/>
+            <strong>FROM (CREDITOR):</strong> ${partyA}<br/>
+            <strong>DATE:</strong> ${startDate}<br/>
+            <strong>RE:</strong> Formal Demand for Payment under Ethiopian Civil Code Art. 1772
+          </div>
+          <p>You are hereby formally placed in default regarding the following contractual breach / debt obligation: <strong>${roleOrPurpose}</strong>.</p>
+          <div class="section-title">OUTSTANDING SUM & GRACE PERIOD</div>
+          <p>The total sum of <strong>${salaryOrRent}</strong> remains overdue. Pursuant to Article 1774, you are granted <strong>${locationName}</strong> to remit full payment.</p>
+          <div class="section-title">RESERVATION OF RIGHTS & LITIGATION</div>
+          <p>Failure to satisfy this claim within the grace period will result in immediate commencement of civil proceedings before the competent court without further notice, holding you liable for damages, delay interest, and legal costs.</p>
+        `;
+      }
+    } else if (type === 'emp') {
+      headerTitle = 'STATUTORY EMPLOYMENT AGREEMENT (PROC. 1156/2019)';
+      contractBody = `<p>Employment contract executed between ${partyA} and ${partyB} in ${locationName} for the position of ${roleOrPurpose}. Monthly wage: ${salaryOrRent}.</p>`;
+    } else {
+      headerTitle = 'STATUTORY LEGAL AGREEMENT / ሕጋዊ ስምምነት';
+      contractBody = `<p>Executed between ${partyA} and ${partyB} regarding ${roleOrPurpose} in ${locationName}.</p>`;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${contract.title} - Official LegalLink LexDraft</title>
+          <style>
+            @page { size: portrait; margin: 18mm; }
+            body { font-family: "Century Gothic", "Nyala", "Noto Sans Ethiopic", Georgia, sans-serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 20px; }
+            .contract-header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
+            .republic { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #4b5563; font-weight: bold; }
+            .contract-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 6px; }
+            .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.8; }
+            .section-title { font-size: 13px; font-weight: bold; margin-top: 16px; margin-bottom: 6px; color: #0A1128; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; }
+            p { margin: 0 0 10px 0; text-align: justify; }
+            .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
+            .sig-line { border-top: 1px solid #111827; padding-top: 6px; font-size: 12px; }
+            .postal-box { border: 1px dashed #9ca3af; border-radius: 8px; padding: 12px; margin-top: 30px; font-size: 11px; background: #fafafa; }
+            .footer-note { margin-top: 35px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 9px; color: #6b7280; display: flex; justify-content: space-between; font-family: sans-serif; }
+          </style>
+        </head>
+        <body>
+          <div class="contract-header">
+            <div class="republic">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA / የኢትዮጵያ ፌዴራላዊ ዴሞክራሲያዊ ሪፐብሊክ</div>
+            <div class="contract-title">${headerTitle}</div>
+            <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">STATUTORY NOTICE PURSUANT TO CIVIL CODE ART. 1772 • DATE: ${startDate}</div>
+          </div>
+          ${contractBody}
+          <div class="signature-grid">
+            <div>
+              <div class="sig-line">
+                <strong>ISSUED BY / አስጠንቃቂ ወገን:</strong><br/>
+                ስም / Name: ${partyA}<br/>
+                ፊርማ / Signature: __________________
+              </div>
+            </div>
+            <div>
+              <div class="sig-line">
+                <strong>RECEIVED BY / የተቀባይ ፊርማ (Hand Delivery):</strong><br/>
+                ስም / Name: ${partyB}<br/>
+                ቀንና ፊርማ / Date & Sig: __________________
+              </div>
+            </div>
+          </div>
+          <div class="postal-box">
+            <strong>DISPATCH PROOF (ለፍርድ ቤት ማረጋገጫ የሚውል)፦</strong><br/>
+            የፖስታ ቤት መላኪያ ቁጥር (EMS / Reg. Post Tracking No.): ___________________ • ቀን፦ ____________<br/>
+            የተላከበት የፖስታ ቅርንጫፍ / Post Branch: ___________________
+          </div>
+          <div class="footer-note">
+            <span>DARA & Court Standard Default Notice - LegalLink LexDraft</span>
+            <span>Ref: NOTICE-${contract.id.toUpperCase()}-ETHIO</span>
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.onafterprint = function() { window.close(); } }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleCreateDocumentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTemplate) return;
+
+    const newId = `cnt-${Date.now().toString().slice(-4)}`;
+    const partyA = docFormData.partyA?.trim() || userProfile?.full_name || 'Creditor / Claimant';
+    const partyB = docFormData.partyB?.trim() || 'Debtor / Recipient';
+    const roleOrPurpose = docFormData.roleOrPurpose?.trim() || 'Default on Unpaid Debt';
+    const salaryOrRent = docFormData.salaryOrRent?.trim() || 'ETB 10,000.00';
+    const jurisdiction = docFormData.jurisdiction?.trim() || '7 Calendar Days (Addis Ababa)';
+
+    const newContractRecord = {
+      id: newId,
+      title: `${selectedTemplate.title} - ${partyB}`,
+      date: new Date().toISOString().split('T')[0],
+      fee: selectedTemplate.priceETB === 0 ? 'FREE' : `ETB ${selectedTemplate.priceETB}`,
+      status: 'Ready',
+      partyA,
+      partyB,
+      roleOrPurpose,
+      salaryOrRent,
+      jurisdiction,
+      type: selectedTemplate.id,
+      contractLang: contractLanguage,
+    };
+
+    setSavedContracts((prev) => [newContractRecord, ...prev]);
+    setSelectedTemplate(null);
+    setDocFormData({});
+
+    handleExportContractPDF(newContractRecord);
+
+    setActiveTab('my-consultations');
+    setClientSubTab('contracts');
+    showToast('Document generated and exported via LexDraft.');
+  };
+
   // Practice Areas
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
@@ -909,8 +1183,7 @@ export default function LegalLinkHome() {
       reviews: dynamicReviewCount,
       hourlyRate: 1500,
       location: 'Addis Ababa',
-      slots: ['10:00 AM', '2:00 PM', '4:30 PM'],
-      bio: 'Senior Federal Advocate specializing in Ethiopian corporate law, M&A, and commercial contract drafting.',
+      bio: 'Senior Federal Advocate specializing in commercial contract drafting, debt recovery, and dispute resolution.',
       avatarInitials: 'MH',
     },
     {
@@ -922,8 +1195,7 @@ export default function LegalLinkHome() {
       reviews: 312,
       hourlyRate: 1200,
       location: 'Addis Ababa',
-      slots: ['9:30 AM', '1:00 PM', '3:30 PM'],
-      bio: 'Trusted advocate for family mediation, divorce division of assets, child custody, and inheritance decrees.',
+      bio: 'Trusted advocate for civil mediation, employment rights, and contract disputes.',
       avatarInitials: 'TB',
     },
     {
@@ -935,27 +1207,13 @@ export default function LegalLinkHome() {
       reviews: 521,
       hourlyRate: 1800,
       location: 'Hawassa / Addis Ababa',
-      slots: ['11:00 AM', '3:00 PM', '5:00 PM'],
-      bio: 'Former land administration legal advisor. Expert in land lease titles, construction disputes, and property acquisition.',
+      bio: 'Former land administration legal advisor. Expert in commercial lease defaults, eviction notices, and title verification.',
       avatarInitials: 'DT',
-    },
-    {
-      id: 'l4',
-      name: 'Advocate Selamawit Girma',
-      title: 'Immigration & Diaspora Counsel',
-      experience: '8 yrs exp',
-      rating: 4.85,
-      reviews: 274,
-      hourlyRate: 2000,
-      location: 'Addis Ababa / Remote',
-      slots: ['10:30 AM', '2:30 PM', '6:00 PM'],
-      bio: 'Dedicated to helping the Ethiopian diaspora resolve legal claims, investment licensing, and dual citizenship matters remotely.',
-      avatarInitials: 'SG',
-    },
+    }
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 selection:bg-amber-100 selection:text-amber-900">
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
       
       {/* Toast Feedback Banner */}
       {toastMessage && (
@@ -1011,21 +1269,22 @@ export default function LegalLinkHome() {
               </button>
 
               <button
+                onClick={() => setActiveTab('lexdraft')}
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                <span>LexDraft & Notices</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('legaltalk')}
                 className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                   activeTab === 'legaltalk' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
                 LegalTalk
-              </button>
-
-              <button
-                onClick={() => setActiveTab('lexdraft')}
-                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
-                }`}
-              >
-                LexDraft
               </button>
 
               <button
@@ -1054,14 +1313,6 @@ export default function LegalLinkHome() {
                 <Scale className="w-3.5 h-3.5 text-amber-600" />
                 <span>Advocate Portal</span>
               </Link>
-
-              <Link
-                href="/admin"
-                className="px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-all flex items-center gap-1 shadow-xs"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-                <span>Admin Console</span>
-              </Link>
             </div>
           </div>
         </div>
@@ -1086,23 +1337,27 @@ export default function LegalLinkHome() {
                   </h1>
 
                   <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
-                    Connect with verified Ethiopian lawyers for consultations, document drafting, and compliance support—safeguarded by Telebirr USSD escrow holding.
+                    Connect with verified Ethiopian lawyers, draft statutory demand notices under Civil Code Art. 1772, and compute severance packages under Proclamation 1156/2019.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                     <button
                       onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer hover:shadow-xl hover:-translate-y-0.5"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer"
                     >
                       <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
-                      onClick={() => setActiveTab('calculator')}
+                      onClick={() => {
+                        setSelectedTemplate(lexdraftTemplates[0]); // Select demand letter
+                        setDocFormData({});
+                        setActiveTab('lexdraft');
+                      }}
                       className="w-full sm:w-auto px-7 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                     >
-                      <Calculator className="w-4 h-4" />
-                      <span>Severance Pay Calculator</span>
+                      <AlertTriangle className="w-4 h-4 text-slate-950" />
+                      <span>Create Legal Demand Letter (Free)</span>
                     </button>
                   </div>
                 </div>
@@ -1113,11 +1368,11 @@ export default function LegalLinkHome() {
                       <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">MH</div>
                       <div>
                         <h3 className="font-bold text-[#0A1128] text-base">Advocate Mulu Haile</h3>
-                        <p className="text-xs text-slate-500">Corporate & Business Law</p>
+                        <p className="text-xs text-slate-500">Corporate & Civil Law Specialist</p>
                       </div>
                     </div>
                     <button onClick={() => { setSelectedLawyer(mockMatchedLawyers[0]); setActiveTab('match'); setMatchStep(4); }} className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
-                      Book Consultation
+                      Book Free Consultation
                     </button>
                   </div>
                 </div>
@@ -1127,313 +1382,180 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW B: LABOR & SEVERANCE CALCULATOR */}
+      {/* VIEW B: SEVERANCE CALCULATOR */}
       {activeTab === 'calculator' && (
         <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">STATUTORY TOOL</span>
-              <h1 className="text-3xl sm:text-4xl font-black mt-1">Labor & Severance Pay Calculator</h1>
+              <h1 className="text-3xl font-black mt-1">Labor & Severance Pay Calculator</h1>
             </div>
-            <button onClick={handlePrintLaborCalculation} className="px-6 py-3.5 bg-amber-500 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2">
-              <Printer className="w-4 h-4" />
-              <span>Export Sheet</span>
+            <button onClick={handlePrintLaborCalculation} className="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs">
+              Print Calculation Sheet
             </button>
           </div>
         </main>
       )}
 
-      {/* VIEW C: FIND A LAWYER MATCHING STEPPER WITH VOICE NOTE INTAKE */}
-      {activeTab === 'match' && (
-        <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">ADVOCATE MATCH ENGINE</span>
-            <h1 className="text-3xl font-black text-[#0A1128]">Connect with Counsel</h1>
-            <p className="text-xs text-slate-500">Step {matchStep} of 4: Direct, friction-free case intake</p>
+      {/* VIEW C: LEXDRAFT & 2-MINUTE DEMAND LETTER BUILDER */}
+      {activeTab === 'lexdraft' && (
+        <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2 max-w-xl">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                DARA & COURT ADMISSIBLE AUTOMATION
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-black">LexDraft Document Builder</h1>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Generate court-enforceable demand notices under Civil Code Art. 1772, commercial contracts, and lease agreements with instant bilingual PDF export.
+              </p>
+            </div>
+
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/20 text-center">
+              <span className="text-[10px] uppercase font-bold text-amber-400 block">Current Promotion</span>
+              <span className="text-xs font-black text-emerald-400">Demand Letters: 100% Free</span>
+            </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
-            
-            {/* Step 1: Select Category */}
-            {matchStep === 1 && (
-              <div className="space-y-6">
-                <h3 className="font-black text-base text-[#0A1128]">Step 1: What type of legal matter is this?</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {practiceAreas.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setSelectedCategory(p.id)}
-                      className={`p-4 rounded-2xl border text-left font-bold text-xs flex justify-between items-center transition-all cursor-pointer ${
-                        selectedCategory === p.id 
-                          ? 'border-[#0A1128] bg-slate-100 text-[#0A1128]' 
-                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                      }`}
-                    >
-                      <div>
-                        <span>{p.title}</span>
-                        <span className="block text-[10px] text-slate-400 font-normal">{p.amTitle}</span>
-                      </div>
-                      {selectedCategory === p.id && <Check className="w-4 h-4 text-[#0A1128]" />}
-                    </button>
-                  ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {lexdraftTemplates.map((tpl) => (
+              <div 
+                key={tpl.id} 
+                className={`p-6 rounded-3xl border bg-white flex flex-col justify-between space-y-4 hover:shadow-xl transition-all ${
+                  tpl.id === 'demand' ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200'
+                }`}
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase">
+                      {tpl.category}
+                    </span>
+                    <span className="font-mono font-black text-xs text-emerald-600">
+                      {tpl.priceETB === 0 ? 'FREE' : `ETB ${tpl.priceETB}`}
+                    </span>
+                  </div>
+                  <h3 className="font-black text-base text-[#0A1128]">{tpl.title}</h3>
+                  <span className="text-[11px] font-bold text-slate-400 block font-mono">{tpl.amTitle}</span>
+                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
                 </div>
-                <div className="flex justify-end pt-4">
-                  <button
-                    onClick={() => setMatchStep(2)}
-                    className="px-6 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center gap-2 cursor-pointer shadow"
+
+                <div className="pt-2">
+                  <button 
+                    onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }} 
+                    className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs ${
+                      tpl.id === 'demand' 
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black' 
+                        : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
+                    }`}
                   >
-                    <span>Continue to Details</span>
-                    <ArrowRight className="w-4 h-4 text-amber-400" />
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>{tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}</span>
                   </button>
                 </div>
               </div>
+            ))}
+          </div>
+        </main>
+      )}
+
+      {/* VIEW D: FIND A LAWYER WITH VOICE NOTE INTAKE */}
+      {activeTab === 'match' && (
+        <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+            <h3 className="font-black text-lg text-[#0A1128] mb-4">Connect with Counsel (Step {matchStep} of 4)</h3>
+            
+            {matchStep === 1 && (
+              <div className="grid grid-cols-2 gap-3">
+                {practiceAreas.map((p) => (
+                  <button key={p.id} onClick={() => setSelectedCategory(p.id)} className={`p-4 rounded-2xl border text-left font-bold text-xs ${selectedCategory === p.id ? 'border-[#0A1128] bg-slate-100' : 'border-slate-200'}`}>
+                    {p.title}
+                  </button>
+                ))}
+                <button onClick={() => setMatchStep(2)} className="col-span-2 py-3 bg-[#0A1128] text-white rounded-xl font-bold mt-4">Continue</button>
+              </div>
             )}
 
-            {/* Step 2: Location & Language */}
             {matchStep === 2 && (
-              <div className="space-y-5 text-xs">
-                <h3 className="font-black text-base text-[#0A1128]">Step 2: Location & Language Preferences</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-bold text-slate-700 uppercase mb-1">Your Jurisdiction / City</label>
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Addis Ababa, Hawassa, Dire Dawa..."
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 uppercase mb-1">Preferred Consultation Language</label>
-                    <select
-                      value={consultLanguage}
-                      onChange={(e) => setConsultLanguage(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs"
-                    >
-                      <option value="Amharic">Amharic (አማርኛ)</option>
-                      <option value="English">English</option>
-                      <option value="Afaan Oromoo">Afaan Oromoo</option>
-                      <option value="Tigrinya">Tigrinya</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex justify-between pt-4">
-                  <button onClick={() => setMatchStep(1)} className="px-4 py-2 text-slate-500 font-bold">Back</button>
-                  <button onClick={() => setMatchStep(3)} className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl shadow">
-                    Continue
-                  </button>
-                </div>
+              <div className="space-y-4 text-xs">
+                <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City / Jurisdiction" className="w-full p-3 border rounded-xl" />
+                <button onClick={() => setMatchStep(3)} className="w-full py-3 bg-[#0A1128] text-white rounded-xl font-bold">Continue</button>
               </div>
             )}
 
-            {/* Step 3: 1-Tap Voice Recording or Type Brief */}
             {matchStep === 3 && (
-              <div className="space-y-6 text-xs">
+              <div className="space-y-5 text-xs">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-black text-base text-[#0A1128]">Step 3: Explain Your Legal Situation</h3>
-                  
-                  {/* Intake Mode Switcher */}
-                  <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
-                    <button
-                      type="button"
-                      onClick={() => setIntakeMode('voice')}
-                      className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
-                        intakeMode === 'voice' ? 'bg-[#0A1128] text-amber-400 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <Mic className="w-3.5 h-3.5" />
-                      <span>Voice Note (ድምፅ)</span>
+                  <span className="font-bold uppercase text-slate-700">Choose Intake Format:</span>
+                  <div className="flex bg-slate-100 p-1 rounded-xl">
+                    <button type="button" onClick={() => setIntakeMode('voice')} className={`px-3 py-1 rounded-lg font-bold ${intakeMode === 'voice' ? 'bg-[#0A1128] text-amber-400' : 'text-slate-600'}`}>
+                      🎙️ Voice Brief
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setIntakeMode('text')}
-                      className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
-                        intakeMode === 'text' ? 'bg-[#0A1128] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>Type Text</span>
+                    <button type="button" onClick={() => setIntakeMode('text')} className={`px-3 py-1 rounded-lg font-bold ${intakeMode === 'text' ? 'bg-[#0A1128] text-white' : 'text-slate-600'}`}>
+                      Type Text
                     </button>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Your Full Legal Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="e.g. Abebe Bikila"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs mb-4"
-                  />
-                </div>
+                <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Your Full Legal Name" className="w-full p-3 border rounded-xl" />
 
-                {/* MODE A: 1-TAP VOICE RECORDER */}
-                {intakeMode === 'voice' && (
-                  <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl text-center space-y-4">
-                    <div className="max-w-md mx-auto space-y-2">
-                      <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
-                        FASTEST & SIMPLEST FOR CLIENTS
-                      </span>
-                      <h4 className="font-black text-sm text-[#0A1128]">
-                        Record a 60-Second Audio Brief in Amharic or English
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        Explain who is involved, the dispute, and what help you need—just like sending a voice message.
-                      </p>
-                    </div>
-
-                    {/* Live Recording State */}
+                {intakeMode === 'voice' ? (
+                  <div className="p-6 bg-slate-50 border-2 border-dashed rounded-2xl text-center space-y-3">
                     {isRecording ? (
-                      <div className="p-5 bg-red-50 border border-red-200 rounded-2xl max-w-sm mx-auto space-y-3">
-                        <div className="flex items-center justify-center gap-2 text-red-600 font-bold">
-                          <span className="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
-                          <span>Recording Voice Brief... {recordingSeconds}s / 60s</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={stopVoiceRecording}
-                          className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 mx-auto cursor-pointer shadow"
-                        >
-                          <Square className="w-3.5 h-3.5 fill-white" />
-                          <span>Stop Recording</span>
+                      <div className="space-y-2">
+                        <span className="text-red-600 font-bold animate-pulse block">Recording... {recordingSeconds}s / 60s</span>
+                        <button type="button" onClick={stopVoiceRecording} className="px-6 py-2 bg-red-600 text-white font-bold rounded-xl text-xs">
+                          Stop Recording
                         </button>
                       </div>
                     ) : audioPreviewUrl ? (
-                      /* Audio Preview & Playback Player */
-                      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl max-w-md mx-auto space-y-3">
-                        <div className="flex items-center justify-between text-xs text-emerald-800 font-bold">
-                          <span className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                            <span>Voice Brief Ready ({recordingSeconds}s)</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={clearVoiceRecording}
-                            className="text-red-600 hover:underline flex items-center gap-1 text-[11px] cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Re-record</span>
-                          </button>
-                        </div>
-                        <audio controls src={audioPreviewUrl} className="w-full h-9 rounded-lg" />
+                      <div className="space-y-2">
+                        <span className="text-emerald-700 font-bold block">✓ Voice Note Ready ({recordingSeconds}s)</span>
+                        <audio controls src={audioPreviewUrl} className="w-full h-8" />
+                        <button type="button" onClick={clearVoiceRecording} className="text-xs text-red-600 underline">Re-record</button>
                       </div>
                     ) : (
-                      /* Initial Start Record Button */
-                      <div>
-                        <button
-                          type="button"
-                          onClick={startVoiceRecording}
-                          className="px-8 py-4 bg-[#0A1128] hover:bg-[#102A43] text-white font-black rounded-2xl text-xs inline-flex items-center gap-2.5 cursor-pointer shadow-lg hover:scale-105 transition-all"
-                        >
-                          <Mic className="w-4 h-4 text-amber-400 animate-pulse" />
-                          <span>Tap to Record Voice Brief (ድምፅ ይቅረጹ)</span>
-                        </button>
-                      </div>
+                      <button type="button" onClick={startVoiceRecording} className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 mx-auto">
+                        <Mic className="w-4 h-4 text-amber-400" />
+                        <span>Tap to Record Voice Brief (ድምፅ ይቅረጹ)</span>
+                      </button>
                     )}
                   </div>
+                ) : (
+                  <textarea rows={4} value={situationText} onChange={(e) => setSituationText(e.target.value)} placeholder="Describe matter..." className="w-full p-3 border rounded-xl" />
                 )}
 
-                {/* MODE B: STANDARD TEXT WRITING */}
-                {intakeMode === 'text' && (
-                  <div>
-                    <label className="block font-bold text-slate-700 uppercase mb-1">Situation Overview</label>
-                    <textarea
-                      rows={5}
-                      value={situationText}
-                      onChange={(e) => setSituationText(e.target.value)}
-                      placeholder="Describe the facts, contract dates, money owed, or dispute clearly..."
-                      className="w-full p-4 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0A1128] leading-relaxed"
-                    />
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-4">
-                  <button onClick={() => setMatchStep(2)} className="px-4 py-2 text-slate-500 font-bold">Back</button>
-                  <button
-                    onClick={() => {
-                      if (!situationText.trim() && !audioBlob) {
-                        return alert('Please record a voice note or type your legal brief.');
-                      }
-                      setSelectedLawyer(mockMatchedLawyers[0]);
-                      setMatchStep(4);
-                    }}
-                    className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl shadow cursor-pointer"
-                  >
-                    Select Advocate & Review
-                  </button>
-                </div>
+                <button onClick={() => { setSelectedLawyer(mockMatchedLawyers[0]); setMatchStep(4); }} className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl">Continue to Review</button>
               </div>
             )}
 
-            {/* Step 4: Confirm Booking & Schedule */}
-            {matchStep === 4 && selectedLawyer && (
-              <div className="space-y-6 text-xs">
-                <h3 className="font-black text-base text-[#0A1128]">Step 4: Confirm Counsel & Schedule</h3>
-                
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                  <div className="flex justify-between">
-                    <span>Assigned Advocate:</span>
-                    <strong className="text-[#0A1128]">{selectedLawyer.name}</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Practice Area:</span>
-                    <span className="font-bold text-slate-700">{selectedCategory}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Intake Format:</span>
-                    <span className="font-bold text-[#0A1128] flex items-center gap-1">
-                      {audioBlob ? '🎙️ Voice Note Brief' : '📄 Written Legal Brief'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t border-slate-200 pt-2 font-black text-sm text-[#0A1128]">
-                    <span>Consultation Retainer:</span>
-                    <span className="text-emerald-700 font-bold">Free (Platform Promotion)</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between pt-4">
-                  <button onClick={() => setMatchStep(3)} className="px-4 py-2 text-slate-500 font-bold">Back</button>
-                  <button
-                    onClick={handleBookingSubmit}
-                    disabled={isSubmitting}
-                    className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs shadow-lg cursor-pointer transition-all flex items-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Uploading Audio & Registering Case...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Confirm Consultation</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {bookingConfirmed && (
-                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-center space-y-2">
-                    <CheckCircle2 className="w-6 h-6 mx-auto text-emerald-600" />
-                    <strong className="block">Consultation Successfully Saved!</strong>
-                    <button
-                      onClick={() => { setActiveTab('my-consultations'); setBookingConfirmed(false); }}
-                      className="px-5 py-2 bg-[#0A1128] text-white rounded-xl font-bold text-xs"
-                    >
-                      View in Client Portal ➔
-                    </button>
-                  </div>
-                )}
+            {matchStep === 4 && (
+              <div className="space-y-4 text-xs">
+                <p>Advocate: <strong>{selectedLawyer?.name}</strong></p>
+                <button onClick={handleBookingSubmit} disabled={isSubmitting} className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl">
+                  {isSubmitting ? 'Registering...' : 'Confirm Free Consultation'}
+                </button>
               </div>
             )}
           </div>
         </main>
       )}
 
-      {/* VIEW D: CLIENT PORTAL WITH VOICE AUDIO PLAYBACK */}
+      {/* VIEW E: LEGALTALK FORUM */}
+      {activeTab === 'legaltalk' && (
+        <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
+          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center">
+            <div>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">COMMUNITY FORUM</span>
+              <h1 className="text-3xl font-black mt-1">LegalTalk Ethiopia</h1>
+            </div>
+            <button onClick={() => setAskModalOpen(true)} className="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs">
+              + Ask a Free Question
+            </button>
+          </div>
+        </main>
+      )}
+
+      {/* VIEW F: CLIENT PORTAL */}
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex justify-between items-center">
@@ -1447,13 +1569,28 @@ export default function LegalLinkHome() {
             </button>
           </div>
 
-          <div className="space-y-4">
-            {myConsultations.length === 0 ? (
-              <div className="p-16 text-center bg-white rounded-3xl border border-slate-200 text-slate-400 text-xs">
-                No active legal consultations found.
-              </div>
-            ) : (
-              myConsultations.map((c) => {
+          <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
+            <button
+              onClick={() => setClientSubTab('consultations')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'consultations' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Consultations & Cases ({myConsultations.length})
+            </button>
+            <button
+              onClick={() => setClientSubTab('contracts')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'contracts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Saved Contracts & Notices ({savedContracts.length})
+            </button>
+          </div>
+
+          {clientSubTab === 'consultations' && (
+            <div className="space-y-4">
+              {myConsultations.map((c) => {
                 const stageObj = legalStages.find((s) => s.step === (c.case_stage || 1)) || legalStages[0];
                 return (
                   <div key={c.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -1472,65 +1609,135 @@ export default function LegalLinkHome() {
                         )}
                       </div>
                       <p className="text-xs text-slate-600 max-w-2xl line-clamp-2">{c.situation_description}</p>
-                      
-                      {/* Embedded Audio Player if voice note exists */}
-                      {c.voice_note_url && (
-                        <div className="pt-2">
-                          <audio controls src={c.voice_note_url} className="h-8 max-w-sm rounded" />
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => { setSelectedConsultationDetails(c); setModalTab('milestones'); }}
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow"
-                      >
-                        <Gavel className="w-3.5 h-3.5" />
-                        <span>Track Hearing & Progress</span>
+                      <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('milestones'); }} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
+                        Track Hearing
                       </button>
-                      <button
-                        onClick={() => { setSelectedConsultationDetails(c); setModalTab('room'); }}
-                        className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs"
-                      >
-                        Chat Room
+                      <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('room'); }} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
+                        Chat
                       </button>
                     </div>
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
+
+          {clientSubTab === 'contracts' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedContracts.map((doc) => (
+                <div key={doc.id} className="p-5 rounded-2xl border border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-bold text-amber-600 uppercase">
+                      {doc.type === 'demand' ? '⚠️ Statutory Default Notice' : 'LexDraft Document'}
+                    </span>
+                    <h4 className="font-bold text-sm text-[#0A1128]">{doc.title}</h4>
+                    <span className="text-[11px] text-slate-400 block">{doc.date}</span>
+                  </div>
+                  <button 
+                    onClick={() => handleExportContractPDF(doc)}
+                    className="p-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Print PDF</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </main>
+      )}
+
+      {/* 3. LEXDRAFT BUILDER MODAL */}
+      {selectedTemplate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  LEXDRAFT BILINGUAL ENGINE
+                </span>
+                <h3 className="font-black text-xl">{selectedTemplate.title}</h3>
+                <span className="text-xs text-slate-300 font-mono mt-0.5 block">{selectedTemplate.statute}</span>
+              </div>
+              <button onClick={() => setSelectedTemplate(null)} className="text-white/70 hover:text-white p-1 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateDocumentSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
+                  Select Output Language
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setContractLanguage('bilingual')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      contractLanguage === 'bilingual' ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span>Bilingual (Dual-Col)</span>
+                    <span className="text-[10px] opacity-80">ሁለት ቋንቋ</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContractLanguage('am')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      contractLanguage === 'am' ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span>አማርኛ ብቻ</span>
+                    <span className="text-[10px] opacity-80">Amharic Script</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContractLanguage('en')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      contractLanguage === 'en' ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-600'
+                    }`}
+                  >
+                    <span>English Only</span>
+                    <span className="text-[10px] opacity-80">Commercial Text</span>
+                  </button>
+                </div>
+              </div>
+
+              {selectedTemplate.fields.map((f: any) => (
+                <div key={f.key}>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">{f.label}</label>
+                  <input
+                    type="text"
+                    required
+                    value={docFormData[f.key] || ''}
+                    onChange={(e) => setDocFormData({ ...docFormData, [f.key]: e.target.value })}
+                    placeholder={f.placeholder}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+              ))}
+
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setSelectedTemplate(null)} className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="w-2/3 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow">
+                  <Printer className="w-4 h-4 text-amber-400" />
+                  <span>Generate & Export PDF</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* FOOTER */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-2 space-y-3">
-              <div className="flex items-center gap-2.5">
-                <img src="/logo.png" alt="LegalLink" style={{ width: '32px', height: '32px' }} className="w-8 h-8 object-contain" />
-                <span className="text-lg font-black text-white">Legal<span className="text-amber-400">Link</span></span>
-              </div>
-              <p className="text-xs text-slate-400 max-w-sm">Ethiopia's premier legal marketplace connecting clients with verified advocates for trusted advice, dispute resolution, and document automation.</p>
-            </div>
-            <div>
-              <h5 className="text-xs font-bold text-amber-400 uppercase mb-3">Platform</h5>
-              <ul className="text-xs space-y-2 text-slate-400">
-                <li onClick={() => { setActiveTab('match'); setMatchStep(1); }} className="cursor-pointer hover:text-white">Find a Lawyer</li>
-                <li onClick={() => setActiveTab('calculator')} className="cursor-pointer hover:text-white">Severance Calculator</li>
-                <li onClick={() => setActiveTab('legaltalk')} className="cursor-pointer hover:text-white">LegalTalk Forum</li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="text-xs font-bold text-amber-400 uppercase mb-3">Administration</h5>
-              <ul className="text-xs space-y-2 text-slate-400">
-                <li><Link href="/admin" className="hover:text-amber-400">Admin Console ↗</Link></li>
-                <li><Link href="/advocate" className="hover:text-amber-400">Advocate Workspace ↗</Link></li>
-              </ul>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400">
+          LegalLink Ethiopia • Statutory Document Automation & Dispute Resolution • Bole Road, Addis Ababa
         </div>
       </footer>
 
