@@ -1,21 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --font-century-gothic: "Century Gothic", CenturyGothic, AppleGothic, "Segoe UI", sans-serif;
 }
 
-* {
-  font-family: var(--font-century-gothic);
-}
-
-body {
+html, body {
   font-family: var(--font-century-gothic);
   background-color: #f8fafc;
   color: #0f172a;
 }
 
+* {
+  font-family: inherit;
+}
+
 input, button, select, textarea {
-  font-family: var(--font-century-gothic);
+  font-family: inherit;
 }

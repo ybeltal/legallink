@@ -8,8 +8,7 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
-  BookOpen, ChevronDown, CheckCircle, ThumbsUp
+  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -164,7 +163,7 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // CLIENT MATCHING FLOW (4 STAGES)
+  // CLIENT MATCHING FLOW
   // -------------------------------------------------------------
   const [matchStep, setMatchStep] = useState<1 | 2 | 3 | 4>(1);
   const [clientName, setClientName] = useState('');
@@ -403,7 +402,6 @@ export default function LegalLinkHome() {
     }
   ]);
 
-  // Selected Article for LegalTalk Modal
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
 
   const fetchMyConsultations = async () => {
@@ -1225,22 +1223,14 @@ export default function LegalLinkHome() {
   ];
 
   return (
-    <div 
-      className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900"
-      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, "Segoe UI", sans-serif' }}
-    >
-      <style jsx global>{`
-        * {
-          font-family: "Century Gothic", CenturyGothic, AppleGothic, "Segoe UI", sans-serif;
-        }
-      `}</style>
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 selection:bg-amber-100 selection:text-amber-900">
       
       {/* 1. TOP NAVIGATION */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* Logo */}
+            {/* Logo with fixed width/height so it never blows up */}
             <div 
               onClick={() => setActiveTab('home')} 
               className="flex items-center gap-2.5 cursor-pointer select-none"
@@ -1248,6 +1238,7 @@ export default function LegalLinkHome() {
               <img 
                 src="/logo.png" 
                 alt="LegalLink Logo" 
+                style={{ width: '40px', height: '40px', objectFit: 'contain' }}
                 className="w-10 h-10 object-contain hover:scale-105 transition-transform" 
               />
               <div>
@@ -1448,7 +1439,7 @@ export default function LegalLinkHome() {
         )}
       </header>
 
-      {/* 2. FULL EXPANDED LANDING VIEW */}
+      {/* 2. LANDING PAGE VIEW */}
       {activeTab === 'home' && (
         <main className="flex-1">
           
@@ -1567,7 +1558,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 2: HOW IT WORKS (3 STEPS) */}
+          {/* SECTION 2: HOW IT WORKS */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
@@ -1655,7 +1646,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 4: FEATURED LAWYERS */}
+          {/* SECTION 4: FEATURED ADVOCATES */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
@@ -1721,7 +1712,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 5: WHY LEGALLINK (NAVY FULL-WIDTH BLOCK) */}
+          {/* SECTION 5: WHY LEGALLINK */}
           <section className="py-20 bg-[#0A1128] text-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
               <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -1787,7 +1778,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 6: LEGALTALK (ARTICLES / COMMUNITY FORUM PREVIEW) */}
+          {/* SECTION 6: LEGALTALK */}
           <section className="py-20 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
@@ -2700,7 +2691,12 @@ export default function LegalLinkHome() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2 space-y-3">
               <div className="flex items-center gap-2.5">
-                <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
+                <img 
+                  src="/logo.png" 
+                  alt="LegalLink Logo" 
+                  style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                  className="w-8 h-8 object-contain" 
+                />
                 <span className="text-lg font-black text-white">
                   Legal<span className="text-amber-400">Link</span>
                 </span>
