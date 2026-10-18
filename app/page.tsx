@@ -8,7 +8,7 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages
+  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -107,7 +107,7 @@ export default function LegalLinkHome() {
           setAuthModalOpen(false);
           setClientName(authFullName);
           if (authRole === 'advocate') {
-            setActiveTab('for-lawyers');
+            window.location.href = '/advocate';
           } else {
             setActiveTab('my-consultations');
           }
@@ -1213,6 +1213,8 @@ export default function LegalLinkHome() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
+            
+            {/* Logo */}
             <div 
               onClick={() => setActiveTab('home')} 
               className="flex items-center gap-2.5 cursor-pointer select-none"
@@ -1232,32 +1234,55 @@ export default function LegalLinkHome() {
               </div>
             </div>
 
+            {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center gap-1">
-              {[
-                { id: 'match', label: lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer' },
-                { id: 'for-lawyers', label: lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers' },
-                { id: 'legaltalk', label: 'LegalTalk' },
-                { id: 'lexdraft', label: 'LexDraft' },
-                { id: 'my-consultations', label: lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal' },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id as any);
-                    if (item.id === 'match') setMatchStep(1);
-                  }}
-                  className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-                    activeTab === item.id 
-                      ? 'text-[#0A1128] bg-slate-100 font-bold' 
-                      : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              <button
+                onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === 'match' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
+              >
+                {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
+              </button>
+
+              {/* Direct route to Advocate Workspace when clicking For Lawyers */}
+              <Link
+                href="/advocate"
+                className="px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-colors"
+              >
+                {lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers'}
+              </Link>
+
+              <button
+                onClick={() => setActiveTab('legaltalk')}
+                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === 'legaltalk' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
+              >
+                LegalTalk
+              </button>
+
+              <button
+                onClick={() => setActiveTab('lexdraft')}
+                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
+              >
+                LexDraft
+              </button>
+
+              <button
+                onClick={() => setActiveTab('my-consultations')}
+                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
+                  activeTab === 'my-consultations' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
+              >
+                {lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal'}
+              </button>
             </nav>
 
-            <div className="hidden md:flex items-center gap-2.5">
+            {/* Header Right Actions */}
+            <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer mr-1"
@@ -1266,6 +1291,16 @@ export default function LegalLinkHome() {
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
               </button>
 
+              {/* Direct Link to Advocate Onboarding Form */}
+              <Link
+                href="/advocate/join"
+                className="px-3 py-1.5 rounded-lg text-amber-800 bg-amber-50 hover:bg-amber-100 text-xs font-bold border border-amber-200 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <UserPlus className="w-3.5 h-3.5 text-amber-600" />
+                <span>Join as Advocate</span>
+              </Link>
+
+              {/* Direct Link to Advocate Portal Workspace */}
               <Link
                 href="/advocate"
                 className="px-3 py-1.5 rounded-lg bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 shadow-sm"
@@ -1274,6 +1309,7 @@ export default function LegalLinkHome() {
                 <span>Advocate Portal</span>
               </Link>
 
+              {/* Direct Link to Admin Console */}
               <Link
                 href="/admin"
                 className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-colors flex items-center gap-1"
@@ -1333,6 +1369,7 @@ export default function LegalLinkHome() {
               )}
             </div>
 
+            {/* Mobile Menu Icon */}
             <div className="flex md:hidden items-center gap-2">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
@@ -1349,30 +1386,36 @@ export default function LegalLinkHome() {
 
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-2">
-            {[
-              { id: 'match', label: lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer' },
-              { id: 'for-lawyers', label: lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers' },
-              { id: 'legaltalk', label: 'LegalTalk' },
-              { id: 'lexdraft', label: 'LexDraft' },
-              { id: 'my-consultations', label: lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal' },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id as any);
-                  setMobileMenuOpen(false);
-                }}
-                className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-              >
-                {item.label}
-              </button>
-            ))}
+            <button
+              onClick={() => { setActiveTab('match'); setMatchStep(1); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
+            </button>
+            <Link
+              href="/advocate/join"
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-800 bg-amber-50 rounded-lg"
+            >
+              Join as Advocate (MOJ Register) ↗
+            </Link>
             <Link
               href="/advocate"
               className="block w-full text-left px-3 py-2 text-sm font-bold text-[#0A1128] hover:bg-slate-100 rounded-lg"
             >
               Advocate Portal ↗
             </Link>
+            <button
+              onClick={() => { setActiveTab('lexdraft'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              LexDraft Builder
+            </button>
+            <button
+              onClick={() => { setActiveTab('my-consultations'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              {lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal'}
+            </button>
             <Link
               href="/admin"
               className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-50 rounded-lg"
@@ -1412,16 +1455,13 @@ export default function LegalLinkHome() {
                       <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
-                    <button
-                      onClick={() => {
-                        setAuthMode('signup');
-                        setAuthError(null);
-                        setAuthModalOpen(true);
-                      }}
-                      className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer"
+                    <Link
+                      href="/advocate/join"
+                      className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
-                      Get Started
-                    </button>
+                      <Award className="w-4 h-4 text-amber-500" />
+                      <span>Join as Advocate</span>
+                    </Link>
                   </div>
 
                   <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100">
@@ -1491,6 +1531,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
+          {/* Practice Areas */}
           <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-black text-[#0A1128] mb-8">Practice Areas</h2>
@@ -1519,6 +1560,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
+          {/* Verified Client Reviews */}
           <section className="py-16 bg-slate-50 border-t border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10">
@@ -2020,8 +2062,6 @@ export default function LegalLinkHome() {
             </div>
 
             <form onSubmit={handleCreateDocumentSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
-              
-              {/* LANGUAGE SELECTOR */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                   Select Output Document Language (DARA Certified)
@@ -2633,6 +2673,9 @@ export default function LegalLinkHome() {
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
                 <li>
                   <Link href="/advocate" className="text-slate-400 hover:text-amber-400">Advocate Workspace ↗</Link>
+                </li>
+                <li>
+                  <Link href="/advocate/join" className="text-slate-400 hover:text-amber-400">Join Advocate Network (MOJ) ↗</Link>
                 </li>
               </ul>
             </div>
