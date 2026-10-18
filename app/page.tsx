@@ -163,7 +163,7 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // CLIENT MATCHING FLOW (4 STAGES)
+  // CLIENT MATCHING FLOW
   // -------------------------------------------------------------
   const [matchStep, setMatchStep] = useState<1 | 2 | 3 | 4>(1);
   const [clientName, setClientName] = useState('');
@@ -221,18 +221,15 @@ export default function LegalLinkHome() {
     setIsUploadingFile(true);
     try {
       const supabase = createClient();
-      const fileExt = file.name.split('.').pop();
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filePath = `${selectedConsultationDetails.id}/${Date.now()}_${cleanFileName}`;
 
-      // 1. Upload directly to Supabase Storage bucket 'case-documents'
       const { error: uploadError } = await supabase.storage
         .from('case-documents')
         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // 2. Retrieve public URL
       const { data: urlData } = supabase.storage
         .from('case-documents')
         .getPublicUrl(filePath);
@@ -242,7 +239,6 @@ export default function LegalLinkHome() {
         ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
         : `${Math.round(file.size / 1024)} KB`;
 
-      // 3. Save reference in public.case_documents table
       const uploader = userProfile?.full_name || selectedConsultationDetails.client_name || 'Client';
       const { data: newDocRecord, error: insertError } = await supabase
         .from('case_documents')
@@ -355,7 +351,7 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // GAS-STATION STYLE TELEBIRR USSD PUSH CHECKOUT STATE
+  // TELEBIRR USSD PUSH CHECKOUT WITH AUTOMATED SMS DISPATCH
   // -------------------------------------------------------------
   const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
   const [telebirrPhone, setTelebirrPhone] = useState('0905941865');
@@ -488,7 +484,6 @@ export default function LegalLinkHome() {
     }
   }, [activeTab, payingConsultation]);
 
-  // Load chat messages and case documents on consultation open
   useEffect(() => {
     if (selectedConsultationDetails) {
       const consultationId = selectedConsultationDetails.id;
@@ -536,7 +531,6 @@ export default function LegalLinkHome() {
         };
       }
 
-      // Realtime listener for case documents
       const docsChannel = supabase
         .channel(`docs_${consultationId}`)
         .on(
@@ -660,6 +654,18 @@ export default function LegalLinkHome() {
             },
           ]);
 
+        // AUTOMATED ETHIO TELECOM SMS ALERT
+        fetch('/api/sms/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone_number: telebirrPhone,
+            recipient_role: 'client',
+            event_type: 'escrow_locked',
+            message_body: `LegalLink Trust: ETB 1,500 retainer secured in escrow for ${payingConsultation.practice_area}. Ref: ${txnRef}. Advocate Mulu Haile assigned.`,
+          }),
+        }).catch((e) => console.log('SMS notify error:', e));
+
         setMyConsultations((prev) =>
           prev.map((c) =>
             c.id === payingConsultation.id
@@ -668,19 +674,6 @@ export default function LegalLinkHome() {
           )
         );
       }
-
-      fetch('/api/telebirr/webhook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          consultation_id: payingConsultation?.id,
-          client_name: userProfile?.full_name || payingConsultation?.client_name || 'Client',
-          phone_number: telebirrPhone,
-          amount: 1500,
-          transaction_ref: txnRef,
-          status: 'SUCCESS',
-        }),
-      }).catch((e) => console.log('Webhook notice:', e));
 
       setPushStatus('confirmed');
     } catch (err: any) {
