@@ -8,7 +8,7 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud
+  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -370,10 +370,11 @@ export default function LegalLinkHome() {
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // -------------------------------------------------------------
-  // LEXDRAFT CONTRACT BUILDER & PDF GENERATOR STATE
+  // LEXDRAFT CONTRACT BUILDER & BILINGUAL PDF GENERATOR STATE
   // -------------------------------------------------------------
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [docFormData, setDocFormData] = useState<Record<string, string>>({});
+  const [contractLanguage, setContractLanguage] = useState<'en' | 'am' | 'bilingual'>('bilingual');
   const [savedContracts, setSavedContracts] = useState<any[]>([
     { 
       id: 'cnt-1', 
@@ -384,7 +385,8 @@ export default function LegalLinkHome() {
       partyA: 'EthioTech Solutions PLC',
       partyB: 'Ybeltal Semagn',
       jurisdiction: 'Addis Ababa',
-      type: 'emp'
+      type: 'emp',
+      contractLang: 'bilingual'
     },
     { 
       id: 'cnt-2', 
@@ -395,7 +397,8 @@ export default function LegalLinkHome() {
       partyA: 'Alpha Consulting SC',
       partyB: 'Horizon Logistics',
       jurisdiction: 'FDRE Commercial Court',
-      type: 'nda'
+      type: 'nda',
+      contractLang: 'bilingual'
     }
   ]);
 
@@ -793,87 +796,135 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // LEXDRAFT DYNAMIC PDF CONTRACT GENERATOR ENGINE
+  // BILINGUAL (አማርኛ / ENGLISH / DUAL-COLUMN) CONTRACT GENERATOR
   // -------------------------------------------------------------
   const handleExportContractPDF = (contract: any) => {
-    const printWindow = window.open('', '_blank', 'width=850,height=950');
+    const printWindow = window.open('', '_blank', 'width=900,height=950');
     if (!printWindow) {
       alert('Please allow popups to download/print your legal contract.');
       return;
     }
 
     const type = contract.type || 'emp';
-    const partyA = contract.partyA || 'Employer / Disclosing Party';
-    const partyB = contract.partyB || 'Employee / Receiving Party';
-    const roleOrPurpose = contract.roleOrPurpose || 'Professional Services & Duties';
+    const cLang = contract.contractLang || contractLanguage || 'bilingual';
+    const partyA = contract.partyA || 'Employer / Disclosing Party / አሰሪ ድርጅት';
+    const partyB = contract.partyB || 'Employee / Receiving Party / ተቀጣሪ ሠራተኛ';
+    const roleOrPurpose = contract.roleOrPurpose || 'Professional Services / የሙያ አገልግሎት';
     const salaryOrRent = contract.salaryOrRent || 'ETB 25,000.00';
-    const locationName = contract.jurisdiction || 'Addis Ababa, Federal Democratic Republic of Ethiopia';
+    const locationName = contract.jurisdiction || 'Addis Ababa / አዲስ አበባ';
     const startDate = contract.date || new Date().toISOString().split('T')[0];
 
+    let headerTitle = '';
     let contractBody = '';
 
     if (type === 'emp') {
-      contractBody = `
-        <div class="preamble">
-          This Employment Agreement ("Agreement") is executed on this day, <strong>${startDate}</strong>, in accordance with the <strong>Labor Proclamation No. 1156/2019</strong> of the Federal Democratic Republic of Ethiopia, between:
-        </div>
+      if (cLang === 'am') {
+        headerTitle = 'በኢትዮጵያ የሠራተኛ ጉዳይ አዋጅ ቁጥር 1156/2011 መሠረት የተደረገ የሥራ ውል ስምምነት';
+        contractBody = `
+          <div class="parties-box">
+            <strong>1. አሰሪ፦</strong> ${partyA} (በኢትዮጵያ ሕግ መሠረት የተቋቋመ ድርጅት)<br/>
+            <strong>2. ሠራተኛ፦</strong> ${partyB} (አድራሻ፦ ${locationName})
+          </div>
+          <div class="section-title">አንቀጽ 1፦ የሥራ መደብና ኃላፊነት</div>
+          <p>ሠራተኛው በአሰሪው ድርጅት ውስጥ በ<strong>${roleOrPurpose}</strong> የሥራ መደብ ላይ ተቀጥሮ የሚሰጡትን ሕጋዊ ትዕዛዞችና የሥራ ኃላፊነቶች በታማኝነትና በሙሉ ትጋት ለማከናወን ተስማምቷል።</p>
+          
+          <div class="section-title">አንቀጽ 2፦ የደመወዝ መጠንና አከፋፈል</div>
+          <p>አሰሪው ለሠራተኛው በየወሩ የተጣራ/ጠቅላላ የብር <strong>${salaryOrRent}</strong> ደመወዝ የሚከፍል ሲሆን፣ ከመንግሥት የገቢ ግብርና ከሠራተኛው የጡረታ መዋጮ (7%) ተቀናሽ የሚደረግ ይሆናል።</p>
 
-        <div class="parties-box">
-          <strong>1. EMPLOYER:</strong> ${partyA}, a business entity registered under the laws of Ethiopia.<br/>
-          <strong>2. EMPLOYEE:</strong> ${partyB}, residing in ${locationName}.
-        </div>
+          <div class="section-title">አንቀጽ 3፦ የሙከራ ጊዜ</div>
+          <p>በአዋጅ ቁጥር 1156/2011 አንቀጽ 11 መሠረት የሙከራ ጊዜው ሥራ ከጀመረበት ቀን አንስቶ ለተከታታይ ስልሳ (60) የሥራ ቀናት ይሆናል።</p>
 
-        <div class="section-title">ARTICLE 1: POSITION AND DUTIES</div>
-        <p>The Employee is employed in the capacity of <strong>${roleOrPurpose}</strong>. The Employee agrees to execute all lawful directives, assignments, and fiduciary duties faithfully and in full accordance with the Employer's workplace policies and Ethiopian statutory labor regulations.</p>
+          <div class="section-title">አንቀጽ 4፦ ውል ስለማቋረጥና አለመግባባቶች</div>
+          <p>ይህ የሥራ ውል በአዋጅ ቁጥር 1156/2011 በተደነገጉት ድንጋጌዎች መሠረት የሚቋረጥ ሲሆን፣ በማናቸውም አለመግባባት ላይ በቅድሚያ በስምምነት፣ ካልተቻለ ደግሞ በ${locationName} ፍርድ ቤት ወይም በአሰሪና ሠራተኛ ወሳኝ ቦርድ ውሳኔ የሚያገኝ ይሆናል።</p>
+        `;
+      } else if (cLang === 'bilingual') {
+        headerTitle = 'BILINGUAL EMPLOYMENT CONTRACT / የሁለትዮሽ የሥራ ውል ስምምነት';
+        contractBody = `
+          <div class="parties-box">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div><strong>EMPLOYER:</strong> ${partyA}</div>
+              <div><strong>አሰሪ ድርጅት፦</strong> ${partyA}</div>
+              <div><strong>EMPLOYEE:</strong> ${partyB} (${locationName})</div>
+              <div><strong>ተቀጣሪ ሠራተኛ፦</strong> ${partyB} (${locationName})</div>
+            </div>
+          </div>
 
-        <div class="section-title">ARTICLE 2: REMUNERATION AND BENEFITS</div>
-        <p>In consideration of the services rendered, the Employer shall pay the Employee a monthly gross remuneration of <strong>${salaryOrRent}</strong>, subject to statutory income tax and employee pension deductions (7%) mandated by the Federal Democratic Republic of Ethiopia.</p>
+          <div class="bilingual-grid">
+            <div class="col">
+              <div class="section-title">ARTICLE 1: POSITION & DUTIES</div>
+              <p>The Employee is employed as <strong>${roleOrPurpose}</strong> and agrees to execute all lawful directives faithfully under Ethiopian Labor Proclamation No. 1156/2019.</p>
 
-        <div class="section-title">ARTICLE 3: PROBATIONARY PERIOD</div>
-        <p>Pursuant to Article 11 of Labor Proclamation No. 1156/2019, the Employee shall be subject to a probationary period not exceeding sixty (60) working days from the commencement date.</p>
+              <div class="section-title">ARTICLE 2: REMUNERATION</div>
+              <p>The monthly remuneration shall be <strong>${salaryOrRent}</strong>, subject to statutory income tax and 7% employee pension deductions.</p>
 
-        <div class="section-title">ARTICLE 4: TERMINATION & DISPUTE SETTLEMENT</div>
-        <p>Termination of this Agreement shall be governed strictly by Articles 24 through 32 of Labor Proclamation No. 1156/2019. Any dispute arising out of this Agreement that cannot be settled amicably shall be submitted to the competent Labor Relations Board or First Instance Court of ${locationName}.</p>
-      `;
+              <div class="section-title">ARTICLE 3: PROBATION & DISPUTES</div>
+              <p>Probation shall not exceed 60 working days pursuant to Article 11. Disputes shall be submitted to the Labor Relations Board or Court of ${locationName}.</p>
+            </div>
+
+            <div class="col">
+              <div class="section-title">አንቀጽ 1፦ የሥራ መደብና ኃላፊነት</div>
+              <p>ሠራተኛው በ<strong>${roleOrPurpose}</strong> የሥራ መደብ ላይ ተቀጥሮ በአዋጅ ቁጥር 1156/2011 መሠረት የተሰጡትን ኃላፊነቶች በታማኝነት ያከናውናል።</p>
+
+              <div class="section-title">አንቀጽ 2፦ የደመወዝ ክፍያ</div>
+              <p>አሰሪው ለሠራተኛው በየወሩ የብር <strong>${salaryOrRent}</strong> ደመወዝ የሚከፍል ሲሆን፣ ሕጋዊ የገቢ ግብርና 7% የጡረታ መዋጮ ተቀናሽ ይደረጋል።</p>
+
+              <div class="section-title">አንቀጽ 3፦ የሙከራ ጊዜና አለመግባባቶች</div>
+              <p>የሙከራ ጊዜው 60 የሥራ ቀናት ይሆናል። አለመግባባቶች በ${locationName} አሰሪና ሠራተኛ ወሳኝ ቦርድ ወይም ፍርድ ቤት ውሳኔ ያገኛሉ።</p>
+            </div>
+          </div>
+        `;
+      } else {
+        headerTitle = 'EMPLOYMENT AGREEMENT (PROCLAMATION NO. 1156/2019)';
+        contractBody = `
+          <div class="parties-box">
+            <strong>1. EMPLOYER:</strong> ${partyA}<br/>
+            <strong>2. EMPLOYEE:</strong> ${partyB} (${locationName})
+          </div>
+          <div class="section-title">ARTICLE 1: POSITION AND DUTIES</div>
+          <p>The Employee is employed in the capacity of <strong>${roleOrPurpose}</strong> in accordance with Labor Proclamation No. 1156/2019.</p>
+          <div class="section-title">ARTICLE 2: REMUNERATION AND BENEFITS</div>
+          <p>The monthly remuneration is <strong>${salaryOrRent}</strong>, subject to statutory tax and pension deductions.</p>
+          <div class="section-title">ARTICLE 3: PROBATIONARY PERIOD</div>
+          <p>Pursuant to Article 11, the probationary period shall be sixty (60) working days.</p>
+          <div class="section-title">ARTICLE 4: TERMINATION & DISPUTES</div>
+          <p>Governed by Articles 24–32 of Proclamation No. 1156/2019 and competent courts in ${locationName}.</p>
+        `;
+      }
     } else if (type === 'nda') {
-      contractBody = `
-        <div class="preamble">
-          This Mutual Non-Disclosure Agreement ("Agreement") is entered into on <strong>${startDate}</strong>, under the provisions of the <strong>Civil Code and Commercial Code of Ethiopia</strong>, between:
-        </div>
-
-        <div class="parties-box">
-          <strong>PARTY A:</strong> ${partyA}<br/>
-          <strong>PARTY B:</strong> ${partyB}
-        </div>
-
-        <div class="section-title">ARTICLE 1: PURPOSE OF DISCLOSURE</div>
-        <p>The parties intend to explore collaborative business opportunities relating to: <strong>${roleOrPurpose}</strong> ("Permitted Purpose").</p>
-
-        <div class="section-title">ARTICLE 2: CONFIDENTIAL INFORMATION & OBLIGATIONS</div>
-        <p>Each Receiving Party agrees to maintain in strict confidence all proprietary, financial, trade secret, software, and commercial data disclosed by the other party. Neither party shall disclose Confidential Information to any third party without prior written consent.</p>
-
-        <div class="section-title">ARTICLE 3: DURATION AND GOVERNING JURISDICTION</div>
-        <p>This confidentiality obligation shall persist for a period of two (2) years from the date of disclosure. This Agreement is governed by the laws of Ethiopia, and disputes shall be subject to arbitration under the Addis Ababa Chamber of Commerce Arbitration Center.</p>
-      `;
+      if (cLang === 'am' || cLang === 'bilingual') {
+        headerTitle = 'ሚስጥር የመጠበቅ የጋራ ስምምነት / MUTUAL NON-DISCLOSURE AGREEMENT';
+        contractBody = `
+          <div class="parties-box">
+            <strong>የመጀመሪያው ወገን / Party A:</strong> ${partyA}<br/>
+            <strong>ሁለተኛው ወገን / Party B:</strong> ${partyB}
+          </div>
+          <div class="section-title">የስምምነቱ ዓላማ / PURPOSE OF DISCLOSURE</div>
+          <p>ሁለቱ ወገኖች በንግድና ቴክኖሎጂ ትብብር ዙሪያ በጋራ ለመሥራት የሚያስችላቸውን ሚስጥራዊ የንግድ መረጃዎች (<strong>${roleOrPurpose}</strong>) ለመለዋወጥ ተስማምተዋል። በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 2027 መሠረት ማናቸውም ሚስጥራዊ መረጃ ለሶስተኛ ወገን አይገለጽም።</p>
+          <div class="section-title">የውል ፀናት ጊዜና ካሳ / DURATION & DAMAGES</div>
+          <p>ይህ ስምምነት ከተፈረመበት ቀን አንስቶ ለሁለት (2) ዓመታት የፀና ይሆናል። ስምምነቱ ቢጣስ የብር <strong>${salaryOrRent}</strong> የካሳ ክፍያ በ${locationName} የንግድ ምክር ቤት የግልግል ዳኝነት ይወሰናል።</p>
+        `;
+      } else {
+        headerTitle = 'MUTUAL NON-DISCLOSURE AGREEMENT (NDA)';
+        contractBody = `
+          <div class="parties-box">
+            <strong>PARTY A:</strong> ${partyA}<br/>
+            <strong>PARTY B:</strong> ${partyB}
+          </div>
+          <div class="section-title">ARTICLE 1: CONFIDENTIAL PURPOSE</div>
+          <p>Parties exchange proprietary disclosures relating to <strong>${roleOrPurpose}</strong> pursuant to Ethiopian Civil Code Art. 2027.</p>
+          <div class="section-title">ARTICLE 2: REMEDIES FOR BREACH</div>
+          <p>Breach liquidated damages of <strong>${salaryOrRent}</strong> subject to arbitration in ${locationName}.</p>
+        `;
+      }
     } else {
+      headerTitle = 'የንግድ ቤት ኪራይ ውል ስምምነት / COMMERCIAL LEASE AGREEMENT';
       contractBody = `
-        <div class="preamble">
-          This Commercial Lease Agreement ("Lease") is executed on <strong>${startDate}</strong>, pursuant to Book IV of the <strong>Civil Code of Ethiopia</strong>, between:
-        </div>
-
         <div class="parties-box">
-          <strong>LESSOR (LANDLORD):</strong> ${partyA}<br/>
-          <strong>LESSEE (TENANT):</strong> ${partyB}
+          <strong>አከራይ / LESSOR:</strong> ${partyA}<br/>
+          <strong>ተከራይ / LESSEE:</strong> ${partyB}
         </div>
-
-        <div class="section-title">ARTICLE 1: LEASED PREMISES</div>
-        <p>The Lessor hereby leases to the Lessee commercial premises situated in: <strong>${locationName}</strong> for commercial business use (${roleOrPurpose}).</p>
-
-        <div class="section-title">ARTICLE 2: RENT AND PAYMENT SCHEDULE</div>
-        <p>The agreed monthly rental fee is <strong>${salaryOrRent}</strong>, payable in advance on or before the 5th day of each calendar month via authorized bank transfer or Telebirr merchant payment.</p>
-
-        <div class="section-title">ARTICLE 3: STATUTORY COMPLIANCE</div>
-        <p>The Lessee shall maintain the premises in good condition and comply with all commercial licensing, environmental, and municipal fire safety codes of the Addis Ababa City Administration.</p>
+        <div class="section-title">የተከራየው ንብረትና የኪራይ መጠን / PREMISES & RENT</div>
+        <p>አከራይ በ${locationName} የሚገኘውን የንግድ ቤት ለ<strong>${roleOrPurpose}</strong> አገልግሎት እንዲውል ለተከራይ ያከራየ ሲሆን፣ ወርሃዊ የኪራይ መጠኑ የብር <strong>${salaryOrRent}</strong> ነው። የኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 2896 እና ተከታዮቹ ድንጋጌዎች ተፈጻሚ ይሆናሉ።</p>
       `;
     }
 
@@ -881,54 +932,67 @@ export default function LegalLinkHome() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${contract.title} - Official LexDraft Document</title>
+          <title>${contract.title} - Official LegalLink LexDraft</title>
           <style>
-            @page { size: portrait; margin: 20mm; }
-            body { font-family: "Times New Roman", Times, Georgia, serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 25px; }
-            .contract-header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 24px; }
+            @page { size: portrait; margin: 18mm; }
+            body { font-family: "Nyala", "Noto Sans Ethiopic", "Times New Roman", Georgia, serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 20px; }
+            .contract-header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
             .republic { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #4b5563; font-weight: bold; }
-            .contract-title { font-size: 20px; font-weight: bold; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
-            .preamble { margin-bottom: 18px; text-align: justify; }
-            .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.8; }
-            .section-title { font-size: 13px; font-weight: bold; margin-top: 18px; margin-bottom: 6px; color: #0A1128; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; }
-            p { margin: 0 0 12px 0; text-align: justify; }
-            .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; page-break-inside: avoid; }
+            .contract-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 6px; }
+            .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.8; }
+            .section-title { font-size: 13px; font-weight: bold; margin-top: 16px; margin-bottom: 6px; color: #0A1128; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; }
+            p { margin: 0 0 10px 0; text-align: justify; }
+            .bilingual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+            .col { border-right: 1px dashed #e5e7eb; padding-right: 15px; }
+            .col:last-child { border-right: none; padding-right: 0; padding-left: 5px; }
+            .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; page-break-inside: avoid; }
             .sig-line { border-top: 1px solid #111827; padding-top: 6px; font-size: 12px; }
-            .seal-box { border: 1px dashed #9ca3af; border-radius: 6px; height: 70px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #9ca3af; text-transform: uppercase; }
-            .footer-note { margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 9px; color: #6b7280; font-family: sans-serif; display: flex; justify-content: space-between; }
+            .seal-box { border: 1px dashed #9ca3af; border-radius: 6px; height: 65px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #9ca3af; text-transform: uppercase; }
+            .witness-section { margin-top: 30px; border-top: 1px solid #d1d5db; padding-top: 14px; font-size: 11px; }
+            .footer-note { margin-top: 35px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 9px; color: #6b7280; display: flex; justify-content: space-between; font-family: sans-serif; }
           </style>
         </head>
         <body>
           <div class="contract-header">
-            <div class="republic">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA</div>
-            <div class="contract-title">${contract.title.toUpperCase()}</div>
-            <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">LEXDRAFT STATUTORY TEMPLATE • JURISDICTION: ${locationName.toUpperCase()}</div>
+            <div class="republic">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA / የኢትዮጵያ ፌዴራላዊ ዴሞክራሲያዊ ሪፐብሊክ</div>
+            <div class="contract-title">${headerTitle}</div>
+            <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">
+              DARA COMPLIANT DRAFT • ቋንቋ፦ ${cLang.toUpperCase()} • DATE / ቀን፦ ${startDate}
+            </div>
           </div>
 
           ${contractBody}
 
           <div class="signature-grid">
             <div>
-              <div class="seal-box">[ OFFICIAL STAMP / SIGNATURE ]</div>
+              <div class="seal-box">[ የመጀመሪያው ወገን ፊርማ / PARTY A STAMP ]</div>
               <div class="sig-line">
-                <strong>FOR FIRST PARTY:</strong><br/>
-                Name: ${partyA}<br/>
-                Date: ________________________
+                <strong>የመጀመሪያው ወገን / FIRST PARTY:</strong><br/>
+                ስም / Name: ${partyA}<br/>
+                ፊርማ / Signature: __________________
               </div>
             </div>
             <div>
-              <div class="seal-box">[ OFFICIAL STAMP / SIGNATURE ]</div>
+              <div class="seal-box">[ የሁለተኛው ወገን ፊርማ / PARTY B STAMP ]</div>
               <div class="sig-line">
-                <strong>FOR SECOND PARTY:</strong><br/>
-                Name: ${partyB}<br/>
-                Date: ________________________
+                <strong>ሁለተኛው ወገን / SECOND PARTY:</strong><br/>
+                ስም / Name: ${partyB}<br/>
+                ፊርማ / Signature: __________________
               </div>
             </div>
           </div>
 
+          <div class="witness-section">
+            <strong>የምስክሮች ስምና ፊርማ / WITNESSES TO SIGNATURE:</strong>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
+              <div>1. ስም / Name: _______________________ ፊርማ / Sig: __________</div>
+              <div>2. ስም / Name: _______________________ ፊርማ / Sig: __________</div>
+            </div>
+          </div>
+
           <div class="footer-note">
-            <span>Generated securely via LegalLink Ethiopia LexDraft Automation</span>
-            <span>Document Ref: ${contract.id.toUpperCase()}-STAMPED</span>
+            <span>በሰነዶች ማረጋገጫና ምዝገባ አገልግሎት (DARA) መስፈርት መሠረት የተዘጋጀ - LegalLink LexDraft</span>
+            <span>Ref: ${contract.id.toUpperCase()}-ETHIO-VERIFIED</span>
           </div>
 
           <script>
@@ -948,11 +1012,11 @@ export default function LegalLinkHome() {
     if (!selectedTemplate) return;
 
     const newId = `cnt-${Date.now().toString().slice(-4)}`;
-    const partyA = docFormData.partyA?.trim() || 'First Party Entity';
-    const partyB = docFormData.partyB?.trim() || userProfile?.full_name || 'Second Party';
+    const partyA = docFormData.partyA?.trim() || 'First Party Entity / አሰሪ ድርጅት';
+    const partyB = docFormData.partyB?.trim() || userProfile?.full_name || 'Second Party / ተቀጣሪ';
     const roleOrPurpose = docFormData.roleOrPurpose?.trim() || 'General Services';
     const salaryOrRent = docFormData.salaryOrRent?.trim() || 'ETB 15,000.00';
-    const jurisdiction = docFormData.jurisdiction?.trim() || 'Addis Ababa';
+    const jurisdiction = docFormData.jurisdiction?.trim() || 'Addis Ababa / አዲስ አበባ';
 
     const newContractRecord = {
       id: newId,
@@ -966,6 +1030,7 @@ export default function LegalLinkHome() {
       salaryOrRent,
       jurisdiction,
       type: selectedTemplate.id,
+      contractLang: contractLanguage,
     };
 
     setSavedContracts((prev) => [newContractRecord, ...prev]);
@@ -1091,49 +1156,52 @@ export default function LegalLinkHome() {
     {
       id: 'emp',
       title: 'Employment Contract',
+      amTitle: 'የሥራ ውል ስምምነት',
       category: 'Labor Law',
       priceETB: 450,
       popular: true,
-      desc: 'Fully compliant with Ethiopian Labor Proclamation No. 1156/2019 for fixed or indefinite terms.',
-      statute: 'Labor Proclamation No. 1156/2019',
+      desc: 'Compliant with Ethiopian Labor Proclamation No. 1156/2019 for fixed or indefinite terms.',
+      statute: 'Labor Proclamation No. 1156/2019 (አዋጅ ቁጥር 1156/2011)',
       fields: [
-        { key: 'partyA', label: 'Employer Entity Name (e.g. Acme Tech PLC)', placeholder: 'e.g. Safaricom Telecommunications PLC' },
-        { key: 'partyB', label: 'Employee Legal Name', placeholder: 'e.g. Abebe Bikila' },
-        { key: 'roleOrPurpose', label: 'Job Title & Responsibilities', placeholder: 'e.g. Senior Software Engineer' },
-        { key: 'salaryOrRent', label: 'Gross Monthly Salary (ETB)', placeholder: 'e.g. ETB 35,000.00' },
-        { key: 'jurisdiction', label: 'Workplace Jurisdiction City', placeholder: 'e.g. Addis Ababa' },
+        { key: 'partyA', label: 'Employer Entity Name / የአሰሪው ድርጅት ስም', placeholder: 'e.g. Safaricom Telecommunications PLC' },
+        { key: 'partyB', label: 'Employee Legal Name / የሠራተኛው ሙሉ ስም', placeholder: 'e.g. Abebe Bikila' },
+        { key: 'roleOrPurpose', label: 'Job Title & Responsibilities / የሥራ መደብ', placeholder: 'e.g. Senior Software Engineer' },
+        { key: 'salaryOrRent', label: 'Gross Monthly Salary / ወርሃዊ ደመወዝ (ETB)', placeholder: 'e.g. ETB 35,000.00' },
+        { key: 'jurisdiction', label: 'Workplace City / የሥራ ቦታ ከተማ', placeholder: 'e.g. Addis Ababa / አዲስ አበባ' },
       ],
     },
     {
       id: 'nda',
       title: 'Non-Disclosure Agreement (NDA)',
+      amTitle: 'ሚስጥር የመጠበቅ ስምምነት',
       category: 'Corporate & Business',
       priceETB: 300,
       popular: true,
       desc: 'Protects proprietary secrets, financials, customer databases, and commercial partnerships in Ethiopia.',
-      statute: 'Civil Code of Ethiopia Art. 2027 et seq.',
+      statute: 'Civil Code of Ethiopia Art. 2027 (ፍትሐብሔር ሕግ ቁጥር 2027)',
       fields: [
-        { key: 'partyA', label: 'Disclosing Party Name', placeholder: 'e.g. FinTech Innovators PLC' },
-        { key: 'partyB', label: 'Receiving Party / Contractor Name', placeholder: 'e.g. Addis Tech Partners' },
-        { key: 'roleOrPurpose', label: 'Confidential Business Purpose', placeholder: 'e.g. Joint Payment Gateway Pilot Integration' },
-        { key: 'salaryOrRent', label: 'Liquidated Breach Damages (ETB)', placeholder: 'e.g. ETB 100,000.00' },
-        { key: 'jurisdiction', label: 'Arbitration Jurisdiction', placeholder: 'e.g. Addis Ababa Chamber of Commerce' },
+        { key: 'partyA', label: 'Disclosing Party Name / መረጃ ሰጪ ወገን', placeholder: 'e.g. FinTech Innovators PLC' },
+        { key: 'partyB', label: 'Receiving Party / መረጃ ተቀባይ ወገን', placeholder: 'e.g. Addis Tech Partners' },
+        { key: 'roleOrPurpose', label: 'Confidential Business Purpose / ሚስጥራዊ የንግድ ዓላማ', placeholder: 'e.g. Payment Gateway Integration' },
+        { key: 'salaryOrRent', label: 'Liquidated Damages / የካሳ መጠን (ETB)', placeholder: 'e.g. ETB 100,000.00' },
+        { key: 'jurisdiction', label: 'Arbitration Jurisdiction / የግልግል ዳኝነት ቦታ', placeholder: 'e.g. Addis Ababa Chamber of Commerce' },
       ],
     },
     {
       id: 'lease',
       title: 'Commercial Lease Agreement',
+      amTitle: 'የንግድ ቤት ኪራይ ውል ስምምነት',
       category: 'Property & Real Estate',
       priceETB: 600,
       popular: true,
       desc: 'Commercial premises rental contract with deposit and municipal compliance terms under Ethiopian Civil Code.',
-      statute: 'Civil Code of Ethiopia Art. 2896 et seq.',
+      statute: 'Civil Code of Ethiopia Art. 2896 (ፍትሐብሔር ሕግ ቁጥር 2896)',
       fields: [
-        { key: 'partyA', label: 'Lessor (Landlord) Full Legal Name', placeholder: 'e.g. Haile Gebreselassie' },
-        { key: 'partyB', label: 'Lessee (Tenant) Business Name', placeholder: 'e.g. Blue Nile Trading PLC' },
-        { key: 'roleOrPurpose', label: 'Permitted Commercial Use', placeholder: 'e.g. Retail Office and Software Center' },
-        { key: 'salaryOrRent', label: 'Agreed Monthly Rent (ETB)', placeholder: 'e.g. ETB 45,000.00' },
-        { key: 'jurisdiction', label: 'Property Location (Sub-city, Woreda)', placeholder: 'e.g. Bole Sub-City, Woreda 03, Addis Ababa' },
+        { key: 'partyA', label: 'Lessor (Landlord) Full Legal Name / የአከራይ ስም', placeholder: 'e.g. Haile Gebreselassie' },
+        { key: 'partyB', label: 'Lessee (Tenant) Business Name / የተከራይ ስም', placeholder: 'e.g. Blue Nile Trading PLC' },
+        { key: 'roleOrPurpose', label: 'Permitted Commercial Use / የንግድ ቤት አገልግሎት', placeholder: 'e.g. Retail Office and Software Center' },
+        { key: 'salaryOrRent', label: 'Agreed Monthly Rent / ወርሃዊ ኪራይ (ETB)', placeholder: 'e.g. ETB 45,000.00' },
+        { key: 'jurisdiction', label: 'Property Location / የቤቱ አድራሻ (ክፍለ ከተማ፣ ወረዳ)', placeholder: 'e.g. Bole Sub-City, Woreda 03, Addis Ababa' },
       ],
     },
   ];
@@ -1145,7 +1213,6 @@ export default function LegalLinkHome() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
             <div 
               onClick={() => setActiveTab('home')} 
               className="flex items-center gap-2.5 cursor-pointer select-none"
@@ -1165,7 +1232,6 @@ export default function LegalLinkHome() {
               </div>
             </div>
 
-            {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center gap-1">
               {[
                 { id: 'match', label: lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer' },
@@ -1191,7 +1257,6 @@ export default function LegalLinkHome() {
               ))}
             </nav>
 
-            {/* Header Right Actions */}
             <div className="hidden md:flex items-center gap-2.5">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
@@ -1268,7 +1333,6 @@ export default function LegalLinkHome() {
               )}
             </div>
 
-            {/* Mobile Menu Icon */}
             <div className="flex md:hidden items-center gap-2">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
@@ -1319,7 +1383,7 @@ export default function LegalLinkHome() {
         )}
       </header>
 
-      {/* 2. PUBLIC LANDING VIEW WITH VERIFIED REVIEWS SHOWCASE */}
+      {/* 2. PUBLIC LANDING VIEW */}
       {activeTab === 'home' && (
         <main className="flex-1">
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
@@ -1427,7 +1491,6 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* Practice Areas */}
           <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-black text-[#0A1128] mb-8">Practice Areas</h2>
@@ -1456,7 +1519,6 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* VERIFIED CLIENT REVIEWS SHOWCASE */}
           <section className="py-16 bg-slate-50 border-t border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10">
@@ -1523,7 +1585,7 @@ export default function LegalLinkHome() {
               </span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage consultations, review your assigned advocates, upload case evidence, download generated contracts, and access escrow receipts.
+                Manage consultations, review advocates, upload evidence, and download bilingual LexDraft contracts.
               </p>
             </div>
             <div className="flex gap-2">
@@ -1707,7 +1769,7 @@ export default function LegalLinkHome() {
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold text-amber-600 uppercase flex items-center gap-1">
                       <FileText className="w-3 h-3" />
-                      LexDraft Statutory Document
+                      LexDraft Statutory Document ({doc.contractLang?.toUpperCase() || 'BILINGUAL'})
                     </span>
                     <h4 className="font-bold text-sm text-[#0A1128]">{doc.title}</h4>
                     <span className="text-[11px] text-slate-500 block">
@@ -1881,10 +1943,12 @@ export default function LegalLinkHome() {
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="text-center max-w-2xl mx-auto">
-            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">ETHIOPIAN LEGAL DOCUMENT AUTOMATION</span>
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+              DARA COMPLIANT ETHIOPIAN LEGAL DOCUMENT AUTOMATION
+            </span>
             <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mt-1">LexDraft Contract Builder</h1>
             <p className="text-xs sm:text-sm text-slate-600 mt-2">
-              Generate fully customized, legally binding Ethiopian contracts and agreements with instant PDF download and witness seals.
+              Generate fully customized Ethiopian statutory contracts with bilingual (አማርኛ / English) export, witness signatures, and official seals.
             </p>
           </div>
 
@@ -1900,6 +1964,7 @@ export default function LegalLinkHome() {
                   </div>
 
                   <h3 className="font-black text-lg text-[#0A1128]">{tpl.title}</h3>
+                  <span className="text-xs font-bold text-slate-400 block -mt-1 font-mono">{tpl.amTitle}</span>
                   <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
 
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-600 font-medium">
@@ -1911,18 +1976,19 @@ export default function LegalLinkHome() {
                   <button
                     onClick={() => {
                       setSelectedTemplate(tpl);
+                      setContractLanguage('bilingual');
                       setDocFormData({
                         partyA: '',
                         partyB: userProfile?.full_name || '',
                         roleOrPurpose: '',
                         salaryOrRent: '',
-                        jurisdiction: 'Addis Ababa',
+                        jurisdiction: 'Addis Ababa / አዲስ አበባ',
                       });
                     }}
                     className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow transition-all"
                   >
-                    <Edit3 className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Customize & Export PDF</span>
+                    <Languages className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Customize & Export Contract</span>
                   </button>
                 </div>
               </div>
@@ -1931,16 +1997,16 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 6. LEXDRAFT BUILDER MODAL */}
+      {/* 6. LEXDRAFT BUILDER MODAL WITH LANGUAGE SELECTOR */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
-                  LEXDRAFT DYNAMIC DOCUMENT ENGINE
+                  LEXDRAFT BILINGUAL CONTRACT ENGINE
                 </span>
-                <h3 className="font-black text-xl">{selectedTemplate.title}</h3>
+                <h3 className="font-black text-xl">{selectedTemplate.title} ({selectedTemplate.amTitle})</h3>
                 <span className="text-xs text-slate-300 font-mono mt-0.5 block">
                   Governed by {selectedTemplate.statute}
                 </span>
@@ -1954,6 +2020,54 @@ export default function LegalLinkHome() {
             </div>
 
             <form onSubmit={handleCreateDocumentSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+              
+              {/* LANGUAGE SELECTOR */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
+                  Select Output Document Language (DARA Certified)
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setContractLanguage('bilingual')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      contractLanguage === 'bilingual' 
+                        ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' 
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>Bilingual (Dual-Col)</span>
+                    <span className="text-[10px] opacity-80">ሁለት ቋንቋ</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setContractLanguage('am')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      contractLanguage === 'am' 
+                        ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' 
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>አማርኛ ብቻ</span>
+                    <span className="text-[10px] opacity-80">Amharic Script</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setContractLanguage('en')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      contractLanguage === 'en' 
+                        ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' 
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>English Only</span>
+                    <span className="text-[10px] opacity-80">Commercial Text</span>
+                  </button>
+                </div>
+              </div>
+
               {selectedTemplate.fields.map((f: any) => (
                 <div key={f.key}>
                   <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
@@ -1969,6 +2083,10 @@ export default function LegalLinkHome() {
                   />
                 </div>
               ))}
+
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+                Generates a fully structured legal document with official signature lines and witness blocks suitable for registration at the Federal Documents Authentication and Registration Agency (DARA).
+              </div>
 
               <div className="flex gap-2 pt-2">
                 <button
@@ -2285,8 +2403,6 @@ export default function LegalLinkHome() {
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
-            
-            {/* Header */}
             <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
                 <div className="flex items-center gap-2">
@@ -2310,7 +2426,6 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Sub Tabs */}
             <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
               <button
                 onClick={() => setModalTab('overview')}
@@ -2340,10 +2455,7 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6">
-              
-              {/* TAB 1: OVERVIEW */}
               {modalTab === 'overview' && (
                 <div className="space-y-4 text-xs">
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4">
@@ -2365,7 +2477,6 @@ export default function LegalLinkHome() {
                 </div>
               )}
 
-              {/* TAB 2: LIVE ROOM & CHAT */}
               {modalTab === 'room' && (
                 <div className="space-y-4">
                   <div className="h-72 bg-slate-50/80 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
@@ -2403,11 +2514,8 @@ export default function LegalLinkHome() {
                 </div>
               )}
 
-              {/* TAB 3: CASE EVIDENCE & SUPABASE STORAGE UPLOADS */}
               {modalTab === 'documents' && (
                 <div className="space-y-5 text-xs">
-                  
-                  {/* Upload Box */}
                   <div className="p-5 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-center space-y-3">
                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
                       <UploadCloud className="w-5 h-5" />
@@ -2447,7 +2555,6 @@ export default function LegalLinkHome() {
                     </button>
                   </div>
 
-                  {/* Documents List */}
                   <div className="space-y-2">
                     <h5 className="font-bold text-slate-700 uppercase text-[11px]">
                       Case File Vault ({caseDocuments.length})
