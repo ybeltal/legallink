@@ -1082,8 +1082,11 @@ export default function LegalLinkHome() {
           <p>Pursuant to Article 1772 of the Civil Code of Ethiopia, you are formally placed in default. Remit full payment within <strong>${locationName}</strong> to avoid civil litigation.</p>
         `;
       }
+    } else if (type === 'emp') {
+      headerTitle = 'STATUTORY EMPLOYMENT AGREEMENT (PROC. 1156/2019)';
+      contractBody = `<p>Employment contract executed between ${partyA} and ${partyB} in ${locationName} for the position of ${roleOrPurpose}. Monthly wage: ${salaryOrRent}.</p>`;
     } else {
-      headerTitle = 'STATUTORY AGREEMENT / ሕጋዊ ስምምነት';
+      headerTitle = 'STATUTORY LEGAL AGREEMENT / ሕጋዊ ስምምነት';
       contractBody = `<p>Executed between ${partyA} and ${partyB} regarding ${roleOrPurpose} in ${locationName}.</p>`;
     }
 
@@ -1150,7 +1153,7 @@ export default function LegalLinkHome() {
     showToast('Document generated and exported via LexDraft.');
   };
 
-  // Practice Areas
+  // Practice Areas (8 Core Domains)
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
     { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce, custody, adoption, inheritance disputes.' },
@@ -1204,6 +1207,45 @@ export default function LegalLinkHome() {
       location: 'Hawassa / Addis Ababa',
       bio: 'Former land administration legal advisor. Expert in commercial lease defaults, eviction notices, and title verification.',
       avatarInitials: 'DT',
+    },
+    {
+      id: 'l4',
+      name: 'Advocate Selamawit Girma',
+      title: 'Immigration & Diaspora Counsel',
+      experience: '8 yrs exp',
+      rating: 4.85,
+      reviews: 274,
+      hourlyRate: 2000,
+      location: 'Addis Ababa / Remote',
+      bio: 'Dedicated to helping the Ethiopian diaspora resolve legal claims, investment licensing, and dual citizenship matters remotely.',
+      avatarInitials: 'SG',
+    },
+  ];
+
+  const legalTalkArticles = [
+    {
+      id: 1,
+      tag: 'CORPORATE GOVERNANCE',
+      title: "Understanding the Ethiopian Commercial Code: Key Takeaways for PLCs & Share Companies",
+      author: 'Advocate Mulu Haile',
+      readTime: '6 min read',
+      excerpt: 'Crucial corporate compliance rules governing director liability, minimum capital allocations, shareholder resolutions, and regulatory auditing in Ethiopia.'
+    },
+    {
+      id: 2,
+      tag: 'REAL ESTATE & LAND',
+      title: 'Land Rights & Commercial Property Leasing in Addis Ababa: Buyer Due Diligence Guide',
+      author: 'Advocate Dawit Tesfaye',
+      readTime: '8 min read',
+      excerpt: 'Essential verification steps for land holding certificates, encumbrances, and municipal leasehold conversions under current city administration decrees.'
+    },
+    {
+      id: 3,
+      tag: 'LABOR & EMPLOYMENT',
+      title: 'Employment Protections under Labor Proclamation No. 1156/2019: Probation & Severance Rules',
+      author: 'Advocate Tigist Bekele',
+      readTime: '5 min read',
+      excerpt: 'A practical legal breakdown of probationary ceilings, statutory severance calculations, and mandatory dispute resolution procedures before the Labor Relations Board.'
     }
   ];
 
@@ -1328,9 +1370,12 @@ export default function LegalLinkHome() {
       {/* VIEW A: COMPLETE ORIGINAL 8-SECTION LANDING PAGE */}
       {activeTab === 'home' && (
         <main className="flex-1">
-          <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* SECTION 1: HERO */}
+          <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100 overflow-hidden relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
                 <div className="lg:col-span-7 space-y-6 reveal">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold shadow-xs">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -1342,13 +1387,13 @@ export default function LegalLinkHome() {
                   </h1>
 
                   <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
-                    Connect with verified Ethiopian lawyers, draft statutory demand notices under Civil Code Art. 1772, and compute severance packages under Proclamation 1156/2019.
+                    Connect with verified Ethiopian lawyers for consultations, document drafting, and compliance support—safeguarded by Telebirr USSD escrow holding.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                     <button
                       onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer hover:shadow-xl hover:-translate-y-0.5"
                     >
                       <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
@@ -1361,25 +1406,478 @@ export default function LegalLinkHome() {
                       <span>DARA Pre-Flight Checklist</span>
                     </button>
                   </div>
+
+                  <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100">
+                    <div>
+                      <span className="text-2xl font-black text-[#0A1128] block">500+</span>
+                      <span className="text-xs text-slate-500 font-medium">Verified Lawyers</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-black text-[#0A1128] block">12,000+</span>
+                      <span className="text-xs text-slate-500 font-medium">Consultations Done</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-black text-[#0A1128] block">{dynamicRating} ★</span>
+                      <span className="text-xs text-slate-500 font-medium">Average Rating</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-black text-[#0A1128] block">&lt;2hrs</span>
+                      <span className="text-xs text-slate-500 font-medium">Average Response</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="lg:col-span-5 relative flex justify-center reveal reveal-delay-2">
                   <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-4 animate-soft-float">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">MH</div>
-                      <div>
-                        <h3 className="font-bold text-[#0A1128] text-base">Advocate Mulu Haile</h3>
-                        <p className="text-xs text-slate-500">Corporate & Civil Law Specialist</p>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">
+                          MH
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="font-bold text-[#0A1128] text-base">Advocate Mulu Haile</h3>
+                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          <p className="text-xs text-slate-500">Corporate & Business Law</p>
+                          <div className="flex items-center gap-1 mt-1 text-xs font-bold text-amber-600">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>{dynamicRating}</span>
+                            <span className="text-slate-400 font-normal">({dynamicReviewCount} reviews)</span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                        Top Rated
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2.5 rounded-xl border border-emerald-100">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="font-bold">Telebirr USSD Direct Push Enabled</span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Standard Legal Retainer:</span>
+                        <strong className="text-[#0A1128]">ETB 1,500.00</strong>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-slate-400">
+                        <span>Escrow Trust Protection:</span>
+                        <span className="text-emerald-700 font-semibold">100% Protected</span>
                       </div>
                     </div>
-                    <button onClick={() => { setSelectedLawyer(mockMatchedLawyers[0]); setActiveTab('match'); setMatchStep(4); }} className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
-                      Book Free Consultation
+
+                    <button
+                      onClick={() => {
+                        setSelectedLawyer(mockMatchedLawyers[0]);
+                        setActiveTab('match');
+                        setMatchStep(4);
+                      }}
+                      className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-all shadow cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>Book Consultation</span>
+                      <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                   </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 2: HOW IT WORKS (3 SIMPLE STEPS) */}
+          <section className="py-20 bg-slate-50/70 border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center max-w-2xl mx-auto mb-14 space-y-2 reveal">
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+                  HOW IT WORKS
+                </span>
+                <h2 className="text-3xl font-black text-[#0A1128]">Get Legal Help in 3 Simple Steps</h2>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Transparent, verified legal consultations backed by Ethiopian statutory compliance.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-1">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 font-black flex items-center justify-center text-lg border border-amber-200">
+                    1
+                  </div>
+                  <h3 className="font-black text-lg text-[#0A1128]">Describe Your Need</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Tell us your situation in plain English or Amharic, or record a voice brief. Our engine categorizes your case and assigns jurisdiction.
+                  </p>
+                </div>
+
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-2">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 font-black flex items-center justify-center text-lg border border-blue-200">
+                    2
+                  </div>
+                  <h3 className="font-black text-lg text-[#0A1128]">Match with an Advocate</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Connect with licensed Ethiopian advocates holding active Ministry of Justice credentials and proven expertise in your case domain.
+                  </p>
+                </div>
+
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center text-lg border border-emerald-200">
+                    3
+                  </div>
+                  <h3 className="font-black text-lg text-[#0A1128]">Escrow & Consult</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Authorize the retainer via Telebirr USSD. Funds remain securely locked in escrow until your consultation is completed.
+                  </p>
                 </div>
               </div>
             </div>
           </section>
+
+          {/* SECTION 3: PRACTICE AREAS (8 DOMAINS) */}
+          <section className="py-20 bg-white border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">PRACTICE AREAS</span>
+                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">Specialized Legal Domains</h2>
+                </div>
+                <button
+                  onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                  className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Explore All 8 Practice Areas</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {practiceAreas.map((cat, idx) => {
+                  const Icon = cat.icon;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setActiveTab('match');
+                        setMatchStep(2);
+                      }}
+                      className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect bg-white group reveal reveal-delay-${(idx % 4) + 1}`}
+                    >
+                      <div className="w-11 h-11 rounded-2xl bg-slate-100 group-hover:bg-[#0A1128] group-hover:text-amber-400 flex items-center justify-center text-[#0A1128] mb-4 transition-colors">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-bold text-[#0A1128] text-base">{cat.title}</h3>
+                      <span className="text-[11px] font-bold text-slate-400 block mt-0.5">{cat.amTitle}</span>
+                      <p className="text-xs text-slate-500 mt-2 leading-relaxed">{cat.desc}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 4: FEATURED ADVOCATES */}
+          <section className="py-20 bg-slate-50/70 border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">VERIFIED COUNSEL</span>
+                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">Featured Advocates</h2>
+                  <p className="text-xs text-slate-500 mt-1">Senior counsel with verified Ministry of Justice practicing licenses.</p>
+                </div>
+                <Link
+                  href="/advocate/join"
+                  className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Are you an advocate? Join our network</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {mockMatchedLawyers.map((lawyer, idx) => (
+                  <div key={lawyer.id} className={`p-6 rounded-3xl bg-white border border-slate-200 flex flex-col justify-between card-hover-effect space-y-4 reveal reveal-delay-${idx + 1}`}>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">
+                          {lawyer.avatarInitials}
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                          MOJ Verified
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-sm text-[#0A1128]">{lawyer.name}</h4>
+                        <span className="text-[11px] text-slate-500 block leading-tight">{lawyer.title}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs font-bold text-amber-600">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{lawyer.rating}</span>
+                        <span className="text-slate-400 font-normal">({lawyer.reviews})</span>
+                      </div>
+
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{lawyer.bio}</p>
+
+                      <div className="pt-2 border-t border-slate-100 flex justify-between text-xs">
+                        <span className="text-slate-400">Consultation Retainer:</span>
+                        <strong className="text-[#0A1128]">ETB {lawyer.hourlyRate}</strong>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedLawyer(lawyer);
+                        setActiveTab('match');
+                        setMatchStep(4);
+                      }}
+                      className="w-full py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
+                    >
+                      Book Session
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 5: WHY LEGALLINK */}
+          <section className="py-20 bg-[#0A1128] text-white relative overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
+              <div className="text-center max-w-2xl mx-auto space-y-2 reveal">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                  SECURITY & INTEGRITY
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black">Why LegalLink</h2>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Built specifically to address transparency, escrow assurance, and regulatory compliance in Ethiopia.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-b border-slate-800 pb-12 reveal reveal-delay-1">
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-amber-400 font-mono">100%</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">MOJ Bar Vetted</span>
+                </div>
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono">Telebirr</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">Direct USSD Escrow</span>
+                </div>
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-blue-400 font-mono">DARA</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">Compliant Contracts</span>
+                </div>
+                <div>
+                  <span className="text-3xl sm:text-4xl font-black text-purple-400 font-mono">8421</span>
+                  <span className="text-xs text-slate-300 block mt-1 font-bold">Ethio Telecom SMS</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-1">
+                  <ShieldCheck className="w-8 h-8 text-amber-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Ministry of Justice Vetting</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    No anonymous profiles. Every advocate is verified against active Federal or Regional MOJ bar registration numbers.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-2">
+                  <Lock className="w-8 h-8 text-emerald-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Guaranteed Escrow Protection</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Retainers are locked in LegalLink's regulatory trust pool. Advocates receive disbursements only after consultation delivery.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-3">
+                  <Languages className="w-8 h-8 text-blue-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Bilingual Contract Drafting</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Generate agreements in Amharic script or dual-column English/Amharic matching Document Authentication agency requirements.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-4">
+                  <Smartphone className="w-8 h-8 text-purple-400 mb-2" />
+                  <h4 className="font-bold text-sm text-white">Instant SMS Notifications</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Real-time updates delivered straight to mobile phones for escrow locking, lawyer greetings, and payout disbursements.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 6: LEGALTALK PREVIEW */}
+          <section className="py-20 bg-white border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">KNOWLEDGE HUB</span>
+                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">LegalTalk</h2>
+                  <p className="text-xs text-slate-500 mt-1">Legal updates, statutory analyses, and practical guides by licensed advocates.</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('legaltalk')}
+                  className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Explore LegalTalk Articles</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {legalTalkArticles.map((art, idx) => (
+                  <div
+                    key={art.id}
+                    onClick={() => setActiveTab('legaltalk')}
+                    className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect flex flex-col justify-between space-y-4 group reveal reveal-delay-${idx + 1}`}
+                  >
+                    <div className="space-y-3">
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 uppercase">
+                        {art.tag}
+                      </span>
+                      <h3 className="font-black text-base text-[#0A1128] group-hover:text-amber-600 transition-colors leading-snug">
+                        {art.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                        {art.excerpt}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                      <span className="font-bold text-slate-700">{art.author}</span>
+                      <span>{art.readTime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 7: GENERATE LEGAL DOCUMENTS IN MINUTES (LEXDRAFT SPOTLIGHT) */}
+          <section className="py-20 bg-slate-50/70 border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="bg-gradient-to-r from-slate-900 to-[#102A43] rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-10 reveal">
+                <div className="space-y-4 max-w-xl">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                    ETHIOPIAN STATUTORY CONTRACT BUILDER
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-black">Generate Legal Documents in Minutes</h2>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Create employment contracts, non-disclosure agreements, and commercial leases compliant with Ethiopian Labor Proclamation No. 1156/2019 and Civil Code provisions. Export with DARA-ready witness blocks.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-200 font-medium pt-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Bilingual Dual-Column</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Instant PDF Download</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Labor Proc. 1156/2019</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>Official Stamp Ready</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <button
+                      onClick={() => setActiveTab('lexdraft')}
+                      className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span>Open LexDraft Contract Builder</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif card-hover-effect">
+                  <div className="text-center border-b pb-2">
+                    <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
+                      Federal Democratic Republic of Ethiopia
+                    </div>
+                    <strong className="text-xs block mt-0.5 uppercase">Employment Agreement / የሥራ ውል</strong>
+                  </div>
+                  <div className="p-2 bg-slate-50 rounded border text-[10px] space-y-1">
+                    <div><strong>Employer:</strong> Acme Technologies PLC</div>
+                    <div><strong>Employee:</strong> Abebe Bikila</div>
+                    <div><strong>Gross Remuneration:</strong> ETB 35,000.00</div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-tight">
+                    Pursuant to Article 11 of Labor Proclamation No. 1156/2019, probation shall not exceed 60 consecutive working days...
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                    <div className="border border-dashed p-2 text-center text-[9px] text-slate-400">[ Party A Seal ]</div>
+                    <div className="border border-dashed p-2 text-center text-[9px] text-slate-400">[ Party B Seal ]</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* SECTION 8: WHAT CLIENTS SAY */}
+          <section className="py-20 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">TRANSPARENT CLIENT TRUST</span>
+                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">What Clients Say</h2>
+                  <p className="text-xs text-slate-500 mt-1">Authentic ratings from Ethiopian clients whose consultations completed through Telebirr escrow.</p>
+                </div>
+                <div className="mt-4 sm:mt-0 flex items-center gap-2">
+                  <div className="flex items-center text-amber-400">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <span className="text-sm font-black text-[#0A1128]">{dynamicRating} / 5.0</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {reviewsList.map((rev, idx) => (
+                  <div key={rev.id} className={`p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 card-hover-effect reveal reveal-delay-${(idx % 3) + 1}`}>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-amber-400">
+                          {Array.from({ length: rev.rating || 5 }).map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          ✓ Verified Retainer
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-700 leading-relaxed italic">
+                        "{rev.review_comment}"
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                      <div>
+                        <strong className="text-[#0A1128] block">{rev.client_name}</strong>
+                        <span className="text-[10px] text-slate-400">Advocate: {rev.advocate_name}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : 'Recent'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
         </main>
       )}
 
@@ -1406,7 +1904,6 @@ export default function LegalLinkHome() {
             </button>
           </div>
 
-          {/* Transaction Category Selector */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { id: 'vehicle', title: 'Vehicle Sale & Transfer', am: 'የመኪና ሽያጭ' },
@@ -1429,7 +1926,6 @@ export default function LegalLinkHome() {
             ))}
           </div>
 
-          {/* Interactive Readiness Meter & Checklist */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
               <div>
@@ -1439,7 +1935,6 @@ export default function LegalLinkHome() {
                 <span className="text-xs text-slate-500">Tap each box as you place the original document in your folder</span>
               </div>
 
-              {/* Live Readiness Progress Bar */}
               <div className="w-full sm:w-64 space-y-1.5">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-slate-600">Counter Readiness:</span>
@@ -1456,7 +1951,6 @@ export default function LegalLinkHome() {
               </div>
             </div>
 
-            {/* Checklist Items */}
             <div className="space-y-3">
               {currentChecklist.map((item, index) => {
                 const isChecked = !!daraCheckedItems[item.id];
@@ -1489,7 +1983,6 @@ export default function LegalLinkHome() {
               })}
             </div>
 
-            {/* Direct LexDraft Fast-Forward */}
             <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
               <div className="space-y-0.5">
                 <strong className="text-amber-900 block">Need a DARA-compliant contract drafted first?</strong>
@@ -1510,49 +2003,118 @@ export default function LegalLinkHome() {
       {/* VIEW C: SEVERANCE CALCULATOR */}
       {activeTab === 'calculator' && (
         <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex justify-between items-center">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">STATUTORY TOOL</span>
-              <h1 className="text-3xl font-black mt-1">Labor & Severance Pay Calculator</h1>
+              <h1 className="text-3xl sm:text-4xl font-black mt-1">Labor & Severance Pay Calculator</h1>
+              <p className="text-xs sm:text-sm text-slate-300">Compute statutory entitlements under Labor Proclamation No. 1156/2019.</p>
             </div>
-            <button onClick={handlePrintLaborCalculation} className="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs">
-              Print Calculation Sheet
+            <button onClick={handlePrintLaborCalculation} className="px-6 py-3.5 bg-amber-500 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2">
+              <Printer className="w-4 h-4" />
+              <span>Export Sheet</span>
             </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-4 text-xs shadow-sm">
+              <label className="block font-bold uppercase">Monthly Gross Salary (ETB)</label>
+              <input type="number" value={calcSalary} onChange={(e) => setCalcSalary(Number(e.target.value) || 0)} className="w-full p-2.5 bg-slate-50 border rounded-xl font-bold" />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold uppercase">Years of Service</label>
+                  <input type="number" value={calcYears} onChange={(e) => setCalcYears(Number(e.target.value) || 0)} className="w-full p-2.5 bg-slate-50 border rounded-xl" />
+                </div>
+                <div>
+                  <label className="block font-bold uppercase">Additional Months</label>
+                  <input type="number" value={calcMonths} onChange={(e) => setCalcMonths(Number(e.target.value) || 0)} className="w-full p-2.5 bg-slate-50 border rounded-xl" />
+                </div>
+              </div>
+
+              <label className="block font-bold uppercase">Termination Reason</label>
+              <select value={calcReason} onChange={(e: any) => setCalcReason(e.target.value)} className="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                <option value="redundancy">Workforce Reduction / Redundancy (የሠራተኞች ቅነሳ - Art. 29)</option>
+                <option value="unlawful">Unlawful Termination Without Cause (ያለ አግባብ የተደረገ ስንብት)</option>
+                <option value="bankruptcy">Company Liquidation (የድርጅት መክሰር - Art. 24)</option>
+              </select>
+            </div>
+
+            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm flex flex-col justify-between">
+              <div className="p-4 bg-[#0A1128] text-white rounded-2xl">
+                <span className="text-[10px] text-amber-400 uppercase font-bold">Total Statutory Package</span>
+                <div className="text-2xl font-black font-mono text-emerald-400">ETB {totalCalculatedPackage.toFixed(2)}</div>
+              </div>
+              <button onClick={handlePrintLaborCalculation} className="w-full py-3 bg-slate-100 font-bold rounded-xl text-xs flex items-center justify-center gap-2">
+                <Printer className="w-4 h-4 text-amber-600" />
+                <span>Print Official PDF</span>
+              </button>
+            </div>
           </div>
         </main>
       )}
 
-      {/* VIEW D: LEXDRAFT & DEMAND LETTER */}
+      {/* VIEW D: LEXDRAFT & DEMAND LETTER BUILDER */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 text-white shadow-xl flex justify-between items-center">
-            <div>
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">DOCUMENT AUTOMATION</span>
-              <h1 className="text-3xl font-black mt-1">LexDraft Document Builder</h1>
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2 max-w-xl">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                DARA & COURT ADMISSIBLE AUTOMATION
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-black">LexDraft Document Builder</h1>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Generate court-enforceable demand notices under Civil Code Art. 1772, commercial contracts, and lease agreements with instant bilingual PDF export.
+              </p>
+            </div>
+
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/20 text-center">
+              <span className="text-[10px] uppercase font-bold text-amber-400 block">Current Promotion</span>
+              <span className="text-xs font-black text-emerald-400">Demand Letters: 100% Free</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {lexdraftTemplates.map((tpl) => (
-              <div key={tpl.id} className="p-6 rounded-3xl border border-slate-200 bg-white flex flex-col justify-between space-y-4">
-                <div>
+              <div 
+                key={tpl.id} 
+                className={`p-6 rounded-3xl border bg-white flex flex-col justify-between space-y-4 hover:shadow-xl transition-all ${
+                  tpl.id === 'demand' ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200'
+                }`}
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase">
+                      {tpl.category}
+                    </span>
+                    <span className="font-mono font-black text-xs text-emerald-600">
+                      {tpl.priceETB === 0 ? 'FREE' : `ETB ${tpl.priceETB}`}
+                    </span>
+                  </div>
                   <h3 className="font-black text-base text-[#0A1128]">{tpl.title}</h3>
-                  <span className="text-[11px] font-mono text-slate-400 block">{tpl.amTitle}</span>
-                  <p className="text-xs text-slate-500 mt-2">{tpl.desc}</p>
+                  <span className="text-[11px] font-bold text-slate-400 block font-mono">{tpl.amTitle}</span>
+                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
                 </div>
-                <button 
-                  onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }}
-                  className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs"
-                >
-                  {tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}
-                </button>
+
+                <div className="pt-2">
+                  <button 
+                    onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }} 
+                    className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs ${
+                      tpl.id === 'demand' 
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black' 
+                        : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
+                    }`}
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>{tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </main>
       )}
 
-      {/* VIEW E: FIND A LAWYER WITH VOICE INTAKE */}
+      {/* VIEW E: FIND A LAWYER WITH VOICE NOTE INTAKE */}
       {activeTab === 'match' && (
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
@@ -1656,40 +2218,91 @@ export default function LegalLinkHome() {
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">CLIENT ACCOUNT HUB</span>
               <h1 className="text-3xl font-black mt-1">Your Legal Workspace</h1>
+              <p className="text-xs text-slate-300">Track court hearings (ቀጠሮ), case litigation stages, and voice briefs in real time.</p>
             </div>
             <button onClick={() => { setActiveTab('match'); setMatchStep(1); }} className="px-5 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
               + New Case
             </button>
           </div>
 
-          <div className="space-y-4">
-            {myConsultations.map((c) => {
-              const stageObj = legalStages.find((s) => s.step === (c.case_stage || 1)) || legalStages[0];
-              return (
-                <div key={c.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-black text-base text-[#0A1128]">{c.practice_area}</span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#0A1128] text-amber-400 flex items-center gap-1">
-                        <Gavel className="w-3 h-3" />
-                        <span>Stage {c.case_stage || 1}: {stageObj.am}</span>
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 max-w-2xl line-clamp-2">{c.situation_description}</p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('milestones'); }} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
-                      Track Hearing
-                    </button>
-                    <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('room'); }} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
-                      Chat
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
+            <button
+              onClick={() => setClientSubTab('consultations')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'consultations' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Consultations & Cases ({myConsultations.length})
+            </button>
+            <button
+              onClick={() => setClientSubTab('contracts')}
+              className={`pb-3 border-b-2 cursor-pointer transition-all ${
+                clientSubTab === 'contracts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              Saved Contracts & Notices ({savedContracts.length})
+            </button>
           </div>
+
+          {clientSubTab === 'consultations' && (
+            <div className="space-y-4">
+              {myConsultations.map((c) => {
+                const stageObj = legalStages.find((s) => s.step === (c.case_stage || 1)) || legalStages[0];
+                return (
+                  <div key={c.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-black text-base text-[#0A1128]">{c.practice_area}</span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#0A1128] text-amber-400 flex items-center gap-1">
+                          <Gavel className="w-3 h-3" />
+                          <span>Stage {c.case_stage || 1}: {stageObj.am}</span>
+                        </span>
+                        {c.voice_note_url && (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200 flex items-center gap-1">
+                            <Mic className="w-3 h-3 text-purple-600" />
+                            <span>Voice Brief Attached</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-600 max-w-2xl line-clamp-2">{c.situation_description}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('milestones'); }} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
+                        Track Hearing
+                      </button>
+                      <button onClick={() => { setSelectedConsultationDetails(c); setModalTab('room'); }} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs">
+                        Chat
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {clientSubTab === 'contracts' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedContracts.map((doc) => (
+                <div key={doc.id} className="p-5 rounded-2xl border border-slate-200 bg-white flex justify-between items-center shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-bold text-amber-600 uppercase">
+                      {doc.type === 'demand' ? '⚠️ Statutory Default Notice' : 'LexDraft Document'}
+                    </span>
+                    <h4 className="font-bold text-sm text-[#0A1128]">{doc.title}</h4>
+                    <span className="text-[11px] text-slate-400 block">{doc.date}</span>
+                  </div>
+                  <button 
+                    onClick={() => handleExportContractPDF(doc)}
+                    className="p-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Print PDF</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </main>
       )}
 
