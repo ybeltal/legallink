@@ -171,11 +171,6 @@ export default function LegalLinkHome() {
   const [modalTab, setModalTab] = useState<'overview' | 'room'>('overview');
 
   // -------------------------------------------------------------
-  // DEDICATED PRINTABLE ESCROW VOUCHER STATE
-  // -------------------------------------------------------------
-  const [selectedReceiptForPrint, setSelectedReceiptForPrint] = useState<any | null>(null);
-
-  // -------------------------------------------------------------
   // GAS-STATION STYLE TELEBIRR USSD PUSH CHECKOUT STATE
   // -------------------------------------------------------------
   const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
@@ -456,13 +451,114 @@ export default function LegalLinkHome() {
     }
   };
 
-  // Open Isolated Receipt Voucher Modal for printing
-  const handleOpenReceiptPrintModal = (tx: any) => {
-    setSelectedReceiptForPrint(tx);
-  };
+  // -------------------------------------------------------------
+  // ISOLATED SINGLE-PAGE OFFICIAL ESCROW VOUCHER PRINTER
+  // -------------------------------------------------------------
+  const handlePrintReceipt = (tx: any) => {
+    const printWindow = window.open('', '_blank', 'width=750,height=850');
+    if (!printWindow) {
+      alert('Please allow popups to open the official voucher printout.');
+      return;
+    }
 
-  const handleExecutePrint = () => {
-    window.print();
+    const txnRef = tx.transaction_ref || tx.txnRef || 'TLB-2026-CONFIRMED';
+    const clientName = tx.client_name || tx.clientName || userProfile?.full_name || 'LegalLink Client';
+    const phone = tx.phone_number || tx.phone || '0905941865';
+    const amount = Number(tx.amount_etb || tx.amount || 1500).toFixed(2);
+    const dateStr = tx.created_at ? new Date(tx.created_at).toLocaleString() : new Date().toLocaleString();
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>LegalLink Ethiopia - Official Escrow Voucher ${txnRef}</title>
+          <style>
+            @page { size: portrait; margin: 15mm; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0A1128; margin: 0; padding: 20px; background: white; }
+            .voucher-card { border: 2px solid #0A1128; border-radius: 16px; padding: 30px; max-width: 650px; margin: 0 auto; }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0A1128; padding-bottom: 16px; margin-bottom: 20px; }
+            .brand { font-size: 24px; font-weight: 900; }
+            .brand span { color: #f59e0b; }
+            .sub { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+            .badge { background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 800; border: 1px solid #86efac; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; font-size: 12px; }
+            .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; }
+            .box-title { color: #64748b; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; font-size: 12px; }
+            .table th { background: #0A1128; color: white; padding: 10px; text-align: left; font-size: 11px; }
+            .table td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; }
+            .total-row { background: #f8fafc; font-weight: bold; }
+            .total-amount { font-size: 16px; font-weight: 900; color: #0A1128; text-align: right; }
+            .notice { background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; font-size: 11px; color: #92400e; margin-bottom: 20px; line-height: 1.5; }
+            .footer { border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; font-family: monospace; }
+          </style>
+        </head>
+        <body>
+          <div class="voucher-card">
+            <div class="header">
+              <div>
+                <div class="brand">Legal<span>Link</span> Ethiopia</div>
+                <div class="sub">Ministry of Justice Licensed Legal Escrow Trust Pool</div>
+              </div>
+              <div class="badge">● ESCROW DEPOSIT VERIFIED</div>
+            </div>
+
+            <div class="grid">
+              <div class="box">
+                <div class="box-title">Client / Depositor</div>
+                <strong style="font-size:14px;">${clientName}</strong><br/>
+                <span style="color:#64748b;">Telebirr Mobile: ${phone}</span>
+              </div>
+              <div class="box">
+                <div class="box-title">Transaction Audit Reference</div>
+                <strong style="font-size:14px; font-family:monospace;">${txnRef}</strong><br/>
+                <span style="color:#64748b;">Date: ${dateStr}</span>
+              </div>
+            </div>
+
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Service Description</th>
+                  <th style="text-align:center;">Payment Channel</th>
+                  <th style="text-align:right;">Amount (ETB)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>Legal Consultation Retainer</strong><br/>
+                    <span style="color:#64748b; font-size:11px;">Segregated Escrow Deposit for Assigned Advocate</span>
+                  </td>
+                  <td style="text-align:center; font-weight:bold; color:#0072CE;">Telebirr USSD Push</td>
+                  <td style="text-align:right; font-weight:bold;">ETB ${amount}</td>
+                </tr>
+                <tr class="total-row">
+                  <td colspan="2" style="text-align:right; text-transform:uppercase; font-size:10px;">Total Escrow Funds Secured:</td>
+                  <td class="total-amount">ETB ${amount}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="notice">
+              <strong>National Bank of Ethiopia (NBE) Escrow Protection:</strong> This voucher certifies that ETB ${amount} has been secured in LegalLink's designated trust pool. Funds will be released to the advocate only upon authorized completion of your legal consultation.
+            </div>
+
+            <div class="footer">
+              <span>Security Hash: SHA256-${txnRef.slice(-8)}-VALID</span>
+              <span>Bole Road, Addis Ababa • hello@legallink.et</span>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() { window.close(); }
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const handleBookingSubmit = async () => {
@@ -609,36 +705,8 @@ export default function LegalLinkHome() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
       
-      {/* GLOBAL ISOLATED CSS PRINT STYLES */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #official-escrow-voucher, #official-escrow-voucher * {
-            visibility: visible !important;
-          }
-          #official-escrow-voucher {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 30px !important;
-            border: 2px solid #0A1128 !important;
-            border-radius: 12px !important;
-            box-shadow: none !important;
-            background: white !important;
-            color: black !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}} />
-
       {/* 1. TOP NAVIGATION */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 no-print">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
@@ -804,7 +872,7 @@ export default function LegalLinkHome() {
 
       {/* 2. PUBLIC LANDING VIEW */}
       {activeTab === 'home' && (
-        <main className="flex-1 no-print">
+        <main className="flex-1">
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -937,7 +1005,7 @@ export default function LegalLinkHome() {
 
       {/* 3. DEDICATED USER DASHBOARD (CLIENT PORTAL) */}
       {activeTab === 'my-consultations' && (
-        <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6 no-print">
+        <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -1114,13 +1182,12 @@ export default function LegalLinkHome() {
                   </div>
                   <button 
                     onClick={() => {
-                      setSelectedReceiptForPrint({
+                      handlePrintReceipt({
                         transaction_ref: 'DOC-' + doc.id.toUpperCase(),
                         client_name: userProfile?.full_name || 'Client',
                         phone_number: 'N/A (Document Contract)',
                         amount_etb: doc.fee.replace(/\D/g, ''),
                         created_at: doc.date,
-                        service_name: doc.title,
                       });
                     }}
                     className="p-2.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
@@ -1133,7 +1200,7 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 3: RECEIPTS (ISOLATED VOUCHER PRINTING) */}
+          {/* SUB-TAB 3: RECEIPTS (ISOLATED POPUP PRINTING) */}
           {clientSubTab === 'receipts' && (
             <div className="space-y-4">
               <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
@@ -1171,7 +1238,7 @@ export default function LegalLinkHome() {
                         <div className="flex items-center gap-4">
                           <span className="font-black text-sm text-[#0A1128]">ETB {tx.amount_etb || tx.amount || 1500}</span>
                           <button
-                            onClick={() => handleOpenReceiptPrintModal(tx)}
+                            onClick={() => handlePrintReceipt(tx)}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-100 cursor-pointer shadow-sm text-[#0A1128]"
                           >
                             <Printer className="w-3.5 h-3.5 text-amber-500" />
@@ -1189,155 +1256,9 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 4. ISOLATED PRINTABLE ESCROW VOUCHER MODAL */}
-      {selectedReceiptForPrint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden">
-            
-            {/* Action Bar (Hidden during Print) */}
-            <div className="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center no-print">
-              <span className="text-xs font-bold text-[#0A1128] flex items-center gap-1.5">
-                <Printer className="w-4 h-4 text-amber-500" />
-                Official Voucher Print Preview (1 Page)
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleExecutePrint}
-                  className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print / Save as PDF</span>
-                </button>
-                <button 
-                  onClick={() => setSelectedReceiptForPrint(null)}
-                  className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* THE ISOLATED PRINT CONTAINER (Target of @media print) */}
-            <div id="official-escrow-voucher" className="p-8 bg-white text-slate-900 font-sans space-y-6">
-              
-              {/* Header */}
-              <div className="flex justify-between items-start border-b-2 border-[#0A1128] pb-4">
-                <div className="flex items-center gap-3">
-                  <img src="/logo.png" alt="LegalLink Logo" className="w-12 h-12 object-contain" />
-                  <div>
-                    <h2 className="text-2xl font-black tracking-tight text-[#0A1128]">
-                      Legal<span className="text-amber-500">Link</span> Ethiopia
-                    </h2>
-                    <span className="text-[10px] tracking-widest text-slate-500 uppercase font-bold block">
-                      Licensed Legal Marketplace & Escrow Trust
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300 inline-block">
-                    ● ESCROW DEPOSIT VERIFIED
-                  </span>
-                  <span className="text-[10px] text-slate-500 block mt-1 font-mono">
-                    FDRE Ministry of Justice Node
-                  </span>
-                </div>
-              </div>
-
-              {/* Title & Metadata */}
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Transaction Reference</span>
-                  <span className="text-sm font-mono font-black text-[#0A1128]">
-                    {selectedReceiptForPrint.transaction_ref || selectedReceiptForPrint.txnRef}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Date of Issuance</span>
-                  <span className="text-xs font-bold text-slate-800">
-                    {selectedReceiptForPrint.created_at ? new Date(selectedReceiptForPrint.created_at).toLocaleString() : new Date().toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Client & Provider Details */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Client / Depositor</span>
-                  <span className="font-bold text-[#0A1128] text-sm block">
-                    {selectedReceiptForPrint.client_name || selectedReceiptForPrint.clientName || 'LegalLink Client'}
-                  </span>
-                  <span className="text-slate-500 font-mono text-[11px]">
-                    Mobile: {selectedReceiptForPrint.phone_number || selectedReceiptForPrint.phone || '0905941865'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Payment Instrument</span>
-                  <span className="font-bold text-[#0072CE] text-sm block">Telebirr Mobile Money</span>
-                  <span className="text-slate-500 text-[11px]">Direct C2B USSD Push Transfer</span>
-                </div>
-              </div>
-
-              {/* Escrow Settlement Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
-                <table className="w-full text-left">
-                  <thead className="bg-[#0A1128] text-white text-[10px] uppercase font-bold">
-                    <tr>
-                      <th className="p-3">Description</th>
-                      <th className="p-3 text-center">Status</th>
-                      <th className="p-3 text-right">Amount (ETB)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 font-medium">
-                    <tr>
-                      <td className="p-3">
-                        <strong className="text-slate-900 block">Advocate Consultation Retainer</strong>
-                        <span className="text-slate-500 text-[11px]">Held in Trust for Advocate Mulu Haile (Senior Counsel)</span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">
-                          Locked in Escrow
-                        </span>
-                      </td>
-                      <td className="p-3 text-right font-black text-slate-900">
-                        ETB {Number(selectedReceiptForPrint.amount_etb || selectedReceiptForPrint.amount || 1500).toFixed(2)}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
-                    <tr>
-                      <td colSpan={2} className="p-3 text-right uppercase text-[10px] text-slate-600">Total Secured in Trust:</td>
-                      <td className="p-3 text-right text-base font-black text-[#0A1128]">
-                        ETB {Number(selectedReceiptForPrint.amount_etb || selectedReceiptForPrint.amount || 1500).toFixed(2)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-
-              {/* Legal & Regulatory Seal */}
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-3">
-                <Award className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
-                <div className="text-[11px] text-amber-900 leading-relaxed">
-                  <strong>National Bank of Ethiopia (NBE) Escrow Compliance:</strong> This official electronic receipt confirms the deposit of client retainer funds into LegalLink's segregated trust pool. Funds will be released to the assigned advocate solely upon client consultation completion or milestone sign-off.
-                </div>
-              </div>
-
-              {/* Voucher Footer */}
-              <div className="pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-400 font-mono">
-                <span>Verification Hash: SHA256-{(selectedReceiptForPrint.transaction_ref || 'TLB').slice(0, 10)}-VALID</span>
-                <span>Bole Road, Addis Ababa, Ethiopia • hello@legallink.et</span>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* 5. TELEBIRR USSD PUSH CHECKOUT MODAL */}
+      {/* 4. TELEBIRR USSD PUSH CHECKOUT MODAL */}
       {payingConsultation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="p-6 bg-gradient-to-r from-[#0072CE] to-[#005ba4] text-white flex justify-between items-start">
               <div>
@@ -1470,9 +1391,9 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 6. SUPABASE AUTH MODAL */}
+      {/* 5. SUPABASE AUTH MODAL */}
       {authModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
@@ -1600,9 +1521,9 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 7. CONSULTATION DETAILS & ROOM MODAL */}
+      {/* 6. CONSULTATION DETAILS & ROOM MODAL */}
       {selectedConsultationDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm no-print">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
             <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
@@ -1710,8 +1631,8 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 8. FOOTER */}
-      <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto no-print">
+      {/* 7. FOOTER */}
+      <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2 space-y-3">
