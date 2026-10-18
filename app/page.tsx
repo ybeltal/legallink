@@ -9,13 +9,13 @@ import {
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
   KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
-  ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp
+  ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp, Calculator
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
-  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
   const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts' | 'receipts'>('consultations');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -203,7 +203,7 @@ export default function LegalLinkHome() {
   const [selectedCategory, setSelectedCategory] = useState('Corporate & Business Law');
   const [location, setLocation] = useState('Addis Ababa');
   const [consultLanguage, setConsultLanguage] = useState('Amharic');
-  const [budgetRange, setBudgetRange] = useState('ETB 1,000–2,000');
+  const [budgetRange, setBudgetRange] = useState('Free Consultation');
   const [urgency, setUrgency] = useState('within_24h');
   const [situationText, setSituationText] = useState('');
   const [selectedLawyer, setSelectedLawyer] = useState<any | null>(null);
@@ -394,7 +394,7 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // TELEBIRR USSD PUSH CHECKOUT WITH AUTOMATED SMS DISPATCH
+  // CONSULTATIONS & ESCROW REAL-TIME SYNC
   // -------------------------------------------------------------
   const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
   const [telebirrPhone, setTelebirrPhone] = useState('0905941865');
@@ -415,7 +415,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // Fixed type error: returning void from useEffect cleanup
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
@@ -476,7 +475,6 @@ export default function LegalLinkHome() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Fixed type error: returning void from useEffect cleanup
   useEffect(() => {
     if (!selectedConsultationDetails) return;
 
@@ -721,7 +719,6 @@ export default function LegalLinkHome() {
               </div>
               <div class="badge">● ESCROW DEPOSIT VERIFIED</div>
             </div>
-
             <div class="grid">
               <div class="box">
                 <div class="box-title">Client / Depositor</div>
@@ -734,7 +731,6 @@ export default function LegalLinkHome() {
                 <span style="color:#64748b;">Date: ${dateStr}</span>
               </div>
             </div>
-
             <table class="table">
               <thead>
                 <tr>
@@ -745,10 +741,7 @@ export default function LegalLinkHome() {
               </thead>
               <tbody>
                 <tr>
-                  <td>
-                    <strong>Legal Consultation Retainer</strong><br/>
-                    <span style="color:#64748b; font-size:11px;">Segregated Escrow Deposit for Assigned Advocate</span>
-                  </td>
+                  <td><strong>Legal Consultation Retainer</strong></td>
                   <td style="text-align:center; font-weight:bold; color:#0072CE;">Telebirr USSD Push</td>
                   <td style="text-align:right; font-weight:bold;">ETB ${amount}</td>
                 </tr>
@@ -758,21 +751,12 @@ export default function LegalLinkHome() {
                 </tr>
               </tbody>
             </table>
-
             <div class="notice">
-              <strong>National Bank of Ethiopia (NBE) Escrow Protection:</strong> This voucher certifies that ETB ${amount} has been secured in LegalLink's designated trust pool. Funds will be released to the advocate only upon authorized completion of your legal consultation.
-            </div>
-
-            <div class="footer">
-              <span>Security Hash: SHA256-${txnRef.slice(-8)}-VALID</span>
-              <span>Bole Road, Addis Ababa • hello@legallink.et</span>
+              <strong>National Bank of Ethiopia (NBE) Escrow Protection:</strong> ETB ${amount} has been secured in LegalLink's trust pool.
             </div>
           </div>
           <script>
-            window.onload = function() {
-              window.print();
-              window.onafterprint = function() { window.close(); }
-            }
+            window.onload = function() { window.print(); window.onafterprint = function() { window.close(); } }
           </script>
         </body>
       </html>
@@ -849,43 +833,14 @@ export default function LegalLinkHome() {
           <div class="section-title">አንቀጽ 4፦ ውል ስለማቋረጥና አለመግባባቶች</div>
           <p>ይህ የሥራ ውል በአዋጅ ቁጥር 1156/2011 በተደነገጉት ድንጋጌዎች መሠረት የሚቋረጥ ሲሆን፣ በማናቸውም አለመግባባት ላይ በቅድሚያ በስምምነት፣ ካልተቻለ ደግሞ በ${locationName} ፍርድ ቤት ወይም በአሰሪና ሠራተኛ ወሳኝ ቦርድ ውሳኔ የሚያገኝ ይሆናል።</p>
         `;
-      } else if (cLang === 'bilingual') {
+      } else {
         headerTitle = 'BILINGUAL EMPLOYMENT CONTRACT / የሁለትዮሽ የሥራ ውል ስምምነት';
         contractBody = `
           <div class="parties-box">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
-              <div><strong>EMPLOYER:</strong> ${partyA}</div>
-              <div><strong>አሰሪ ድርጅት፦</strong> ${partyA}</div>
-              <div><strong>EMPLOYEE:</strong> ${partyB} (${locationName})</div>
-              <div><strong>ተቀጣሪ ሠራተኛ፦</strong> ${partyB} (${locationName})</div>
-            </div>
+            <strong>EMPLOYER / አሰሪ:</strong> ${partyA}<br/>
+            <strong>EMPLOYEE / ሠራተኛ:</strong> ${partyB} (${locationName})
           </div>
-          <div class="bilingual-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div>
-              <div class="section-title">ARTICLE 1: POSITION & DUTIES</div>
-              <p>The Employee is employed as <strong>${roleOrPurpose}</strong> and agrees to execute all lawful directives faithfully under Ethiopian Labor Proclamation No. 1156/2019.</p>
-              <div class="section-title">ARTICLE 2: REMUNERATION</div>
-              <p>The monthly remuneration shall be <strong>${salaryOrRent}</strong>, subject to statutory income tax and 7% employee pension deductions.</p>
-            </div>
-            <div>
-              <div class="section-title">አንቀጽ 1፦ የሥራ መደብና ኃላፊነት</div>
-              <p>ሠራተኛው በ<strong>${roleOrPurpose}</strong> የሥራ መደብ ላይ ተቀጥሮ በአዋጅ ቁጥር 1156/2011 መሠረት የተሰጡትን ኃላፊነቶች በታማኝነት ያከናውናል።</p>
-              <div class="section-title">አንቀጽ 2፦ የደመወዝ ክፍያ</div>
-              <p>አሰሪው ለሠራተኛው በየወሩ የብር <strong>${salaryOrRent}</strong> ደመወዝ የሚከፍል ሲሆን፣ ሕጋዊ የገቢ ግብርና 7% የጡረታ መዋጮ ተቀናሽ ይደረጋል።</p>
-            </div>
-          </div>
-        `;
-      } else {
-        headerTitle = 'EMPLOYMENT AGREEMENT (PROCLAMATION NO. 1156/2019)';
-        contractBody = `
-          <div class="parties-box">
-            <strong>1. EMPLOYER:</strong> ${partyA}<br/>
-            <strong>2. EMPLOYEE:</strong> ${partyB} (${locationName})
-          </div>
-          <div class="section-title">ARTICLE 1: POSITION AND DUTIES</div>
-          <p>The Employee is employed in the capacity of <strong>${roleOrPurpose}</strong> in accordance with Labor Proclamation No. 1156/2019.</p>
-          <div class="section-title">ARTICLE 2: REMUNERATION</div>
-          <p>The monthly remuneration is <strong>${salaryOrRent}</strong>, subject to statutory tax and pension deductions.</p>
+          <p>This Employment Agreement is governed by Labor Proclamation No. 1156/2019 of the Federal Democratic Republic of Ethiopia.</p>
         `;
       }
     } else {
@@ -907,11 +862,6 @@ export default function LegalLinkHome() {
             .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.8; }
             .section-title { font-size: 13px; font-weight: bold; margin-top: 16px; margin-bottom: 6px; color: #0A1128; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; }
             p { margin: 0 0 10px 0; text-align: justify; }
-            .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
-            .sig-line { border-top: 1px solid #111827; padding-top: 6px; font-size: 12px; }
-            .seal-box { border: 1px dashed #9ca3af; border-radius: 6px; height: 65px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #9ca3af; text-transform: uppercase; }
-            .witness-section { margin-top: 30px; border-top: 1px solid #d1d5db; padding-top: 14px; font-size: 11px; }
-            .footer-note { margin-top: 35px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 9px; color: #6b7280; display: flex; justify-content: space-between; font-family: sans-serif; }
           </style>
         </head>
         <body>
@@ -921,27 +871,6 @@ export default function LegalLinkHome() {
             <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">DARA COMPLIANT DRAFT • DATE / ቀን፦ ${startDate}</div>
           </div>
           ${contractBody}
-          <div class="signature-grid">
-            <div>
-              <div class="seal-box">[ PARTY A STAMP / ፊርማ ]</div>
-              <div class="sig-line"><strong>FIRST PARTY:</strong> ${partyA}</div>
-            </div>
-            <div>
-              <div class="seal-box">[ PARTY B STAMP / ፊርማ ]</div>
-              <div class="sig-line"><strong>SECOND PARTY:</strong> ${partyB}</div>
-            </div>
-          </div>
-          <div class="witness-section">
-            <strong>WITNESSES / የምስክሮች ስምና ፊርማ:</strong>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
-              <div>1. Name / ስም: _____________________</div>
-              <div>2. Name / ስም: _____________________</div>
-            </div>
-          </div>
-          <div class="footer-note">
-            <span>DARA Standard Form - LegalLink Ethiopia</span>
-            <span>Ref: ${contract.id.toUpperCase()}-STAMPED</span>
-          </div>
           <script>
             window.onload = function() { window.print(); window.onafterprint = function() { window.close(); } }
           </script>
@@ -1133,6 +1062,156 @@ export default function LegalLinkHome() {
       q.category.toLowerCase().includes(legalTalkSearch.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  // -------------------------------------------------------------
+  // STATUTORY LABOR & SEVERANCE CALCULATOR ENGINE (PROC. 1156/2019)
+  // -------------------------------------------------------------
+  const [calcSalary, setCalcSalary] = useState<number>(20000);
+  const [calcYears, setCalcYears] = useState<number>(3);
+  const [calcMonths, setCalcMonths] = useState<number>(4);
+  const [calcReason, setCalcReason] = useState<'redundancy' | 'unlawful' | 'bankruptcy' | 'lawful_notice'>('redundancy');
+  const [calcGaveNotice, setCalcGaveNotice] = useState<boolean>(false);
+  const [calcUnusedLeaveDays, setCalcUnusedLeaveDays] = useState<number>(12);
+
+  // Computations based on Articles 39, 40, 44 & 79 of Ethiopian Labor Proclamation No. 1156/2019
+  const dailyWage = calcSalary / 30;
+
+  // Article 40(1)(a): 30 days wages for the first year of service
+  // Article 40(1)(b): 1/3 of monthly wages (10 days) for each subsequent year or prorated fraction
+  const totalServiceFraction = calcYears + (calcMonths / 12);
+  let baseSeverance = 0;
+  if (totalServiceFraction >= 0.16) { // over probation threshold
+    if (totalServiceFraction <= 1) {
+      baseSeverance = (totalServiceFraction) * calcSalary;
+    } else {
+      const subsequentYears = totalServiceFraction - 1;
+      baseSeverance = calcSalary + (subsequentYears * (calcSalary / 3));
+    }
+  }
+  // Max cap: Severance pay cannot exceed 12 months' wages of the worker (Art. 40(1))
+  baseSeverance = Math.min(baseSeverance, calcSalary * 12);
+
+  // Article 40(2): Additional 60 days wages (2 months) for workforce reduction or bankruptcy
+  let additionalRedundancyPay = 0;
+  if (calcReason === 'redundancy' || calcReason === 'bankruptcy') {
+    additionalRedundancyPay = calcSalary * 2;
+  }
+
+  // Article 44: Payment in lieu of notice period
+  let noticePeriodMonths = 1;
+  if (calcReason === 'redundancy') {
+    noticePeriodMonths = 2;
+  } else if (calcYears < 1) {
+    noticePeriodMonths = 1;
+  } else if (calcYears >= 1 && calcYears <= 9) {
+    noticePeriodMonths = 2;
+  } else if (calcYears > 9) {
+    noticePeriodMonths = 3;
+  }
+
+  const noticeIndemnity = calcGaveNotice ? 0 : (noticePeriodMonths * calcSalary);
+
+  // Article 79: Payment in lieu of accumulated unused annual leave
+  const leaveIndemnity = calcUnusedLeaveDays * dailyWage;
+
+  const totalCalculatedPackage = baseSeverance + additionalRedundancyPay + noticeIndemnity + leaveIndemnity;
+
+  // Export and print official calculation sheet
+  const handlePrintLaborCalculation = () => {
+    const printWindow = window.open('', '_blank', 'width=850,height=900');
+    if (!printWindow) return alert('Allow popups to print official calculation report.');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Ethiopian Statutory Severance Calculation Report - Proc. 1156/2019</title>
+          <style>
+            @page { size: portrait; margin: 15mm; }
+            body { font-family: "Century Gothic", -apple-system, sans-serif; color: #0A1128; margin: 0; padding: 25px; }
+            .header { border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+            .title { font-size: 20px; font-weight: 900; }
+            .republic { font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; font-size: 12px; }
+            .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 25px; font-size: 12px; }
+            .table th { background: #0A1128; color: white; padding: 10px; text-align: left; }
+            .table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+            .total-row { background: #f1f5f9; font-weight: 900; font-size: 14px; }
+            .statute { background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; font-size: 11px; color: #92400e; margin-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="republic">Federal Democratic Republic of Ethiopia • Labor Proclamation No. 1156/2019</div>
+              <div class="title">Statutory Severance & Terminal Entitlement Calculation</div>
+            </div>
+            <div style="font-family: monospace; font-size: 11px;">DATE: ${new Date().toLocaleDateString()}</div>
+          </div>
+
+          <div class="grid">
+            <div class="box">
+              <strong>Employee Basic Profile:</strong><br/>
+              Monthly Gross Salary: ETB ${calcSalary.toLocaleString()}.00<br/>
+              Length of Service: ${calcYears} Years, ${calcMonths} Months<br/>
+              Calculated Daily Wage: ETB ${dailyWage.toFixed(2)}
+            </div>
+            <div class="box">
+              <strong>Statutory Termination Ground:</strong><br/>
+              Reason: ${calcReason.toUpperCase()}<br/>
+              Notice Period: ${calcGaveNotice ? 'Notice Served' : `No Notice (${noticePeriodMonths} Months Compensation)`}<br/>
+              Accrued Leave Balance: ${calcUnusedLeaveDays} Working Days
+            </div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Legal Entitlement Component</th>
+                <th>Governing Statute</th>
+                <th style="text-align:right;">Calculated Amount (ETB)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Statutory Severance Pay (የስንብት ክፍያ)</strong></td>
+                <td>Article 40(1) (30 days 1st yr + 10 days/yr)</td>
+                <td style="text-align:right;">ETB ${baseSeverance.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td><strong>Redundancy / Bankruptcy Indemnity (ተጨማሪ ካሳ)</strong></td>
+                <td>Article 40(2) (60 Days Wages)</td>
+                <td style="text-align:right;">ETB ${additionalRedundancyPay.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td><strong>Payment in Lieu of Notice (የማስጠንቀቂያ ካሳ)</strong></td>
+                <td>Article 44 (${noticePeriodMonths} Months Salary)</td>
+                <td style="text-align:right;">ETB ${noticeIndemnity.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td><strong>Accrued Unused Annual Leave (ያልተወሰደ ፈቃድ)</strong></td>
+                <td>Article 79 (${calcUnusedLeaveDays} Days @ Daily Wage)</td>
+                <td style="text-align:right;">ETB ${leaveIndemnity.toFixed(2)}</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="2">TOTAL STATUTORY ENTITLEMENT:</td>
+                <td style="text-align:right; color: #0A1128;">ETB ${totalCalculatedPackage.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="statute">
+            <strong>Legal Authority Note:</strong> This calculation report is prepared in strict compliance with Articles 39, 40, 44, and 77–79 of the Labor Proclamation No. 1156/2019 of Ethiopia. It serves as an authoritative basis for employer settlement, union conciliation, or presentation to the Labor Relations Board.
+          </div>
+          <script>
+            window.onload = function() { window.print(); window.onafterprint = function() { window.close(); } }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   // Practice Areas
   const practiceAreas = [
@@ -1329,23 +1408,26 @@ export default function LegalLinkHome() {
             <nav className="hidden md:flex items-center gap-1">
               <button
                 onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                   activeTab === 'match' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
                 {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
               </button>
 
-              <Link
-                href="/advocate"
-                className="px-3.5 py-2 text-sm font-semibold rounded-xl text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-all"
+              <button
+                onClick={() => setActiveTab('calculator')}
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'calculator' ? 'text-[#0A1128] bg-amber-50 text-amber-800 font-bold shadow-xs border border-amber-200' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                }`}
               >
-                {lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers'}
-              </Link>
+                <Calculator className="w-3.5 h-3.5 text-amber-600" />
+                <span>{lang === 'am' ? 'የስንብት አስሊ' : 'Severance Calc'}</span>
+              </button>
 
               <button
                 onClick={() => setActiveTab('legaltalk')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                   activeTab === 'legaltalk' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
@@ -1354,7 +1436,7 @@ export default function LegalLinkHome() {
 
               <button
                 onClick={() => setActiveTab('lexdraft')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                   activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
@@ -1363,7 +1445,7 @@ export default function LegalLinkHome() {
 
               <button
                 onClick={() => setActiveTab('my-consultations')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
                   activeTab === 'my-consultations' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
@@ -1383,7 +1465,7 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/advocate/join"
-                className="px-3.5 py-2 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 text-xs font-bold border border-amber-200 transition-all flex items-center gap-1.5 shadow-xs"
+                className="px-3 py-1.5 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 text-xs font-bold border border-amber-200 transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <UserPlus className="w-3.5 h-3.5 text-amber-600" />
                 <span>Join as Advocate</span>
@@ -1391,7 +1473,7 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/advocate"
-                className="px-3.5 py-2 rounded-xl bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-all flex items-center gap-1.5 shadow-xs"
+                className="px-3 py-1.5 rounded-xl bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <Scale className="w-3.5 h-3.5 text-amber-600" />
                 <span>Advocate Portal</span>
@@ -1399,7 +1481,7 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/admin"
-                className="px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-all flex items-center gap-1 shadow-xs"
+                className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-all flex items-center gap-1 shadow-xs"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
                 <span>Admin Console</span>
@@ -1470,52 +1552,11 @@ export default function LegalLinkHome() {
             </div>
           </div>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-2">
-            <button
-              onClick={() => { setActiveTab('match'); setMatchStep(1); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
-            </button>
-            <button
-              onClick={() => { setActiveTab('legaltalk'); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              LegalTalk Forum
-            </button>
-            <button
-              onClick={() => { setActiveTab('lexdraft'); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              LexDraft Builder
-            </button>
-            <button
-              onClick={() => { setActiveTab('my-consultations'); setMobileMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
-            >
-              {lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal'}
-            </button>
-            <Link
-              href="/advocate"
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-[#0A1128] hover:bg-slate-100 rounded-lg"
-            >
-              Advocate Portal ↗
-            </Link>
-            <Link
-              href="/admin"
-              className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-50 rounded-lg"
-            >
-              Admin Console ↗
-            </Link>
-          </div>
-        )}
       </header>
 
       {/* 2. TAB ROUTING VIEW */}
       
-      {/* VIEW A: COMPLETE LANDING PAGE (ALL 8 ORIGINAL SECTIONS RESTORED) */}
+      {/* VIEW A: COMPLETE ORIGINAL 8-SECTION LANDING PAGE */}
       {activeTab === 'home' && (
         <main className="flex-1">
           
@@ -1547,11 +1588,11 @@ export default function LegalLinkHome() {
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
-                      onClick={() => setActiveTab('legaltalk')}
-                      className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs hover:border-slate-300"
+                      onClick={() => setActiveTab('calculator')}
+                      className="w-full sm:w-auto px-7 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                     >
-                      <HelpCircle className="w-4 h-4 text-amber-500" />
-                      <span>LegalTalk Forum</span>
+                      <Calculator className="w-4 h-4" />
+                      <span>Severance Pay Calculator</span>
                     </button>
                   </div>
 
@@ -1790,7 +1831,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 5: WHY LEGALLINK (MIDNIGHT NAVY #0A1128 PILLARS) */}
+          {/* SECTION 5: WHY LEGALLINK */}
           <section className="py-20 bg-[#0A1128] text-white relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
               <div className="text-center max-w-2xl mx-auto space-y-2 reveal">
@@ -1948,7 +1989,6 @@ export default function LegalLinkHome() {
                   </div>
                 </div>
 
-                {/* Contract Mockup Visual */}
                 <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif card-hover-effect">
                   <div className="text-center border-b pb-2">
                     <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
@@ -1974,7 +2014,7 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* SECTION 8: WHAT CLIENTS SAY (REVIEWS & RATINGS) */}
+          {/* SECTION 8: WHAT CLIENTS SAY */}
           <section className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
@@ -2030,7 +2070,234 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW B: LEGALTALK FORUM */}
+      {/* VIEW B: ETHIOPIAN LABOR & SEVERANCE CALCULATOR (MILIESTONE 1) */}
+      {activeTab === 'calculator' && (
+        <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
+          
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2 max-w-xl">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA • STATUTORY TOOL
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-black">Labor & Severance Pay Calculator</h1>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Compute exact statutory severance, notice indemnity, and unused leave entitlements under Labor Proclamation No. 1156/2019 (አዋጅ ቁጥር 1156/2011).
+              </p>
+            </div>
+
+            <button
+              onClick={handlePrintLaborCalculation}
+              className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Export Official Calculation Sheet</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Input Parameters */}
+            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                <h3 className="font-black text-base text-[#0A1128]">Employment & Contract Details</h3>
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                  Proc. 1156/2019 Standard
+                </span>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">
+                    Monthly Gross Remuneration (ወርሃዊ ደመወዝ) *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-2.5 font-mono font-bold text-slate-400">ETB</span>
+                    <input
+                      type="number"
+                      min="1000"
+                      step="500"
+                      value={calcSalary}
+                      onChange={(e) => setCalcSalary(Number(e.target.value) || 0)}
+                      className="w-full pl-14 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm font-bold text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">
+                      Years of Service (የአገልግሎት ዓመት)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="40"
+                      value={calcYears}
+                      onChange={(e) => setCalcYears(Number(e.target.value) || 0)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">
+                      Additional Months (ተጨማሪ ወራት)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      value={calcMonths}
+                      onChange={(e) => setCalcMonths(Number(e.target.value) || 0)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">
+                    Termination Reason / Ground (የስንብት ምክንያት)
+                  </label>
+                  <select
+                    value={calcReason}
+                    onChange={(e: any) => setCalcReason(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
+                  >
+                    <option value="redundancy">Workforce Reduction / Redundancy (የሠራተኞች ቅነሳ - Art. 29)</option>
+                    <option value="unlawful">Unlawful Termination Without Cause (ያለ አግባብ የተደረገ ስንብት)</option>
+                    <option value="bankruptcy">Company Liquidation / Bankruptcy (የድርጅት መክሰር - Art. 24)</option>
+                    <option value="lawful_notice">Termination with Just Cause & Notice (በሕጋዊ ምክንያት)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">
+                      Did Employer Serve Required Written Notice?
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCalcGaveNotice(true)}
+                        className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          calcGaveNotice ? 'bg-[#0A1128] text-white' : 'bg-slate-50 border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        Yes (Served)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCalcGaveNotice(false)}
+                        className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          !calcGaveNotice ? 'bg-[#0A1128] text-white' : 'bg-slate-50 border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        No (Immediate)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase mb-1">
+                      Unused Annual Leave Days (ቀሪ የዕረፍት ቀናት)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="60"
+                      value={calcUnusedLeaveDays}
+                      onChange={(e) => setCalcUnusedLeaveDays(Number(e.target.value) || 0)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Calculated Breakdown Summary */}
+            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-5 shadow-sm flex flex-col justify-between">
+              <div className="space-y-4">
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
+                  STATUTORY ENTITLEMENT AUDIT
+                </span>
+                
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 text-xs">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <div>
+                      <strong className="block text-[#0A1128]">Severance Pay (የስንብት ክፍያ)</strong>
+                      <span className="text-[10px] text-slate-400">Article 40(1) (1 mo + 1/3 per yr)</span>
+                    </div>
+                    <span className="font-mono font-bold text-slate-900">ETB {baseSeverance.toFixed(2)}</span>
+                  </div>
+
+                  {additionalRedundancyPay > 0 && (
+                    <div className="flex justify-between items-center text-emerald-700 pt-2 border-t border-slate-200/60">
+                      <div>
+                        <strong className="block">Redundancy Indemnity (የቅነሳ ካሳ)</strong>
+                        <span className="text-[10px] opacity-80">Article 40(2) (60 days wages)</span>
+                      </div>
+                      <span className="font-mono font-bold">+ ETB {additionalRedundancyPay.toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  {noticeIndemnity > 0 && (
+                    <div className="flex justify-between items-center text-blue-700 pt-2 border-t border-slate-200/60">
+                      <div>
+                        <strong className="block">Payment in Lieu of Notice (የማስጠንቀቂያ ካሳ)</strong>
+                        <span className="text-[10px] opacity-80">Article 44 ({noticePeriodMonths} months)</span>
+                      </div>
+                      <span className="font-mono font-bold">+ ETB {noticeIndemnity.toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  {leaveIndemnity > 0 && (
+                    <div className="flex justify-between items-center text-purple-700 pt-2 border-t border-slate-200/60">
+                      <div>
+                        <strong className="block">Accrued Leave Pay (ያልተወሰደ ፈቃድ)</strong>
+                        <span className="text-[10px] opacity-80">Article 79 ({calcUnusedLeaveDays} working days)</span>
+                      </div>
+                      <span className="font-mono font-bold">+ ETB {leaveIndemnity.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 bg-[#0A1128] text-white rounded-2xl space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest font-bold text-amber-400">Total Statutory Package</span>
+                  <div className="text-2xl font-black font-mono text-emerald-400">
+                    ETB {totalCalculatedPackage.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                  <span className="text-[10px] text-slate-300 block">FDRE Labor Proclamation 1156/2019 legally enforceable estimate</span>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-4">
+                <button
+                  onClick={handlePrintLaborCalculation}
+                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-[#0A1128] font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
+                >
+                  <Printer className="w-4 h-4 text-amber-600" />
+                  <span>Print Statutory Calculation (PDF)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedCategory('Employment Law');
+                    setSituationText(`Computed Statutory Severance Package: ETB ${totalCalculatedPackage.toFixed(2)} under Labor Proclamation 1156/2019. Monthly Wage: ETB ${calcSalary}, Service: ${calcYears} yrs, ${calcMonths} mos. Reason: ${calcReason}. Notice: ${calcGaveNotice ? 'Given' : 'None'}.`);
+                    setSelectedLawyer(mockMatchedLawyers[1]); // Advocate Tigist Bekele (Labor Specialist)
+                    setActiveTab('match');
+                    setMatchStep(4);
+                  }}
+                  className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow transition-all"
+                >
+                  <span>Connect With Labor Advocate (Free)</span>
+                  <ArrowRight className="w-4 h-4 text-amber-400" />
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </main>
+      )}
+
+      {/* VIEW C: LEGALTALK FORUM */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -2174,7 +2441,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW C: FIND A LAWYER MATCHING STEPPER */}
+      {/* VIEW D: FIND A LAWYER MATCHING STEPPER */}
       {activeTab === 'match' && (
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-2">
@@ -2294,7 +2561,7 @@ export default function LegalLinkHome() {
 
             {matchStep === 4 && selectedLawyer && (
               <div className="space-y-6 text-xs">
-                <h3 className="font-black text-base text-[#0A1128]">Step 4: Confirm Counsel & Authorize Escrow</h3>
+                <h3 className="font-black text-base text-[#0A1128]">Step 4: Confirm Counsel & Schedule</h3>
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                   <div className="flex justify-between">
                     <span>Assigned Advocate:</span>
@@ -2305,8 +2572,8 @@ export default function LegalLinkHome() {
                     <span className="font-bold text-slate-700">{selectedCategory}</span>
                   </div>
                   <div className="flex justify-between border-t border-slate-200 pt-2 font-black text-sm text-[#0A1128]">
-                    <span>Consultation Escrow Retainer:</span>
-                    <span className="text-[#0072CE]">ETB 1,500.00</span>
+                    <span>Consultation Retainer:</span>
+                    <span className="text-emerald-700 font-bold">Free (Platform Promotion)</span>
                   </div>
                 </div>
 
@@ -2325,7 +2592,7 @@ export default function LegalLinkHome() {
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Confirm & Open Case</span>
+                        <span>Confirm Consultation</span>
                       </>
                     )}
                   </button>
@@ -2349,7 +2616,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW D: LEXDRAFT BUILDER TAB */}
+      {/* VIEW E: LEXDRAFT BUILDER TAB */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="text-center max-w-2xl mx-auto">
@@ -2397,7 +2664,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW E: CLIENT PORTAL */}
+      {/* VIEW F: CLIENT PORTAL */}
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -2715,6 +2982,7 @@ export default function LegalLinkHome() {
               <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Platform</h5>
               <ul className="text-xs space-y-2 text-slate-400">
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
+                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('calculator')}>Labor & Severance Calc</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('legaltalk')}>LegalTalk Forum</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('lexdraft')}>LexDraft Builder</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
