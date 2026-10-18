@@ -19,6 +19,32 @@ export default function LegalLinkHome() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // -------------------------------------------------------------
+  // DYNAMIC INTERSECTION OBSERVER FOR SCROLL ANIMATIONS
+  // -------------------------------------------------------------
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
+
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach((el) => observer.observe(el));
+
+    return () => {
+      revealElements.forEach((el) => observer.unobserve(el));
+    };
+  }, [activeTab]);
+
+  // -------------------------------------------------------------
   // SUPABASE USER AUTHENTICATION & GOOGLE OAUTH STATE
   // -------------------------------------------------------------
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -659,7 +685,6 @@ export default function LegalLinkHome() {
             },
           ]);
 
-        // AUTOMATED ETHIO TELECOM SMS ALERT
         fetch('/api/sms/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -687,9 +712,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // -------------------------------------------------------------
-  // ISOLATED POPUP PRINT HANDLER (RECEIPT VOUCHER)
-  // -------------------------------------------------------------
   const handlePrintReceipt = (tx: any) => {
     const printWindow = window.open('', '_blank', 'width=750,height=850');
     if (!printWindow) {
@@ -797,9 +819,6 @@ export default function LegalLinkHome() {
     printWindow.document.close();
   };
 
-  // -------------------------------------------------------------
-  // BILINGUAL (አማርኛ / ENGLISH / DUAL-COLUMN) CONTRACT GENERATOR
-  // -------------------------------------------------------------
   const handleExportContractPDF = (contract: any) => {
     const printWindow = window.open('', '_blank', 'width=900,height=950');
     if (!printWindow) {
@@ -1226,20 +1245,20 @@ export default function LegalLinkHome() {
     <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 selection:bg-amber-100 selection:text-amber-900">
       
       {/* 1. TOP NAVIGATION */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* Logo with fixed width/height so it never blows up */}
+            {/* Logo */}
             <div 
               onClick={() => setActiveTab('home')} 
-              className="flex items-center gap-2.5 cursor-pointer select-none"
+              className="flex items-center gap-2.5 cursor-pointer select-none group"
             >
               <img 
                 src="/logo.png" 
                 alt="LegalLink Logo" 
                 style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-                className="w-10 h-10 object-contain hover:scale-105 transition-transform" 
+                className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" 
               />
               <div>
                 <span className="text-xl font-black tracking-tight text-[#0A1128]">
@@ -1255,8 +1274,8 @@ export default function LegalLinkHome() {
             <nav className="hidden md:flex items-center gap-1">
               <button
                 onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-                  activeTab === 'match' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'match' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
                 {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
@@ -1264,15 +1283,15 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/advocate"
-                className="px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-colors"
+                className="px-3.5 py-2 text-sm font-semibold rounded-xl text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-all"
               >
                 {lang === 'am' ? 'ለሕግ ባለሙያዎች' : 'For Lawyers'}
               </Link>
 
               <button
                 onClick={() => setActiveTab('legaltalk')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-                  activeTab === 'legaltalk' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'legaltalk' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
                 LegalTalk
@@ -1280,8 +1299,8 @@ export default function LegalLinkHome() {
 
               <button
                 onClick={() => setActiveTab('lexdraft')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-                  activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'lexdraft' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
                 LexDraft
@@ -1289,8 +1308,8 @@ export default function LegalLinkHome() {
 
               <button
                 onClick={() => setActiveTab('my-consultations')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-                  activeTab === 'my-consultations' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
+                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'my-consultations' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
                 }`}
               >
                 {lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal'}
@@ -1301,7 +1320,7 @@ export default function LegalLinkHome() {
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer mr-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer mr-1 transition-all"
               >
                 <Globe className="w-3.5 h-3.5 text-slate-500" />
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
@@ -1309,7 +1328,7 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/advocate/join"
-                className="px-3 py-1.5 rounded-lg text-amber-800 bg-amber-50 hover:bg-amber-100 text-xs font-bold border border-amber-200 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl text-amber-800 bg-amber-50 hover:bg-amber-100 text-xs font-bold border border-amber-200 transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <UserPlus className="w-3.5 h-3.5 text-amber-600" />
                 <span>Join as Advocate</span>
@@ -1317,7 +1336,7 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/advocate"
-                className="px-3 py-1.5 rounded-lg bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <Scale className="w-3.5 h-3.5 text-amber-600" />
                 <span>Advocate Portal</span>
@@ -1325,7 +1344,7 @@ export default function LegalLinkHome() {
 
               <Link
                 href="/admin"
-                className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-colors flex items-center gap-1"
+                className="px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-all flex items-center gap-1 shadow-xs"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
                 <span>Admin Console</span>
@@ -1439,17 +1458,19 @@ export default function LegalLinkHome() {
         )}
       </header>
 
-      {/* 2. LANDING PAGE VIEW */}
+      {/* 2. LANDING PAGE VIEW WITH FLUID SCROLL REVEAL */}
       {activeTab === 'home' && (
         <main className="flex-1">
           
           {/* SECTION 1: HERO */}
-          <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100 overflow-hidden relative">
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-400/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                <div className="lg:col-span-7 space-y-6">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+                <div className="lg:col-span-7 space-y-6 reveal">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold shadow-xs">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                     <span>{lang === 'am' ? "የኢትዮጵያ ቀዳሚ የሕግ ገበያ" : "ETHIOPIA'S #1 LEGAL MARKETPLACE"}</span>
                   </div>
@@ -1465,14 +1486,14 @@ export default function LegalLinkHome() {
                   <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                     <button
                       onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer hover:shadow-xl hover:-translate-y-0.5"
                     >
                       <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <Link
                       href="/advocate/join"
-                      className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs hover:border-slate-300"
                     >
                       <Award className="w-4 h-4 text-amber-500" />
                       <span>Join as Advocate</span>
@@ -1499,8 +1520,8 @@ export default function LegalLinkHome() {
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 relative flex justify-center">
-                  <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-4">
+                <div className="lg:col-span-5 relative flex justify-center reveal reveal-delay-2">
+                  <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-4 animate-soft-float">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">
@@ -1561,7 +1582,7 @@ export default function LegalLinkHome() {
           {/* SECTION 2: HOW IT WORKS */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
+              <div className="text-center max-w-2xl mx-auto mb-14 space-y-2 reveal">
                 <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">HOW IT WORKS</span>
                 <h2 className="text-3xl font-black text-[#0A1128]">Get Legal Help in 3 Simple Steps</h2>
                 <p className="text-xs sm:text-sm text-slate-500">
@@ -1570,7 +1591,7 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 hover:border-[#0A1128] transition-all">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-1">
                   <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 font-black flex items-center justify-center text-lg border border-amber-200">
                     1
                   </div>
@@ -1580,7 +1601,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 hover:border-[#0A1128] transition-all">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-2">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 font-black flex items-center justify-center text-lg border border-blue-200">
                     2
                   </div>
@@ -1590,7 +1611,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 hover:border-[#0A1128] transition-all">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-3">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center text-lg border border-emerald-200">
                     3
                   </div>
@@ -1606,7 +1627,7 @@ export default function LegalLinkHome() {
           {/* SECTION 3: PRACTICE AREAS */}
           <section className="py-20 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
                 <div>
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">PRACTICE AREAS</span>
                   <h2 className="text-3xl font-black text-[#0A1128] mt-1">Specialized Legal Domains</h2>
@@ -1621,7 +1642,7 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {practiceAreas.map((cat) => {
+                {practiceAreas.map((cat, idx) => {
                   const Icon = cat.icon;
                   return (
                     <div
@@ -1631,7 +1652,7 @@ export default function LegalLinkHome() {
                         setActiveTab('match');
                         setMatchStep(2);
                       }}
-                      className="p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer hover:shadow-md bg-white group"
+                      className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect bg-white group reveal reveal-delay-${(idx % 4) + 1}`}
                     >
                       <div className="w-11 h-11 rounded-2xl bg-slate-100 group-hover:bg-[#0A1128] group-hover:text-amber-400 flex items-center justify-center text-[#0A1128] mb-4 transition-colors">
                         <Icon className="w-5 h-5" />
@@ -1649,7 +1670,7 @@ export default function LegalLinkHome() {
           {/* SECTION 4: FEATURED ADVOCATES */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
                 <div>
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">VERIFIED COUNSEL</span>
                   <h2 className="text-3xl font-black text-[#0A1128] mt-1">Featured Advocates</h2>
@@ -1665,8 +1686,8 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {mockMatchedLawyers.map((lawyer) => (
-                  <div key={lawyer.id} className="p-6 rounded-3xl bg-white border border-slate-200 flex flex-col justify-between hover:shadow-lg transition-all space-y-4">
+                {mockMatchedLawyers.map((lawyer, idx) => (
+                  <div key={lawyer.id} className={`p-6 rounded-3xl bg-white border border-slate-200 flex flex-col justify-between card-hover-effect space-y-4 reveal reveal-delay-${idx + 1}`}>
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
                         <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">
@@ -1713,9 +1734,9 @@ export default function LegalLinkHome() {
           </section>
 
           {/* SECTION 5: WHY LEGALLINK */}
-          <section className="py-20 bg-[#0A1128] text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-              <div className="text-center max-w-2xl mx-auto space-y-2">
+          <section className="py-20 bg-[#0A1128] text-white relative overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
+              <div className="text-center max-w-2xl mx-auto space-y-2 reveal">
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">SECURITY & INTEGRITY</span>
                 <h2 className="text-3xl sm:text-4xl font-black">Why LegalLink Ethiopia</h2>
                 <p className="text-xs sm:text-sm text-slate-300">
@@ -1723,7 +1744,7 @@ export default function LegalLinkHome() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-b border-slate-800 pb-12">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-b border-slate-800 pb-12 reveal reveal-delay-1">
                 <div>
                   <span className="text-3xl sm:text-4xl font-black text-amber-400 font-mono">100%</span>
                   <span className="text-xs text-slate-300 block mt-1 font-bold">MOJ Bar Vetted</span>
@@ -1743,7 +1764,7 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-1">
                   <ShieldCheck className="w-8 h-8 text-amber-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Ministry of Justice Vetting</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1751,7 +1772,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-2">
                   <Lock className="w-8 h-8 text-emerald-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Guaranteed Escrow Protection</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1759,7 +1780,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-3">
                   <Languages className="w-8 h-8 text-blue-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Bilingual Contract Drafting</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1767,7 +1788,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-4">
                   <Smartphone className="w-8 h-8 text-purple-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Instant SMS Notifications</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1781,7 +1802,7 @@ export default function LegalLinkHome() {
           {/* SECTION 6: LEGALTALK */}
           <section className="py-20 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
                 <div>
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">KNOWLEDGE HUB</span>
                   <h2 className="text-3xl font-black text-[#0A1128] mt-1">LegalTalk Ethiopia</h2>
@@ -1797,11 +1818,11 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {legalTalkArticles.map((art) => (
+                {legalTalkArticles.map((art, idx) => (
                   <div
                     key={art.id}
                     onClick={() => setSelectedArticle(art)}
-                    className="p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer hover:shadow-lg flex flex-col justify-between space-y-4 group"
+                    className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect flex flex-col justify-between space-y-4 group reveal reveal-delay-${idx + 1}`}
                   >
                     <div className="space-y-3">
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 uppercase">
@@ -1828,7 +1849,7 @@ export default function LegalLinkHome() {
           {/* SECTION 7: LEXDRAFT SPOTLIGHT */}
           <section className="py-20 bg-slate-50/70 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="bg-gradient-to-r from-slate-900 to-[#102A43] rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-10">
+              <div className="bg-gradient-to-r from-slate-900 to-[#102A43] rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-10 reveal">
                 <div className="space-y-4 max-w-xl">
                   <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
                     ETHIOPIAN STATUTORY CONTRACT BUILDER
@@ -1869,7 +1890,7 @@ export default function LegalLinkHome() {
                 </div>
 
                 {/* Contract Mockup Visual */}
-                <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif">
+                <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif card-hover-effect">
                   <div className="text-center border-b pb-2">
                     <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
                       Federal Democratic Republic of Ethiopia
@@ -1897,7 +1918,7 @@ export default function LegalLinkHome() {
           {/* SECTION 8: WHAT CLIENTS SAY */}
           <section className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 reveal">
                 <div>
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">TRANSPARENT CLIENT TRUST</span>
                   <h2 className="text-3xl font-black text-[#0A1128] mt-1">What Clients Say</h2>
@@ -1914,8 +1935,8 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {reviewsList.map((rev) => (
-                  <div key={rev.id} className="p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                {reviewsList.map((rev, idx) => (
+                  <div key={rev.id} className={`p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 card-hover-effect reveal reveal-delay-${(idx % 3) + 1}`}>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center text-amber-400">
