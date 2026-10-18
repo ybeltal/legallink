@@ -134,7 +134,6 @@ export default function LegalLinkHome() {
     }
   };
 
-  // Google OAuth Direct Sign-In / Sign-Up
   const handleGoogleSignIn = async () => {
     setAuthError(null);
     try {
@@ -147,7 +146,7 @@ export default function LegalLinkHome() {
       });
       if (error) throw error;
     } catch (err: any) {
-      setAuthError(err.message || 'Failed to initiate Google sign-in. Check Supabase Google provider configuration.');
+      setAuthError(err.message || 'Failed to initiate Google sign-in.');
     }
   };
 
@@ -722,7 +721,7 @@ export default function LegalLinkHome() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
       
-      {/* 1. TOP NAVIGATION */}
+      {/* 1. TOP NAVIGATION WITH ADVOCATE PORTAL & ADMIN SHORTCUTS */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -773,15 +772,25 @@ export default function LegalLinkHome() {
             </nav>
 
             {/* Header Right Actions */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2.5">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer mr-1"
               >
                 <Globe className="w-3.5 h-3.5 text-slate-500" />
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
               </button>
 
+              {/* Direct Advocate Workspace Link */}
+              <Link
+                href="/advocate"
+                className="px-3 py-1.5 rounded-lg bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Scale className="w-3.5 h-3.5 text-amber-600" />
+                <span>Advocate Portal</span>
+              </Link>
+
+              {/* Direct Admin Access */}
               <Link
                 href="/admin"
                 className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-colors flex items-center gap-1"
@@ -822,7 +831,7 @@ export default function LegalLinkHome() {
                       setAuthError(null);
                       setAuthModalOpen(true);
                     }}
-                    className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-[#0A1128] cursor-pointer"
+                    className="px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#0A1128] cursor-pointer"
                   >
                     {lang === 'am' ? 'ግባ' : 'Sign in'}
                   </button>
@@ -833,7 +842,7 @@ export default function LegalLinkHome() {
                       setAuthError(null);
                       setAuthModalOpen(true);
                     }}
-                    className="px-5 py-2.5 text-sm font-bold text-white bg-[#0A1128] hover:bg-[#102A43] rounded-xl shadow-sm transition-all cursor-pointer"
+                    className="px-4 py-2 text-sm font-bold text-white bg-[#0A1128] hover:bg-[#102A43] rounded-xl shadow-sm transition-all cursor-pointer"
                   >
                     {lang === 'am' ? 'ጀምር' : 'Get Started'}
                   </button>
@@ -876,6 +885,12 @@ export default function LegalLinkHome() {
                 {item.label}
               </button>
             ))}
+            <Link
+              href="/advocate"
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-[#0A1128] hover:bg-slate-100 rounded-lg"
+            >
+              Advocate Portal ↗
+            </Link>
             <Link
               href="/admin"
               className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-50 rounded-lg"
@@ -1697,6 +1712,9 @@ export default function LegalLinkHome() {
               <ul className="text-xs space-y-2 text-slate-400">
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
+                <li>
+                  <Link href="/advocate" className="text-slate-400 hover:text-amber-400">Advocate Workspace ↗</Link>
+                </li>
               </ul>
             </div>
             <div>
