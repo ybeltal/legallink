@@ -8,7 +8,7 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award, FileCode, Edit3, ThumbsUp
+  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -184,7 +184,96 @@ export default function LegalLinkHome() {
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
   const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
   const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<any | null>(null);
-  const [modalTab, setModalTab] = useState<'overview' | 'room'>('overview');
+  const [modalTab, setModalTab] = useState<'overview' | 'room' | 'documents'>('overview');
+
+  // -------------------------------------------------------------
+  // EVIDENCE & CASE DOCUMENT STORAGE STATE
+  // -------------------------------------------------------------
+  const [caseDocuments, setCaseDocuments] = useState<any[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState<boolean>(false);
+  const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
+  const fileUploadInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchCaseDocuments = async (consultationId: string) => {
+    setLoadingDocs(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('case_documents')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setCaseDocuments(data);
+      }
+    } catch (err) {
+      console.error('Error fetching documents:', err);
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedConsultationDetails) return;
+
+    setIsUploadingFile(true);
+    try {
+      const supabase = createClient();
+      const fileExt = file.name.split('.').pop();
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${selectedConsultationDetails.id}/${Date.now()}_${cleanFileName}`;
+
+      // 1. Upload directly to Supabase Storage bucket 'case-documents'
+      const { error: uploadError } = await supabase.storage
+        .from('case-documents')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // 2. Retrieve public URL
+      const { data: urlData } = supabase.storage
+        .from('case-documents')
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      const formattedSize = file.size > 1024 * 1024 
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+        : `${Math.round(file.size / 1024)} KB`;
+
+      // 3. Save reference in public.case_documents table
+      const uploader = userProfile?.full_name || selectedConsultationDetails.client_name || 'Client';
+      const { data: newDocRecord, error: insertError } = await supabase
+        .from('case_documents')
+        .insert([
+          {
+            consultation_id: selectedConsultationDetails.id,
+            file_name: file.name,
+            file_url: publicUrl,
+            file_size: formattedSize,
+            uploader_name: uploader,
+            uploader_role: 'client',
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      if (newDocRecord) {
+        setCaseDocuments((prev) => [newDocRecord, ...prev]);
+      }
+      alert('Document uploaded successfully and shared with your advocate.');
+    } catch (err: any) {
+      alert('Failed to upload document: ' + (err.message || 'Storage error'));
+    } finally {
+      setIsUploadingFile(false);
+      if (fileUploadInputRef.current) {
+        fileUploadInputRef.current.value = '';
+      }
+    }
+  };
 
   // -------------------------------------------------------------
   // REVIEWS & RATING ENGINE STATE
@@ -399,49 +488,73 @@ export default function LegalLinkHome() {
     }
   }, [activeTab, payingConsultation]);
 
+  // Load chat messages and case documents on consultation open
   useEffect(() => {
-    if (selectedConsultationDetails && modalTab === 'room') {
+    if (selectedConsultationDetails) {
       const consultationId = selectedConsultationDetails.id;
-      setLoadingMessages(true);
+      fetchCaseDocuments(consultationId);
 
       const supabase = createClient();
 
-      const fetchHistory = async () => {
-        const { data, error } = await supabase
-          .from('consultation_messages')
-          .select('*')
-          .eq('consultation_id', consultationId)
-          .order('created_at', { ascending: true });
+      if (modalTab === 'room') {
+        setLoadingMessages(true);
+        const fetchHistory = async () => {
+          const { data, error } = await supabase
+            .from('consultation_messages')
+            .select('*')
+            .eq('consultation_id', consultationId)
+            .order('created_at', { ascending: true });
 
-        if (!error && data) {
-          setMessages(data);
-        }
-        setLoadingMessages(false);
-      };
+          if (!error && data) {
+            setMessages(data);
+          }
+          setLoadingMessages(false);
+        };
+        fetchHistory();
 
-      fetchHistory();
+        const chatChannel = supabase
+          .channel(`chat_${consultationId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'consultation_messages',
+              filter: `consultation_id=eq.${consultationId}`,
+            },
+            (payload) => {
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === payload.new.id)) return prev;
+                return [...prev, payload.new];
+              });
+            }
+          )
+          .subscribe();
 
-      const chatChannel = supabase
-        .channel(`chat_${consultationId}`)
+        return () => {
+          supabase.removeChannel(chatChannel);
+        };
+      }
+
+      // Realtime listener for case documents
+      const docsChannel = supabase
+        .channel(`docs_${consultationId}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
-            table: 'consultation_messages',
+            table: 'case_documents',
             filter: `consultation_id=eq.${consultationId}`,
           },
           (payload) => {
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === payload.new.id)) return prev;
-              return [...prev, payload.new];
-            });
+            setCaseDocuments((prev) => [payload.new, ...prev]);
           }
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(chatChannel);
+        supabase.removeChannel(docsChannel);
       };
     }
   }, [selectedConsultationDetails, modalTab]);
@@ -920,7 +1033,6 @@ export default function LegalLinkHome() {
     { id: 'NGO & Compliance', title: 'NGO & Compliance', amTitle: 'የድርጅቶችና ማህበራት ሕግ', icon: Building, desc: 'Registration, compliance, grant agreements.' },
   ];
 
-  // Dynamic Average Rating Calculation for Advocate Mulu Haile
   const muluHaileReviews = reviewsList.filter((r) => r.advocate_name === 'Advocate Mulu Haile');
   const dynamicRating = muluHaileReviews.length > 0 
     ? (muluHaileReviews.reduce((sum, r) => sum + r.rating, 0) / muluHaileReviews.length).toFixed(2)
@@ -1418,7 +1530,7 @@ export default function LegalLinkHome() {
               </span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage consultations, review your assigned advocates, download generated LexDraft contracts, and access escrow receipts.
+                Manage consultations, review your assigned advocates, upload case evidence, download generated contracts, and access escrow receipts.
               </p>
             </div>
             <div className="flex gap-2">
@@ -1464,7 +1576,7 @@ export default function LegalLinkHome() {
             </button>
           </div>
 
-          {/* SUB-TAB 1: CONSULTATIONS (WITH RATE ADVOCATE BUTTON) */}
+          {/* SUB-TAB 1: CONSULTATIONS */}
           {clientSubTab === 'consultations' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -1542,8 +1654,6 @@ export default function LegalLinkHome() {
                       </div>
 
                       <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-                        
-                        {/* Rate Advocate CTA for Completed Cases */}
                         {isCompleted && (
                           <button
                             onClick={() => handleOpenReviewModal(c)}
@@ -1683,7 +1793,6 @@ export default function LegalLinkHome() {
       {reviewModalCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-            
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
@@ -1703,8 +1812,6 @@ export default function LegalLinkHome() {
             </div>
 
             <form onSubmit={handleSubmitReview} className="p-6 space-y-5 text-xs">
-              
-              {/* Star Rating Selector */}
               <div className="text-center space-y-2">
                 <label className="block text-xs font-bold text-slate-700 uppercase">
                   Select Advocate Performance Rating
@@ -1732,7 +1839,6 @@ export default function LegalLinkHome() {
                 </span>
               </div>
 
-              {/* Review Comment Input */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Client Written Feedback
@@ -1745,10 +1851,6 @@ export default function LegalLinkHome() {
                   placeholder="Describe your legal experience with Advocate Mulu Haile (e.g., clarity of advice, contract precision, court representation)..."
                   className="w-full p-3.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#0A1128] leading-relaxed"
                 />
-              </div>
-
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
-                ⚖️ <strong>Verified Marketplace Feedback:</strong> Your review will be published under the advocate's marketplace profile to assist other Ethiopian clients seeking specialized legal counsel.
               </div>
 
               <div className="flex gap-2 pt-1">
@@ -1777,9 +1879,7 @@ export default function LegalLinkHome() {
                   )}
                 </button>
               </div>
-
             </form>
-
           </div>
         </div>
       )}
@@ -2188,10 +2288,12 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 9. CONSULTATION DETAILS & ROOM MODAL */}
+      {/* 9. CONSULTATION DETAILS, CHAT & EVIDENCE UPLOADS MODAL */}
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
+            
+            {/* Header */}
             <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
                 <div className="flex items-center gap-2">
@@ -2215,6 +2317,7 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
+            {/* Sub Tabs */}
             <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
               <button
                 onClick={() => setModalTab('overview')}
@@ -2233,9 +2336,21 @@ export default function LegalLinkHome() {
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Live Room & Chat</span>
               </button>
+              <button
+                onClick={() => setModalTab('documents')}
+                className={`py-3 border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  modalTab === 'documents' ? 'border-blue-600 text-blue-600 font-black' : 'border-transparent text-slate-400'
+                }`}
+              >
+                <Paperclip className="w-3.5 h-3.5" />
+                <span>Evidence & Documents ({caseDocuments.length})</span>
+              </button>
             </div>
 
+            {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+              
+              {/* TAB 1: OVERVIEW */}
               {modalTab === 'overview' && (
                 <div className="space-y-4 text-xs">
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4">
@@ -2257,6 +2372,7 @@ export default function LegalLinkHome() {
                 </div>
               )}
 
+              {/* TAB 2: LIVE ROOM & CHAT */}
               {modalTab === 'room' && (
                 <div className="space-y-4">
                   <div className="h-72 bg-slate-50/80 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
@@ -2293,6 +2409,102 @@ export default function LegalLinkHome() {
                   </form>
                 </div>
               )}
+
+              {/* TAB 3: CASE EVIDENCE & SUPABASE STORAGE UPLOADS */}
+              {modalTab === 'documents' && (
+                <div className="space-y-5 text-xs">
+                  
+                  {/* Upload Box */}
+                  <div className="p-5 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-center space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                      <UploadCloud className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#0A1128] text-sm">Upload Legal Documents or Evidence</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Share property deeds, court notices, ID scans, or contract drafts directly into Supabase Storage.
+                      </p>
+                    </div>
+
+                    <input
+                      type="file"
+                      ref={fileUploadInputRef}
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      accept=".pdf,.png,.jpg,.jpeg,.docx"
+                    />
+
+                    <button
+                      type="button"
+                      disabled={isUploadingFile}
+                      onClick={() => fileUploadInputRef.current?.click()}
+                      className="px-5 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs inline-flex items-center gap-2 cursor-pointer shadow transition-all"
+                    >
+                      {isUploadingFile ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                          <span>Uploading to Secure Storage...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Paperclip className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Select Document (PDF, Image, DOCX)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Documents List */}
+                  <div className="space-y-2">
+                    <h5 className="font-bold text-slate-700 uppercase text-[11px]">
+                      Case File Vault ({caseDocuments.length})
+                    </h5>
+
+                    {loadingDocs ? (
+                      <div className="p-8 text-center text-slate-400 text-xs">
+                        <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2 text-[#0A1128]" />
+                        Loading case files...
+                      </div>
+                    ) : caseDocuments.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400 border rounded-xl bg-white text-xs">
+                        No documents uploaded for this case yet.
+                      </div>
+                    ) : (
+                      caseDocuments.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-3.5 bg-white border border-slate-200 rounded-xl flex items-center justify-between hover:border-slate-400 transition-colors shadow-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <strong className="text-slate-900 block text-xs">{doc.file_name}</strong>
+                              <span className="text-[10px] text-slate-400">
+                                Size: {doc.file_size || 'File'} • Uploaded by: {doc.uploader_name} ({doc.uploader_role})
+                              </span>
+                            </div>
+                          </div>
+
+                          <a
+                            href={doc.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] font-bold rounded-lg text-xs cursor-pointer transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                </div>
+              )}
+
             </div>
           </div>
         </div>
