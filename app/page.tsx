@@ -8,7 +8,7 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award, FileCode, Edit3
+  KeyRound, Award, FileCode, Edit3, ThumbsUp
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -185,6 +185,85 @@ export default function LegalLinkHome() {
   const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
   const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<any | null>(null);
   const [modalTab, setModalTab] = useState<'overview' | 'room'>('overview');
+
+  // -------------------------------------------------------------
+  // REVIEWS & RATING ENGINE STATE
+  // -------------------------------------------------------------
+  const [reviewsList, setReviewsList] = useState<any[]>([]);
+  const [reviewModalCase, setReviewModalCase] = useState<any | null>(null);
+  const [ratingScore, setRatingScore] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
+
+  const fetchReviews = async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('advocate_reviews')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (data) setReviewsList(data);
+    } catch (err) {
+      console.error('Reviews fetch error:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+
+    const supabase = createClient();
+    const reviewsChannel = supabase
+      .channel('public_reviews_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'advocate_reviews' },
+        (payload) => {
+          setReviewsList((prev) => [payload.new, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(reviewsChannel);
+    };
+  }, []);
+
+  const handleOpenReviewModal = (c: any) => {
+    setReviewModalCase(c);
+    setRatingScore(5);
+    setReviewComment('');
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewModalCase) return;
+
+    setIsSubmittingReview(true);
+    try {
+      const supabase = createClient();
+      const reviewerName = userProfile?.full_name || reviewModalCase.client_name || 'Verified Client';
+
+      const { error } = await supabase.from('advocate_reviews').insert([
+        {
+          consultation_id: reviewModalCase.id,
+          client_name: reviewerName,
+          advocate_name: 'Advocate Mulu Haile',
+          rating: ratingScore,
+          review_comment: reviewComment.trim(),
+        },
+      ]);
+
+      if (error) throw error;
+
+      await fetchReviews();
+      setReviewModalCase(null);
+      alert('Thank you! Your verified client review and rating have been published.');
+    } catch (err: any) {
+      alert('Could not submit review: ' + err.message);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   // -------------------------------------------------------------
   // GAS-STATION STYLE TELEBIRR USSD PUSH CHECKOUT STATE
@@ -787,10 +866,8 @@ export default function LegalLinkHome() {
     setSelectedTemplate(null);
     setDocFormData({});
 
-    // Launch instant print preview
     handleExportContractPDF(newContractRecord);
 
-    // Route user to Client Portal -> Saved Contracts
     setActiveTab('my-consultations');
     setClientSubTab('contracts');
   };
@@ -843,14 +920,21 @@ export default function LegalLinkHome() {
     { id: 'NGO & Compliance', title: 'NGO & Compliance', amTitle: 'የድርጅቶችና ማህበራት ሕግ', icon: Building, desc: 'Registration, compliance, grant agreements.' },
   ];
 
+  // Dynamic Average Rating Calculation for Advocate Mulu Haile
+  const muluHaileReviews = reviewsList.filter((r) => r.advocate_name === 'Advocate Mulu Haile');
+  const dynamicRating = muluHaileReviews.length > 0 
+    ? (muluHaileReviews.reduce((sum, r) => sum + r.rating, 0) / muluHaileReviews.length).toFixed(2)
+    : '4.95';
+  const dynamicReviewCount = 438 + muluHaileReviews.length;
+
   const mockMatchedLawyers = [
     {
       id: 'l1',
       name: 'Advocate Mulu Haile',
       title: 'Corporate & Business Specialist',
       experience: '12 yrs exp',
-      rating: 4.95,
-      reviews: 438,
+      rating: Number(dynamicRating),
+      reviews: dynamicReviewCount,
       hourlyRate: 1500,
       location: 'Addis Ababa',
       slots: ['10:00 AM', '2:00 PM', '4:30 PM'],
@@ -1130,7 +1214,7 @@ export default function LegalLinkHome() {
         )}
       </header>
 
-      {/* 2. PUBLIC LANDING VIEW */}
+      {/* 2. PUBLIC LANDING VIEW WITH VERIFIED REVIEWS SHOWCASE */}
       {activeTab === 'home' && (
         <main className="flex-1">
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
@@ -1181,8 +1265,8 @@ export default function LegalLinkHome() {
                       <span className="text-xs text-slate-500 font-medium">Consultations Done</span>
                     </div>
                     <div>
-                      <span className="text-2xl font-black text-[#0A1128] block">97%</span>
-                      <span className="text-xs text-slate-500 font-medium">Client Satisfaction</span>
+                      <span className="text-2xl font-black text-[#0A1128] block">{dynamicRating} ★</span>
+                      <span className="text-xs text-slate-500 font-medium">Average Rating</span>
                     </div>
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">&lt;2hrs</span>
@@ -1204,6 +1288,11 @@ export default function LegalLinkHome() {
                             <ShieldCheck className="w-4 h-4 text-emerald-600" />
                           </div>
                           <p className="text-xs text-slate-500">Corporate & Business Law</p>
+                          <div className="flex items-center gap-1 mt-1 text-xs font-bold text-amber-600">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>{dynamicRating}</span>
+                            <span className="text-slate-400 font-normal">({dynamicReviewCount} reviews)</span>
+                          </div>
                         </div>
                       </div>
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
@@ -1233,7 +1322,8 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          <section className="py-20 bg-white">
+          {/* Practice Areas */}
+          <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-black text-[#0A1128] mb-8">Practice Areas</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1260,6 +1350,60 @@ export default function LegalLinkHome() {
               </div>
             </div>
           </section>
+
+          {/* VERIFIED CLIENT REVIEWS SHOWCASE */}
+          <section className="py-16 bg-slate-50 border-t border-slate-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">TRANSPARENT CLIENT TRUST</span>
+                  <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mt-1">Verified Client Reviews</h2>
+                  <p className="text-xs text-slate-500 mt-1">Authentic ratings from Ethiopian clients whose consultations completed through Telebirr escrow.</p>
+                </div>
+                <div className="mt-4 sm:mt-0 flex items-center gap-2">
+                  <div className="flex items-center text-amber-400">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <span className="text-sm font-black text-[#0A1128]">{dynamicRating} / 5.0</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {reviewsList.map((rev) => (
+                  <div key={rev.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-amber-400">
+                          {Array.from({ length: rev.rating || 5 }).map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          ✓ Verified Retainer
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-700 leading-relaxed italic">
+                        "{rev.review_comment}"
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div>
+                        <strong className="text-[#0A1128] block">{rev.client_name}</strong>
+                        <span className="text-[10px] text-slate-400">Advocate: {rev.advocate_name}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : 'Recent'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
         </main>
       )}
 
@@ -1274,7 +1418,7 @@ export default function LegalLinkHome() {
               </span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage consultations, download generated LexDraft contracts, and access printable escrow receipts.
+                Manage consultations, review your assigned advocates, download generated LexDraft contracts, and access escrow receipts.
               </p>
             </div>
             <div className="flex gap-2">
@@ -1282,7 +1426,7 @@ export default function LegalLinkHome() {
                 onClick={() => setActiveTab('lexdraft')}
                 className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 transition-all cursor-pointer"
               >
-                + Draft New Contract
+                + Draft Contract
               </button>
               <button
                 onClick={() => { setActiveTab('match'); setMatchStep(1); }}
@@ -1320,7 +1464,7 @@ export default function LegalLinkHome() {
             </button>
           </div>
 
-          {/* SUB-TAB 1: CONSULTATIONS */}
+          {/* SUB-TAB 1: CONSULTATIONS (WITH RATE ADVOCATE BUTTON) */}
           {clientSubTab === 'consultations' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -1356,6 +1500,8 @@ export default function LegalLinkHome() {
               ) : (
                 myConsultations.map((c) => {
                   const isPaid = c.payment_status === 'escrow_locked' || c.payment_status === 'released';
+                  const isCompleted = c.status === 'completed';
+
                   return (
                     <div key={c.id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-300 transition-all">
                       <div className="space-y-1.5">
@@ -1396,6 +1542,18 @@ export default function LegalLinkHome() {
                       </div>
 
                       <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                        
+                        {/* Rate Advocate CTA for Completed Cases */}
+                        {isCompleted && (
+                          <button
+                            onClick={() => handleOpenReviewModal(c)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl transition-all cursor-pointer shadow"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-slate-950" />
+                            <span>Rate Advocate</span>
+                          </button>
+                        )}
+
                         {!isPaid && (
                           <button
                             onClick={() => handleOpenPushModal(c)}
@@ -1413,8 +1571,8 @@ export default function LegalLinkHome() {
                           }}
                           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm ${
                             c.status === 'approved'
-                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black'
-                              : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
+                              ? 'bg-[#0A1128] hover:bg-[#102A43] text-white font-black'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                           }`}
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
@@ -1438,7 +1596,7 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 2: CONTRACTS (WITH DYNAMIC PDF RE-DOWNLOAD) */}
+          {/* SUB-TAB 2: CONTRACTS */}
           {clientSubTab === 'contracts' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedContracts.map((doc) => (
@@ -1521,7 +1679,112 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 4. LEXDRAFT AUTOMATION TAB */}
+      {/* 4. CLIENT RATING & REVIEW MODAL */}
+      {reviewModalCase && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+            
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  CASE COMPLETE VERIFICATION
+                </span>
+                <h3 className="font-black text-xl">Rate Advocate Consultation</h3>
+                <span className="text-xs text-slate-300">
+                  Case ID: #{reviewModalCase.id.slice(0, 8).toUpperCase()} • {reviewModalCase.practice_area}
+                </span>
+              </div>
+              <button 
+                onClick={() => setReviewModalCase(null)}
+                className="text-white/70 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="p-6 space-y-5 text-xs">
+              
+              {/* Star Rating Selector */}
+              <div className="text-center space-y-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase">
+                  Select Advocate Performance Rating
+                </label>
+                <div className="flex items-center justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setRatingScore(star)}
+                      className="p-1 hover:scale-125 transition-transform cursor-pointer"
+                    >
+                      <Star
+                        className={`w-7 h-7 ${
+                          star <= ratingScore
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-slate-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <span className="text-xs font-black text-[#0A1128] block">
+                  {ratingScore} out of 5 Stars ({ratingScore === 5 ? 'Excellent' : ratingScore === 4 ? 'Very Good' : 'Satisfactory'})
+                </span>
+              </div>
+
+              {/* Review Comment Input */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                  Client Written Feedback
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Describe your legal experience with Advocate Mulu Haile (e.g., clarity of advice, contract precision, court representation)..."
+                  className="w-full p-3.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#0A1128] leading-relaxed"
+                />
+              </div>
+
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+                ⚖️ <strong>Verified Marketplace Feedback:</strong> Your review will be published under the advocate's marketplace profile to assist other Ethiopian clients seeking specialized legal counsel.
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setReviewModalCase(null)}
+                  className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview || !reviewComment.trim()}
+                  className="w-2/3 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow transition-all"
+                >
+                  {isSubmittingReview ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Publishing Review...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span>Submit Verified Review</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* 5. LEXDRAFT AUTOMATION TAB */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="text-center max-w-2xl mx-auto">
@@ -1575,12 +1838,10 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 5. LEXDRAFT BUILDER MODAL (CUSTOMIZE TERMS & GENERATE PDF) */}
+      {/* 6. LEXDRAFT BUILDER MODAL */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
-            
-            {/* Modal Header */}
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
@@ -1599,7 +1860,6 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Builder Form */}
             <form onSubmit={handleCreateDocumentSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
               {selectedTemplate.fields.map((f: any) => (
                 <div key={f.key}>
@@ -1616,10 +1876,6 @@ export default function LegalLinkHome() {
                   />
                 </div>
               ))}
-
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
-                Clicking <strong>"Generate & Export PDF"</strong> immediately compiles the complete statutory legal contract, opens the official PDF print window, and saves the document to your <strong>Client Portal</strong>.
-              </div>
 
               <div className="flex gap-2 pt-2">
                 <button
@@ -1638,12 +1894,11 @@ export default function LegalLinkHome() {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
 
-      {/* 6. TELEBIRR USSD PUSH CHECKOUT MODAL */}
+      {/* 7. TELEBIRR USSD PUSH CHECKOUT MODAL */}
       {payingConsultation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
@@ -1778,7 +2033,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 7. SUPABASE AUTH MODAL WITH GOOGLE OAUTH */}
+      {/* 8. SUPABASE AUTH MODAL WITH GOOGLE OAUTH */}
       {authModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
@@ -1797,7 +2052,6 @@ export default function LegalLinkHome() {
             </div>
 
             <div className="p-6 space-y-4">
-              
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -1929,13 +2183,12 @@ export default function LegalLinkHome() {
                   )}
                 </button>
               </form>
-
             </div>
           </div>
         </div>
       )}
 
-      {/* 8. CONSULTATION DETAILS & ROOM MODAL */}
+      {/* 9. CONSULTATION DETAILS & ROOM MODAL */}
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
@@ -2045,7 +2298,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 9. FOOTER */}
+      {/* 10. FOOTER */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
