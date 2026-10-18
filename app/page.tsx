@@ -8,7 +8,8 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus
+  KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
+  HelpCircle, BookOpen, ChevronDown
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -657,7 +658,6 @@ export default function LegalLinkHome() {
             },
           ]);
 
-        // AUTOMATED ETHIO TELECOM SMS ALERT
         fetch('/api/sms/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -708,7 +708,7 @@ export default function LegalLinkHome() {
           <title>LegalLink Ethiopia - Official Escrow Voucher ${txnRef}</title>
           <style>
             @page { size: portrait; margin: 15mm; }
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0A1128; margin: 0; padding: 20px; background: white; }
+            body { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; color: #0A1128; margin: 0; padding: 20px; background: white; }
             .voucher-card { border: 2px solid #0A1128; border-radius: 16px; padding: 30px; max-width: 650px; margin: 0 auto; }
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0A1128; padding-bottom: 16px; margin-bottom: 20px; }
             .brand { font-size: 24px; font-weight: 900; }
@@ -827,13 +827,10 @@ export default function LegalLinkHome() {
           </div>
           <div class="section-title">አንቀጽ 1፦ የሥራ መደብና ኃላፊነት</div>
           <p>ሠራተኛው በአሰሪው ድርጅት ውስጥ በ<strong>${roleOrPurpose}</strong> የሥራ መደብ ላይ ተቀጥሮ የሚሰጡትን ሕጋዊ ትዕዛዞችና የሥራ ኃላፊነቶች በታማኝነትና በሙሉ ትጋት ለማከናወን ተስማምቷል።</p>
-          
           <div class="section-title">አንቀጽ 2፦ የደመወዝ መጠንና አከፋፈል</div>
           <p>አሰሪው ለሠራተኛው በየወሩ የተጣራ/ጠቅላላ የብር <strong>${salaryOrRent}</strong> ደመወዝ የሚከፍል ሲሆን፣ ከመንግሥት የገቢ ግብርና ከሠራተኛው የጡረታ መዋጮ (7%) ተቀናሽ የሚደረግ ይሆናል።</p>
-
           <div class="section-title">አንቀጽ 3፦ የሙከራ ጊዜ</div>
           <p>በአዋጅ ቁጥር 1156/2011 አንቀጽ 11 መሠረት የሙከራ ጊዜው ሥራ ከጀመረበት ቀን አንስቶ ለተከታታይ ስልሳ (60) የሥራ ቀናት ይሆናል።</p>
-
           <div class="section-title">አንቀጽ 4፦ ውል ስለማቋረጥና አለመግባባቶች</div>
           <p>ይህ የሥራ ውል በአዋጅ ቁጥር 1156/2011 በተደነገጉት ድንጋጌዎች መሠረት የሚቋረጥ ሲሆን፣ በማናቸውም አለመግባባት ላይ በቅድሚያ በስምምነት፣ ካልተቻለ ደግሞ በ${locationName} ፍርድ ቤት ወይም በአሰሪና ሠራተኛ ወሳኝ ቦርድ ውሳኔ የሚያገኝ ይሆናል።</p>
         `;
@@ -848,26 +845,20 @@ export default function LegalLinkHome() {
               <div><strong>ተቀጣሪ ሠራተኛ፦</strong> ${partyB} (${locationName})</div>
             </div>
           </div>
-
           <div class="bilingual-grid">
             <div class="col">
               <div class="section-title">ARTICLE 1: POSITION & DUTIES</div>
               <p>The Employee is employed as <strong>${roleOrPurpose}</strong> and agrees to execute all lawful directives faithfully under Ethiopian Labor Proclamation No. 1156/2019.</p>
-
               <div class="section-title">ARTICLE 2: REMUNERATION</div>
               <p>The monthly remuneration shall be <strong>${salaryOrRent}</strong>, subject to statutory income tax and 7% employee pension deductions.</p>
-
               <div class="section-title">ARTICLE 3: PROBATION & DISPUTES</div>
               <p>Probation shall not exceed 60 working days pursuant to Article 11. Disputes shall be submitted to the Labor Relations Board or Court of ${locationName}.</p>
             </div>
-
             <div class="col">
               <div class="section-title">አንቀጽ 1፦ የሥራ መደብና ኃላፊነት</div>
               <p>ሠራተኛው በ<strong>${roleOrPurpose}</strong> የሥራ መደብ ላይ ተቀጥሮ በአዋጅ ቁጥር 1156/2011 መሠረት የተሰጡትን ኃላፊነቶች በታማኝነት ያከናውናል።</p>
-
               <div class="section-title">አንቀጽ 2፦ የደመወዝ ክፍያ</div>
               <p>አሰሪው ለሠራተኛው በየወሩ የብር <strong>${salaryOrRent}</strong> ደመወዝ የሚከፍል ሲሆን፣ ሕጋዊ የገቢ ግብርና 7% የጡረታ መዋጮ ተቀናሽ ይደረጋል።</p>
-
               <div class="section-title">አንቀጽ 3፦ የሙከራ ጊዜና አለመግባባቶች</div>
               <p>የሙከራ ጊዜው 60 የሥራ ቀናት ይሆናል። አለመግባባቶች በ${locationName} አሰሪና ሠራተኛ ወሳኝ ቦርድ ወይም ፍርድ ቤት ውሳኔ ያገኛሉ።</p>
             </div>
@@ -935,7 +926,7 @@ export default function LegalLinkHome() {
           <title>${contract.title} - Official LegalLink LexDraft</title>
           <style>
             @page { size: portrait; margin: 18mm; }
-            body { font-family: "Nyala", "Noto Sans Ethiopic", "Times New Roman", Georgia, serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 20px; }
+            body { font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 20px; }
             .contract-header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
             .republic { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #4b5563; font-weight: bold; }
             .contract-title { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-top: 6px; }
@@ -960,9 +951,7 @@ export default function LegalLinkHome() {
               DARA COMPLIANT DRAFT • ቋንቋ፦ ${cLang.toUpperCase()} • DATE / ቀን፦ ${startDate}
             </div>
           </div>
-
           ${contractBody}
-
           <div class="signature-grid">
             <div>
               <div class="seal-box">[ የመጀመሪያው ወገን ፊርማ / PARTY A STAMP ]</div>
@@ -981,7 +970,6 @@ export default function LegalLinkHome() {
               </div>
             </div>
           </div>
-
           <div class="witness-section">
             <strong>የምስክሮች ስምና ፊርማ / WITNESSES TO SIGNATURE:</strong>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
@@ -989,12 +977,10 @@ export default function LegalLinkHome() {
               <div>2. ስም / Name: _______________________ ፊርማ / Sig: __________</div>
             </div>
           </div>
-
           <div class="footer-note">
             <span>በሰነዶች ማረጋገጫና ምዝገባ አገልግሎት (DARA) መስፈርት መሠረት የተዘጋጀ - LegalLink LexDraft</span>
             <span>Ref: ${contract.id.toUpperCase()}-ETHIO-VERIFIED</span>
           </div>
-
           <script>
             window.onload = function() {
               window.print();
@@ -1078,23 +1064,21 @@ export default function LegalLinkHome() {
     }
   };
 
-  const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
-
   const practiceAreas = [
-    { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
-    { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce, custody, adoption, inheritance disputes.' },
-    { id: 'Property & Real Estate', title: 'Property & Real Estate', amTitle: 'የንብረትና ይዞታ ሕግ', icon: Home, desc: 'Land rights, title verification, lease agreements.' },
-    { id: 'Intellectual Property', title: 'Intellectual Property', amTitle: 'የአእምሯዊ ንብረት ሕግ', icon: Lightbulb, desc: 'Trademarks, copyright, patents, IP protection.' },
-    { id: 'Employment Law', title: 'Employment Law', amTitle: 'የሥራና ሠራተኛ ሕግ', icon: Users, desc: 'Labor disputes, contracts, workplace rights.' },
-    { id: 'Criminal Defense', title: 'Criminal Defense', amTitle: 'የወንጀል መከላከያ ሕግ', icon: Shield, desc: 'Representation, bail, appeals, rights defense.' },
-    { id: 'Immigration & Diaspora', title: 'Immigration & Diaspora', amTitle: 'የኢሚግሬሽንና ዳያስፖራ ሕግ', icon: Globe, desc: 'Visa, origin ID, diaspora property, residency.' },
-    { id: 'NGO & Compliance', title: 'NGO & Compliance', amTitle: 'የድርጅቶችና ማህበራት ሕግ', icon: Building, desc: 'Registration, compliance, grant agreements.' },
+    { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, commercial contracts, M&A, investment advisory, and corporate governance.' },
+    { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce proceedings, child custody, adoption, marital property division, and inheritance disputes.' },
+    { id: 'Property & Real Estate', title: 'Property & Real Estate', amTitle: 'የንብረትና ይዞታ ሕግ', icon: Home, desc: 'Land rights, title deed verification, construction disputes, and commercial lease agreements.' },
+    { id: 'Intellectual Property', title: 'Intellectual Property', amTitle: 'የአእምሯዊ ንብረት ሕግ', icon: Lightbulb, desc: 'Trademarks, copyright protection, patent registration, and technology transfer agreements.' },
+    { id: 'Employment Law', title: 'Employment Law', amTitle: 'የሥራና ሠራተኛ ሕግ', icon: Users, desc: 'Labor dispute resolution, employment contracts, severance calculations, and workplace policy.' },
+    { id: 'Criminal Defense', title: 'Criminal Defense', amTitle: 'የወንጀል መከላከያ ሕግ', icon: Shield, desc: 'Court representation, bail applications, appeals, statutory rights defense, and white-collar defense.' },
+    { id: 'Immigration & Diaspora', title: 'Immigration & Diaspora', amTitle: 'የኢሚግሬሽንና ዳያስፖራ ሕግ', icon: Globe, desc: 'Visa processing, Yellow Card / origin ID, foreign investment licensing, and dual citizenship rights.' },
+    { id: 'NGO & Compliance', title: 'NGO & Compliance', amTitle: 'የድርጅቶችና ማህበራት ሕግ', icon: Building, desc: 'Civil society organization registration, grant contracts, annual tax audits, and statutory compliance.' },
   ];
 
   const muluHaileReviews = reviewsList.filter((r) => r.advocate_name === 'Advocate Mulu Haile');
   const dynamicRating = muluHaileReviews.length > 0 
     ? (muluHaileReviews.reduce((sum, r) => sum + r.rating, 0) / muluHaileReviews.length).toFixed(2)
-    : '4.95';
+    : '4.67';
   const dynamicReviewCount = 438 + muluHaileReviews.length;
 
   const mockMatchedLawyers = [
@@ -1207,7 +1191,10 @@ export default function LegalLinkHome() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
+    <div 
+      className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900"
+      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+    >
       
       {/* 1. TOP NAVIGATION */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
@@ -1245,7 +1232,6 @@ export default function LegalLinkHome() {
                 {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
               </button>
 
-              {/* Direct route to Advocate Workspace when clicking For Lawyers */}
               <Link
                 href="/advocate"
                 className="px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-colors"
@@ -1254,10 +1240,11 @@ export default function LegalLinkHome() {
               </Link>
 
               <button
-                onClick={() => setActiveTab('legaltalk')}
-                className={`px-3.5 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-                  activeTab === 'legaltalk' ? 'text-[#0A1128] bg-slate-100 font-bold' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
-                }`}
+                onClick={() => {
+                  const el = document.getElementById('legaltalk-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 LegalTalk
               </button>
@@ -1291,7 +1278,6 @@ export default function LegalLinkHome() {
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
               </button>
 
-              {/* Direct Link to Advocate Onboarding Form */}
               <Link
                 href="/advocate/join"
                 className="px-3 py-1.5 rounded-lg text-amber-800 bg-amber-50 hover:bg-amber-100 text-xs font-bold border border-amber-200 transition-colors flex items-center gap-1.5 shadow-sm"
@@ -1300,7 +1286,6 @@ export default function LegalLinkHome() {
                 <span>Join as Advocate</span>
               </Link>
 
-              {/* Direct Link to Advocate Portal Workspace */}
               <Link
                 href="/advocate"
                 className="px-3 py-1.5 rounded-lg bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 shadow-sm"
@@ -1309,7 +1294,6 @@ export default function LegalLinkHome() {
                 <span>Advocate Portal</span>
               </Link>
 
-              {/* Direct Link to Admin Console */}
               <Link
                 href="/admin"
                 className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-colors flex items-center gap-1"
@@ -1426,13 +1410,16 @@ export default function LegalLinkHome() {
         )}
       </header>
 
-      {/* 2. PUBLIC LANDING VIEW */}
+      {/* 2. PUBLIC LANDING VIEW MATCHING USER MOCKUP DESIGN */}
       {activeTab === 'home' && (
         <main className="flex-1">
+          
+          {/* 2.1 HERO SECTION (LEFT & RIGHT CARD) */}
           <section className="bg-gradient-to-b from-slate-50 via-white to-white pt-12 pb-20 border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
+                {/* Left Column: Heading, Subtitle, CTA, Metric Badges */}
                 <div className="lg:col-span-7 space-y-6">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -1440,10 +1427,11 @@ export default function LegalLinkHome() {
                   </div>
 
                   <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-[#0A1128] leading-[1.1]">
-                    {lang === 'am' ? 'የሕግ አገልግሎት የወደፊት ገጽታ፣ ዛሬ።' : 'The Future of Law, Today.'}
+                    The Future of Law,<br />
+                    <span className="text-amber-500">Today.</span>
                   </h1>
 
-                  <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
+                  <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed font-medium">
                     Connect with verified Ethiopian lawyers for consultations, document drafting, and compliance support—safeguarded by Telebirr USSD escrow holding.
                   </p>
 
@@ -1464,6 +1452,7 @@ export default function LegalLinkHome() {
                     </Link>
                   </div>
 
+                  {/* 4 Metric Badges */}
                   <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100">
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">500+</span>
@@ -1484,8 +1473,9 @@ export default function LegalLinkHome() {
                   </div>
                 </div>
 
+                {/* Right Column: Advocate Booking Preview Card */}
                 <div className="lg:col-span-5 relative flex justify-center">
-                  <div className="w-full max-w-md bg-white rounded-2xl p-6 sm:p-7 shadow-2xl border border-slate-100">
+                  <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">
@@ -1509,7 +1499,7 @@ export default function LegalLinkHome() {
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg">
+                    <div className="mt-4 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-xl">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                       <span className="font-semibold">Telebirr USSD Direct Push Enabled</span>
                     </div>
@@ -1520,9 +1510,10 @@ export default function LegalLinkHome() {
                         setActiveTab('match');
                         setMatchStep(4);
                       }}
-                      className="mt-6 w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-sm transition-all shadow cursor-pointer"
+                      className="mt-6 w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-sm transition-all shadow cursor-pointer flex items-center justify-center gap-2"
                     >
-                      Book Consultation
+                      <span>Book Consultation</span>
+                      <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                   </div>
                 </div>
@@ -1531,10 +1522,77 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* Practice Areas */}
-          <section className="py-16 bg-white">
+          {/* 2.2 HOW IT WORKS SECTION */}
+          <section className="py-20 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h2 className="text-3xl font-black text-[#0A1128] mb-8">Practice Areas</h2>
+              <div className="text-center max-w-2xl mx-auto mb-16">
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
+                  SIMPLE & SECURE PROCESS
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">How It Works</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-2">
+                  Connecting you with verified Ethiopian legal expertise in 3 simple steps
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <div className="p-8 rounded-3xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#0A1128] transition-all shadow-sm space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#0A1128] text-amber-400 font-black text-lg flex items-center justify-center">
+                    01
+                  </div>
+                  <h3 className="font-black text-lg text-[#0A1128]">Describe Your Need</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Select your practice area, location, and preferred language. Describe your legal matter and our system pairs you with top-tier advocates.
+                  </p>
+                </div>
+
+                <div className="p-8 rounded-3xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#0A1128] transition-all shadow-sm space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 font-black text-lg flex items-center justify-center">
+                    02
+                  </div>
+                  <h3 className="font-black text-lg text-[#0A1128]">Schedule & Lock Escrow</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Choose a convenient consultation slot. Your retainer is locked safely in the Telebirr escrow trust pool, held until your session is completed.
+                  </p>
+                </div>
+
+                <div className="p-8 rounded-3xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#0A1128] transition-all shadow-sm space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white font-black text-lg flex items-center justify-center">
+                    03
+                  </div>
+                  <h3 className="font-black text-lg text-[#0A1128]">Consult & Resolve</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Meet via encrypted video room or secure chat. Upload contracts and evidence, receive expert counsel, and rate your lawyer afterward.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* 2.3 PRACTICE AREAS SECTION */}
+          <section className="py-20 bg-slate-50/50 border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
+                    SPECIALIZED FIELDS
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">Practice Areas</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Licensed legal counsel across all Ethiopian federal and regional jurisdictions
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                  className="mt-4 sm:mt-0 text-xs font-bold text-[#0A1128] hover:text-amber-600 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View All Areas</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {practiceAreas.map((cat) => {
                   const Icon = cat.icon;
@@ -1546,13 +1604,16 @@ export default function LegalLinkHome() {
                         setActiveTab('match');
                         setMatchStep(2);
                       }}
-                      className="p-6 rounded-2xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer hover:shadow-sm"
+                      className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer hover:shadow-md space-y-3"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-[#0A1128] mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-[#0A1128]">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <h3 className="font-bold text-[#0A1128] text-base">{cat.title}</h3>
-                      <p className="text-xs text-slate-500 mt-2 leading-relaxed">{cat.desc}</p>
+                      <div>
+                        <h3 className="font-bold text-[#0A1128] text-base">{cat.title}</h3>
+                        <span className="text-[11px] font-bold text-slate-400 block">{cat.amTitle}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{cat.desc}</p>
                     </div>
                   );
                 })}
@@ -1560,28 +1621,354 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* Verified Client Reviews */}
-          <section className="py-16 bg-slate-50 border-t border-slate-200">
+          {/* 2.4 FEATURED LAWYERS SECTION */}
+          <section className="py-20 bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10">
-                <div>
-                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">TRANSPARENT CLIENT TRUST</span>
-                  <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mt-1">Verified Client Reviews</h2>
-                  <p className="text-xs text-slate-500 mt-1">Authentic ratings from Ethiopian clients whose consultations completed through Telebirr escrow.</p>
-                </div>
-                <div className="mt-4 sm:mt-0 flex items-center gap-2">
-                  <div className="flex items-center text-amber-400">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
+              <div className="text-center max-w-2xl mx-auto mb-16">
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
+                  TOP-TIER LEGAL MINDS
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">Featured Lawyers</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-2">
+                  Federal Supreme Court advocates vetted by the Ministry of Justice
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {mockMatchedLawyers.map((lawyer) => (
+                  <div 
+                    key={lawyer.id}
+                    className="p-6 rounded-3xl border border-slate-200 bg-white hover:border-[#0A1128] transition-all shadow-sm flex flex-col justify-between space-y-4"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-black text-sm flex items-center justify-center">
+                          {lawyer.avatarInitials}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <h4 className="font-black text-sm text-[#0A1128]">{lawyer.name}</h4>
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          </div>
+                          <span className="text-[11px] text-slate-500 block">{lawyer.experience}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs font-bold text-amber-600">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{lawyer.rating}</span>
+                        <span className="text-slate-400 font-normal">({lawyer.reviews})</span>
+                      </div>
+
+                      <span className="inline-block text-[10px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
+                        {lawyer.title}
+                      </span>
+
+                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                        {lawyer.bio}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold">RETAINER</span>
+                        <strong className="text-xs text-[#0A1128] font-bold">ETB {lawyer.hourlyRate}</strong>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedLawyer(lawyer);
+                          setActiveTab('match');
+                          setMatchStep(4);
+                        }}
+                        className="px-3.5 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs cursor-pointer shadow transition-all"
+                      >
+                        Book
+                      </button>
+                    </div>
                   </div>
-                  <span className="text-sm font-black text-[#0A1128]">{dynamicRating} / 5.0</span>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* 2.5 WHY LEGALLINK SECTION (DEEP NAVY) */}
+          <section className="py-20 bg-[#0A1128] text-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+              
+              <div className="text-center max-w-2xl mx-auto">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  SECURITY & STATUTORY COMPLIANCE
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black">Why LegalLink</h2>
+                <p className="text-xs sm:text-sm text-slate-300 mt-2">
+                  Built to modernize legal services across the Federal Democratic Republic of Ethiopia
+                </p>
+              </div>
+
+              {/* 4 Stat Counters */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-y border-white/10 py-8">
+                <div>
+                  <span className="text-3xl font-black text-amber-400 block">100%</span>
+                  <span className="text-xs text-slate-300 font-medium mt-1 block">MOJ Verified Bar Licenses</span>
                 </div>
+                <div>
+                  <span className="text-3xl font-black text-emerald-400 block">ETB 10.5M+</span>
+                  <span className="text-xs text-slate-300 font-medium mt-1 block">Escrow Protected Funds</span>
+                </div>
+                <div>
+                  <span className="text-3xl font-black text-amber-400 block">4.8 / 5.0</span>
+                  <span className="text-xs text-slate-300 font-medium mt-1 block">Verified Client Rating</span>
+                </div>
+                <div>
+                  <span className="text-3xl font-black text-emerald-400 block">&lt; 2 Hours</span>
+                  <span className="text-xs text-slate-300 font-medium mt-1 block">Average Advocate Response</span>
+                </div>
+              </div>
+
+              {/* 4 Explanatory Pillars */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-black text-base text-white">Fully Verified Lawyers</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Every advocate undergoes licensing authentication with the Federal Ministry of Justice (MOJ) before joining.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-black text-base text-white">Telebirr USSD Escrow</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Funds remain locked in trust pool escrow and are only disbursed upon successful completion of your consultation.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
+                    <Languages className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-black text-base text-white">Bilingual LexDraft</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Generate DARA-compliant contracts in Amharic script or side-by-side English/Amharic with instant witness seals.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-black text-base text-white">Transparent Fees</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    No unexpected bills. Know your exact retainer fee up front and download printable National Bank of Ethiopia vouchers.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* 2.6 LEGALTALK INSIGHTS HUB */}
+          <section id="legaltalk-section" className="py-20 bg-white border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+              
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+                <div>
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
+                    ETHIOPIAN LEGAL KNOWLEDGE HUB
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">LegalTalk</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Practical explanations on Ethiopian proclamations and business compliance
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('lexdraft')}
+                  className="mt-4 sm:mt-0 text-xs font-bold text-[#0A1128] hover:text-amber-600 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Explore All Insights</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                  <div className="p-6 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 uppercase">
+                        Labor Law
+                      </span>
+                      <span className="text-[10px] text-slate-400">5 min read</span>
+                    </div>
+                    <h3 className="font-bold text-base text-[#0A1128] leading-snug">
+                      Employee Probation Regulations Under Proclamation No. 1156/2019
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      A breakdown of statutory limits on probation periods, severance payment eligibility, and mandatory notice periods under Ethiopian law.
+                    </p>
+                  </div>
+                  <div className="p-6 pt-0">
+                    <button 
+                      onClick={() => setActiveTab('lexdraft')}
+                      className="text-xs font-bold text-[#0A1128] hover:text-amber-600 flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Draft Compliant Contract</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                  <div className="p-6 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 uppercase">
+                        Real Estate
+                      </span>
+                      <span className="text-[10px] text-slate-400">7 min read</span>
+                    </div>
+                    <h3 className="font-bold text-base text-[#0A1128] leading-snug">
+                      Commercial Lease Verification & Title Deeds in Addis Ababa
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Essential steps to authenticate commercial property titles at sub-city land registries and avoid municipal lease disputes.
+                    </p>
+                  </div>
+                  <div className="p-6 pt-0">
+                    <button 
+                      onClick={() => setActiveTab('lexdraft')}
+                      className="text-xs font-bold text-[#0A1128] hover:text-amber-600 flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Draft Commercial Lease</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                  <div className="p-6 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 uppercase">
+                        Corporate
+                      </span>
+                      <span className="text-[10px] text-slate-400">4 min read</span>
+                    </div>
+                    <h3 className="font-bold text-base text-[#0A1128] leading-snug">
+                      Key Highlights of the Revised Ethiopian Commercial Code
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      How modern PLC formation rules, minority shareholder rights, and corporate governance standards operate under the new code.
+                    </p>
+                  </div>
+                  <div className="p-6 pt-0">
+                    <button 
+                      onClick={() => setActiveTab('lexdraft')}
+                      className="text-xs font-bold text-[#0A1128] hover:text-amber-600 flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Draft Mutual NDA</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* 2.7 LEXDRAFT SPOTLIGHT SECTION */}
+          <section className="py-20 bg-slate-50/50 border-b border-slate-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div className="lg:col-span-7 space-y-6">
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block">
+                    INSTANT DOCUMENT AUTOMATION
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128] leading-tight">
+                    Generate Legal Documents in Minutes
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                    Create customized, legally binding contracts formulated under Ethiopian statutory codes. Export instantly with bilingual Amharic and English translation options.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>DARA Statutory Registration Compliant</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Bilingual Dual-Column (አማርኛ & EN)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Instant Printable Official PDF</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Signature & Witness Seal Blocks</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setActiveTab('lexdraft')}
+                      className="px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+                    >
+                      <span>Explore LexDraft Templates</span>
+                      <ArrowRight className="w-4 h-4 text-amber-400" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Document Graphic Mockup */}
+                <div className="lg:col-span-5 flex justify-center">
+                  <div className="w-full max-w-md bg-white rounded-3xl p-6 border border-slate-200 shadow-xl space-y-4">
+                    <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-amber-500" />
+                        <span className="font-bold text-xs text-[#0A1128]">LexDraft Statutory Template</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                        DARA Ready
+                      </span>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-[11px] font-mono text-slate-600">
+                      <div className="font-bold text-[#0A1128]">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA</div>
+                      <div>EMPLOYMENT AGREEMENT / የሥራ ውል ስምምነት</div>
+                      <div className="text-[10px] text-slate-400">Governed by Labor Proclamation No. 1156/2019</div>
+                    </div>
+
+                    <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                      Supports one-click download for <strong>Employment Agreements</strong>, <strong>Mutual NDAs</strong>, and <strong>Commercial Leases</strong>.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* 2.8 WHAT CLIENTS SAY SECTION */}
+          <section className="py-20 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+              <div className="text-center max-w-2xl mx-auto">
+                <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block mb-1">
+                  CLIENT FEEDBACK
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">What Clients Say</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-2">
+                  Verified ratings from Ethiopian individuals and businesses who used Telebirr escrow
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {reviewsList.map((rev) => (
-                  <div key={rev.id} className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                  <div key={rev.id} className="p-6 bg-slate-50/50 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center text-amber-400">
@@ -1598,7 +1985,7 @@ export default function LegalLinkHome() {
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
                       <div>
                         <strong className="text-[#0A1128] block">{rev.client_name}</strong>
                         <span className="text-[10px] text-slate-400">Advocate: {rev.advocate_name}</span>
@@ -1619,7 +2006,6 @@ export default function LegalLinkHome() {
       {/* 3. DEDICATED USER DASHBOARD (CLIENT PORTAL) */}
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
-          
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
@@ -1673,7 +2059,6 @@ export default function LegalLinkHome() {
             </button>
           </div>
 
-          {/* SUB-TAB 1: CONSULTATIONS */}
           {clientSubTab === 'consultations' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -1716,7 +2101,6 @@ export default function LegalLinkHome() {
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-2">
                           <span className="font-black text-sm text-[#0A1128]">{c.practice_area}</span>
-                          
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                             c.status === 'approved' 
                               ? 'bg-blue-50 text-blue-700 border-blue-200' 
@@ -1803,7 +2187,6 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 2: CONTRACTS */}
           {clientSubTab === 'contracts' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedContracts.map((doc) => (
@@ -1830,7 +2213,6 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 3: RECEIPTS */}
           {clientSubTab === 'receipts' && (
             <div className="space-y-4">
               <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
@@ -1900,10 +2282,7 @@ export default function LegalLinkHome() {
                   Case ID: #{reviewModalCase.id.slice(0, 8).toUpperCase()} • {reviewModalCase.practice_area}
                 </span>
               </div>
-              <button 
-                onClick={() => setReviewModalCase(null)}
-                className="text-white/70 hover:text-white p-1"
-              >
+              <button onClick={() => setReviewModalCase(null)} className="text-white/70 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2650,21 +3029,40 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 10. FOOTER */}
+      {/* 10. COMPREHENSIVE FOOTER MATCHING DESIGN */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            
+            {/* Brand column */}
             <div className="md:col-span-2 space-y-3">
               <div className="flex items-center gap-2.5">
-                <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
-                <span className="text-lg font-black text-white">
+                <img src="/logo.png" alt="LegalLink Logo" className="w-9 h-9 object-contain" />
+                <span className="text-xl font-black text-white">
                   Legal<span className="text-amber-400">Link</span>
                 </span>
               </div>
               <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
-                Ethiopia's premier legal marketplace connecting individuals and businesses with verified advocates for trusted advice, dispute resolution, and document automation.
+                Ethiopia's premier legal marketplace connecting individuals and enterprises with verified advocates for trusted advice, dispute resolution, and document automation.
               </p>
+              <div className="text-[11px] text-slate-400 space-y-1 pt-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span>Bole Road, Behind Edna Mall, Addis Ababa, Ethiopia</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span>+251 905 941 865 / Shortcode 8421</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span>counsel@legallink.et</span>
+                </div>
+              </div>
             </div>
+
+            {/* Platform links */}
             <div>
               <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Platform</h5>
               <ul className="text-xs space-y-2 text-slate-400">
@@ -2679,18 +3077,48 @@ export default function LegalLinkHome() {
                 </li>
               </ul>
             </div>
+
+            {/* Legal Proclamations */}
             <div>
-              <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Administration</h5>
+              <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Statutory Framework</h5>
+              <ul className="text-xs space-y-2 text-slate-400">
+                <li>Labor Proclamation No. 1156/2019</li>
+                <li>Civil Code of Ethiopia Book IV</li>
+                <li>Revised Commercial Code 2021</li>
+                <li>Federal Courts Proclamation</li>
+                <li>DARA Document Guidelines</li>
+              </ul>
+            </div>
+
+            {/* Administration & Oversight */}
+            <div>
+              <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Oversight</h5>
               <ul className="text-xs space-y-2 text-slate-400">
                 <li>
                   <Link href="/admin" className="text-slate-400 hover:text-amber-400 flex items-center gap-1">
-                    <span>Admin Console</span>
+                    <span>Admin Oversight Console</span>
                     <span className="text-[10px] text-amber-400">↗</span>
                   </Link>
                 </li>
+                <li>NBE Escrow Compliance</li>
+                <li>MOJ Bar License Registry</li>
+                <li>Ethio Telecom Gateway 8421</li>
               </ul>
             </div>
+
           </div>
+
+          <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 gap-4">
+            <div>
+              © 2026 LegalLink Ethiopia Technologies PLC. All rights reserved.
+            </div>
+            <div className="flex gap-4">
+              <span>Federal Democratic Republic of Ethiopia</span>
+              <span>•</span>
+              <span>DARA & MOJ Authorized Gateway</span>
+            </div>
+          </div>
+
         </div>
       </footer>
 
