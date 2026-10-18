@@ -5,19 +5,21 @@ import Link from 'next/link';
 import { 
   ShieldCheck, Lock, Unlock, CheckCircle2, Clock, AlertCircle, ArrowRight, 
   Search, RefreshCw, LogOut, X, Smartphone, Receipt, Loader2, DollarSign,
-  Briefcase, User, Check, ArrowUpRight, Scale
+  Briefcase, User, Check, ArrowUpRight, Scale, MessageSquare, Award, UserCheck
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdminPortal() {
-  // Access Gate
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState(false);
 
-  // Data State
+  // Tab & Data State
+  const [adminViewTab, setAdminViewTab] = useState<'cases' | 'advocates' | 'sms'>('cases');
   const [consultations, setConsultations] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [smsLogs, setSmsLogs] = useState<any[]>([]);
+  const [advocateApplications, setAdvocateApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterTab, setFilterTab] = useState<'all' | 'escrow_locked' | 'released' | 'pending'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,8 +46,20 @@ export default function AdminPortal() {
         .select('*')
         .order('created_at', { ascending: false });
 
+      const { data: smsData } = await supabase
+        .from('sms_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      const { data: advocateData } = await supabase
+        .from('advocate_applications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
       if (consultData) setConsultations(consultData);
       if (txData) setTransactions(txData);
+      if (smsData) setSmsLogs(smsData);
+      if (advocateData) setAdvocateApplications(advocateData);
     } catch (err) {
       console.error('Error fetching admin data:', err);
     } finally {
@@ -88,9 +102,39 @@ export default function AdminPortal() {
         )
         .subscribe();
 
+      const smsChannel = supabase
+        .channel('admin_sms_realtime_sync')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'sms_logs' },
+          (payload) => {
+            setSmsLogs((prev) => [payload.new, ...prev]);
+          }
+        )
+        .subscribe();
+
+      const advocateChannel = supabase
+        .channel('admin_advocates_realtime_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'advocate_applications' },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setAdvocateApplications((prev) => [payload.new, ...prev]);
+            } else if (payload.eventType === 'UPDATE') {
+              setAdvocateApplications((prev) =>
+                prev.map((a) => (a.id === payload.new.id ? { ...a, ...payload.new } : a))
+              );
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(txChannel);
+        supabase.removeChannel(smsChannel);
+        supabase.removeChannel(advocateChannel);
       };
     }
   }, [isAuthenticated]);
@@ -118,6 +162,39 @@ export default function AdminPortal() {
       );
     } catch (err) {
       alert('Could not approve case.');
+    }
+  };
+
+  // Advocate MOJ License Approval / Rejection Handler
+  const handleUpdateAdvocateStatus = async (appId: string, status: 'approved' | 'rejected') => {
+    try {
+      const supabase = createClient();
+      await supabase
+        .from('advocate_applications')
+        .update({ status })
+        .eq('id', appId);
+
+      const targetApp = advocateApplications.find((a) => a.id === appId);
+
+      if (status === 'approved' && targetApp) {
+        // Dispatch instant approval SMS
+        fetch('/api/sms/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone_number: targetApp.phone_number,
+            recipient_role: 'advocate',
+            event_type: 'case_approved',
+            message_body: `LegalLink Trust: Congratulations ${targetApp.full_name}! Your Ministry of Justice License (${targetApp.moj_license_number}) has been approved. Your advocate profile is active.`,
+          }),
+        }).catch((e) => console.log('SMS notify error:', e));
+      }
+
+      setAdvocateApplications((prev) =>
+        prev.map((a) => (a.id === appId ? { ...a, status } : a))
+      );
+    } catch (err: any) {
+      alert('Could not update status: ' + err.message);
     }
   };
 
@@ -164,7 +241,19 @@ export default function AdminPortal() {
           },
         ]);
 
-      // 3. Update local state
+      // 3. Dispatch automated SMS alert to advocate
+      fetch('/api/sms/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone_number: advocatePhone,
+          recipient_role: 'advocate',
+          event_type: 'payout_released',
+          message_body: `LegalLink Trust: ETB ${netPayout.toFixed(2)} net consultation fees have been disbursed to your Telebirr wallet. Ref: ${payoutTxnRef}. Case completed.`,
+        }),
+      }).catch((e) => console.log('SMS notify error:', e));
+
+      // 4. Update local state
       setConsultations((prev) =>
         prev.map((c) =>
           c.id === selectedCaseForPayout.id
@@ -202,6 +291,8 @@ export default function AdminPortal() {
     .filter((c) => c.payment_status === 'released')
     .reduce((acc, c) => acc + (Number(c.escrow_amount || 1500) * 0.85), 0);
 
+  const pendingAdvocatesCount = advocateApplications.filter((a) => a.status === 'pending').length;
+
   const filteredConsultations = consultations.filter((c) => {
     if (filterTab === 'escrow_locked') return c.payment_status === 'escrow_locked';
     if (filterTab === 'released') return c.payment_status === 'released';
@@ -217,7 +308,6 @@ export default function AdminPortal() {
     );
   });
 
-  // 1. PIN Gate
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#060B1A] flex items-center justify-center p-4">
@@ -262,7 +352,6 @@ export default function AdminPortal() {
     );
   }
 
-  // 2. Active Admin Dashboard
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
       
@@ -278,7 +367,7 @@ export default function AdminPortal() {
                   TRUST OVERVIEW
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">National Bank of Ethiopia Escrow Gate</span>
+              <span className="text-[10px] text-slate-400 font-mono">National Bank of Ethiopia & MOJ Regulator</span>
             </div>
           </div>
 
@@ -334,7 +423,7 @@ export default function AdminPortal() {
             <div className="text-2xl font-black text-amber-400">
               ETB {totalPlatformRevenue.toLocaleString()}.00
             </div>
-            <span className="text-[11px] text-slate-500 block">Commission on completed legal retainers</span>
+            <span className="text-[11px] text-slate-500 block">Commission on completed retainers</span>
           </div>
 
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
@@ -350,219 +439,363 @@ export default function AdminPortal() {
 
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
             <div className="flex justify-between items-center text-slate-400 text-xs">
-              <span>Active Platform Cases</span>
-              <Briefcase className="w-4 h-4 text-purple-400" />
+              <span>MOJ License Vetting Queue</span>
+              <Award className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-2xl font-black text-white">
-              {consultations.length} Cases
+            <div className="text-2xl font-black text-white font-mono">
+              {pendingAdvocatesCount} Pending
             </div>
-            <span className="text-[11px] text-slate-500 block">Across 18 Ethiopian practice jurisdictions</span>
+            <span className="text-[11px] text-slate-500 block">
+              {advocateApplications.length} total applicant lawyers
+            </span>
           </div>
         </div>
 
-        {/* Case Ledger & Payout Controls */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-          
-          {/* Table Toolbar */}
-          <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h2 className="text-lg font-black text-white">Case Pipeline & Escrow Settlement</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Review client consultation briefs, approve advocate matches, and release escrow retainers.
-              </p>
+        {/* Section Navigation Tabs */}
+        <div className="flex border-b border-slate-800 gap-6 text-xs font-bold">
+          <button
+            onClick={() => setAdminViewTab('cases')}
+            className={`pb-3 border-b-2 cursor-pointer transition-colors ${
+              adminViewTab === 'cases' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            Escrow Case Ledger ({consultations.length})
+          </button>
+          <button
+            onClick={() => setAdminViewTab('advocates')}
+            className={`pb-3 border-b-2 cursor-pointer transition-colors flex items-center gap-1.5 ${
+              adminViewTab === 'advocates' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            <Award className="w-3.5 h-3.5 text-amber-400" />
+            <span>MOJ License Vetting Queue ({pendingAdvocatesCount})</span>
+          </button>
+          <button
+            onClick={() => setAdminViewTab('sms')}
+            className={`pb-3 border-b-2 cursor-pointer transition-colors flex items-center gap-1.5 ${
+              adminViewTab === 'sms' ? 'border-amber-500 text-amber-400' : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Ethio Telecom SMS Logs ({smsLogs.length})</span>
+          </button>
+        </div>
+
+        {/* TAB 1: CASES & PAYOUT CONTROLS */}
+        {adminViewTab === 'cases' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+            <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-lg font-black text-white">Case Pipeline & Escrow Settlement</h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Review client briefs, approve advocate matches, and release escrow retainers with automated SMS alerts.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    placeholder="Search client, case, or TLB ref..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+                  <button
+                    onClick={() => setFilterTab('all')}
+                    className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                      filterTab === 'all' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    All ({consultations.length})
+                  </button>
+                  <button
+                    onClick={() => setFilterTab('escrow_locked')}
+                    className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                      filterTab === 'escrow_locked' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Escrow Locked
+                  </button>
+                  <button
+                    onClick={() => setFilterTab('released')}
+                    className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                      filterTab === 'released' ? 'bg-blue-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Settled
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Filters & Search */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              <div className="relative flex-1 md:w-64">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  placeholder="Search client, case, or TLB ref..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500"
-                />
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/60 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th className="p-4">Case Brief / Client</th>
+                    <th className="p-4">Jurisdiction</th>
+                    <th className="p-4">Case Status</th>
+                    <th className="p-4">Escrow Status</th>
+                    <th className="p-4">Retainer (ETB)</th>
+                    <th className="p-4 text-right">Settlement Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {filteredConsultations.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                        No matching cases found in the current filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredConsultations.map((c) => {
+                      const isEscrowLocked = c.payment_status === 'escrow_locked';
+                      const isReleased = c.payment_status === 'released';
 
-              <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-bold">
-                <button
-                  onClick={() => setFilterTab('all')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    filterTab === 'all' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  All ({consultations.length})
-                </button>
-                <button
-                  onClick={() => setFilterTab('escrow_locked')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    filterTab === 'escrow_locked' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Escrow Locked
-                </button>
-                <button
-                  onClick={() => setFilterTab('released')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    filterTab === 'released' ? 'bg-blue-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Settled
-                </button>
-              </div>
+                      return (
+                        <tr key={c.id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="p-4">
+                            <strong className="text-white block text-sm">{c.practice_area}</strong>
+                            <span className="text-slate-400 block mt-0.5">
+                              Client: {c.client_name || 'Anonymous Client'}
+                            </span>
+                            {c.transaction_ref && (
+                              <span className="font-mono text-[10px] text-amber-400 mt-0.5 block">
+                                Ref: {c.transaction_ref}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-4 text-slate-300 font-medium">
+                            📍 {c.location || 'Addis Ababa'}
+                          </td>
+
+                          <td className="p-4">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                              c.status === 'approved' 
+                                ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' 
+                                : c.status === 'completed'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                            }`}>
+                              {c.status || 'pending'}
+                            </span>
+                          </td>
+
+                          <td className="p-4">
+                            {isEscrowLocked ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                <Lock className="w-3 h-3" />
+                                <span>Held in Escrow</span>
+                              </span>
+                            ) : isReleased ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Advocate Settled</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                Unpaid Retainer
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-4 font-mono font-bold text-white text-sm">
+                            ETB {Number(c.escrow_amount || 1500).toFixed(2)}
+                          </td>
+
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {c.status === 'pending' && (
+                                <button
+                                  onClick={() => handleApproveCase(c.id)}
+                                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                                >
+                                  Approve Case
+                                </button>
+                              )}
+
+                              {isEscrowLocked && (
+                                <button
+                                  onClick={() => handleOpenPayoutModal(c)}
+                                  className="flex items-center gap-1 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-lg text-xs shadow transition-all cursor-pointer"
+                                >
+                                  <Unlock className="w-3.5 h-3.5" />
+                                  <span>Release Payout (SMS Alert)</span>
+                                </button>
+                              )}
+
+                              {isReleased && (
+                                <span className="text-[11px] text-slate-500 font-bold">
+                                  Completed & Disbursed
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
+        )}
 
-          {/* Table List */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/60 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="p-4">Case Brief / Client</th>
-                  <th className="p-4">Jurisdiction</th>
-                  <th className="p-4">Case Status</th>
-                  <th className="p-4">Escrow Status</th>
-                  <th className="p-4">Retainer (ETB)</th>
-                  <th className="p-4 text-right">Settlement Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {filteredConsultations.length === 0 ? (
+        {/* TAB 2: ADVOCATE ONBOARDING & MOJ VETTING QUEUE */}
+        {adminViewTab === 'advocates' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl space-y-4">
+            <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-black text-white">Ministry of Justice License Verification Queue</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Verify advocate bar credentials before authorizing case allocation on the public marketplace.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                {pendingAdvocatesCount} Awaiting MOJ Audit
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/60 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-500">
-                      No matching cases found in the current filter.
-                    </td>
+                    <th className="p-4">Advocate Name & Phone</th>
+                    <th className="p-4">MOJ License Credential</th>
+                    <th className="p-4">Jurisdiction & Exp</th>
+                    <th className="p-4">Practice Specializations</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Verification Action</th>
                   </tr>
-                ) : (
-                  filteredConsultations.map((c) => {
-                    const isEscrowLocked = c.payment_status === 'escrow_locked';
-                    const isReleased = c.payment_status === 'released';
-
-                    return (
-                      <tr key={c.id} className="hover:bg-slate-800/40 transition-colors">
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {advocateApplications.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                        No advocate applications submitted yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    advocateApplications.map((app) => (
+                      <tr key={app.id} className="hover:bg-slate-800/40 transition-colors">
                         <td className="p-4">
-                          <strong className="text-white block text-sm">{c.practice_area}</strong>
-                          <span className="text-slate-400 block mt-0.5">
-                            Client: {c.client_name || 'Anonymous Client'}
-                          </span>
-                          {c.transaction_ref && (
-                            <span className="font-mono text-[10px] text-amber-400 mt-0.5 block">
-                              Ref: {c.transaction_ref}
-                            </span>
-                          )}
+                          <strong className="text-white block text-sm">{app.full_name}</strong>
+                          <span className="text-slate-400 block font-mono text-[11px]">{app.phone_number}</span>
+                          <span className="text-slate-500 block text-[10px]">{app.email}</span>
                         </td>
 
-                        <td className="p-4 text-slate-300 font-medium">
-                          📍 {c.location || 'Addis Ababa'}
+                        <td className="p-4">
+                          <span className="font-mono font-bold text-amber-400 block text-xs bg-slate-950 px-2.5 py-1 rounded border border-slate-800 inline-block">
+                            {app.moj_license_number}
+                          </span>
+                          <span className="text-[10px] text-slate-500 block mt-1">📍 {app.office_address}</span>
+                        </td>
+
+                        <td className="p-4 text-slate-300">
+                          <strong className="text-white block">{app.court_jurisdiction}</strong>
+                          <span className="text-[11px] text-slate-400">{app.experience_years} Years Experience</span>
+                        </td>
+
+                        <td className="p-4 text-slate-300 max-w-xs">
+                          <span className="line-clamp-2 text-[11px]">{app.practice_areas}</span>
                         </td>
 
                         <td className="p-4">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                            c.status === 'approved' 
-                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' 
-                              : c.status === 'completed'
+                            app.status === 'approved'
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                              : app.status === 'rejected'
+                              ? 'bg-red-500/10 text-red-400 border-red-500/30'
                               : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                           }`}>
-                            {c.status || 'pending'}
+                            {app.status}
                           </span>
                         </td>
 
-                        <td className="p-4">
-                          {isEscrowLocked ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                              <Lock className="w-3 h-3" />
-                              <span>Held in Escrow</span>
-                            </span>
-                          ) : isReleased ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Advocate Settled</span>
-                            </span>
+                        <td className="p-4 text-right">
+                          {app.status === 'pending' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleUpdateAdvocateStatus(app.id, 'approved')}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer shadow"
+                              >
+                                Approve License
+                              </button>
+                              <button
+                                onClick={() => handleUpdateAdvocateStatus(app.id, 'rejected')}
+                                className="px-3 py-1.5 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                              Unpaid Retainer
+                            <span className="text-[11px] text-slate-500 font-bold">
+                              Audited & Recorded
                             </span>
                           )}
                         </td>
-
-                        <td className="p-4 font-mono font-bold text-white text-sm">
-                          ETB {Number(c.escrow_amount || 1500).toFixed(2)}
-                        </td>
-
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {c.status === 'pending' && (
-                              <button
-                                onClick={() => handleApproveCase(c.id)}
-                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer"
-                              >
-                                Approve Case
-                              </button>
-                            )}
-
-                            {isEscrowLocked && (
-                              <button
-                                onClick={() => handleOpenPayoutModal(c)}
-                                className="flex items-center gap-1 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-lg text-xs shadow transition-all cursor-pointer"
-                              >
-                                <Unlock className="w-3.5 h-3.5" />
-                                <span>Release Advocate Payout</span>
-                              </button>
-                            )}
-
-                            {isReleased && (
-                              <span className="text-[11px] text-slate-500 font-bold">
-                                Completed & Disbursed
-                              </span>
-                            )}
-                          </div>
-                        </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-
-        {/* Audit Log Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-white">Telebirr Regulatory Audit Ledger</h3>
-              <p className="text-xs text-slate-400">Complete record of inbound client deposits and outbound advocate disbursements.</p>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-mono bg-slate-800 text-slate-300">
-              {transactions.length} Total Logs
-            </span>
           </div>
+        )}
 
-          <div className="space-y-2">
-            {transactions.slice(0, 8).map((tx, idx) => (
-              <div key={idx} className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
-                <div>
-                  <span className="font-mono font-bold text-amber-400 mr-2">{tx.transaction_ref}</span>
-                  <span className="text-slate-300 font-medium">Beneficiary / Client: {tx.client_name}</span>
-                  <span className="text-slate-500 text-[11px] block sm:inline sm:ml-2">({tx.phone_number})</span>
+        {/* TAB 3: ETHIO TELECOM SMS LOGS */}
+        {adminViewTab === 'sms' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5" />
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                    tx.status === 'payout_released' 
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  }`}>
-                    {tx.status === 'payout_released' ? 'Outbound Payout' : 'Inbound Escrow'}
-                  </span>
-                  <span className="font-mono font-bold text-white">ETB {tx.amount_etb || 1500}</span>
+                <div>
+                  <h3 className="font-bold text-base text-white">Automated Ethiopian SMS Notification Ledger</h3>
+                  <p className="text-xs text-slate-400">Real-time dispatches via Ethio Telecom Shortcode 8421 to Ethiopian mobile numbers.</p>
                 </div>
               </div>
-            ))}
+              <span className="px-3 py-1 rounded-full text-xs font-mono bg-slate-800 text-slate-300">
+                {smsLogs.length} Dispatched
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {smsLogs.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                  No SMS alerts sent yet.
+                </div>
+              ) : (
+                smsLogs.map((log, idx) => (
+                  <div key={idx} className="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-emerald-400">{log.recipient_phone}</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 uppercase">
+                          {log.recipient_role}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          {log.delivery_status}
+                        </span>
+                      </div>
+                      <p className="text-slate-300 text-xs italic font-sans pt-0.5">"{log.message_body}"</p>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-mono flex-shrink-0">
+                      {log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
       </main>
 
@@ -570,8 +803,6 @@ export default function AdminPortal() {
       {selectedCaseForPayout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-6">
-            
-            {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-slate-800 pb-4">
               <div>
                 <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">
@@ -592,7 +823,6 @@ export default function AdminPortal() {
 
             {!payoutSuccessData ? (
               <div className="space-y-4 text-xs">
-                {/* Financial Split Breakdown Table */}
                 <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2.5 font-mono">
                   <div className="flex justify-between text-slate-400">
                     <span>Client Escrow Retainer:</span>
@@ -608,7 +838,6 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                {/* Target Advocate Details */}
                 <div className="space-y-3 font-sans">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
@@ -624,7 +853,7 @@ export default function AdminPortal() {
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
-                      Advocate Telebirr Account Number
+                      Advocate Telebirr & SMS Mobile Number
                     </label>
                     <div className="relative">
                       <Smartphone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -639,7 +868,7 @@ export default function AdminPortal() {
                 </div>
 
                 <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[11px] leading-relaxed">
-                  Authorizing this disbursement triggers a real-time Telebirr B2C transfer of ETB 1,275.00 directly to the advocate's wallet and releases the escrow obligation.
+                  Authorizing this payout executes the Telebirr B2C transfer and automatically delivers an Ethio Telecom SMS confirmation to the advocate's mobile device.
                 </div>
 
                 <div className="flex gap-2 pt-2">
@@ -657,19 +886,18 @@ export default function AdminPortal() {
                     {isProcessingPayout ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Disbursing via Telebirr...</span>
+                        <span>Disbursing & Sending SMS...</span>
                       </>
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Authorize ETB 1,275 Payout</span>
+                        <span>Authorize ETB 1,275 & Send SMS</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
             ) : (
-              /* Success Screen */
               <div className="space-y-4 text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
                   <CheckCircle2 className="w-6 h-6" />
@@ -682,23 +910,8 @@ export default function AdminPortal() {
                   </span>
                 </div>
 
-                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-left text-xs font-mono space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Gross Retainer:</span>
-                    <span>ETB {payoutSuccessData.gross}.00</span>
-                  </div>
-                  <div className="flex justify-between text-amber-400">
-                    <span>LegalLink Commission:</span>
-                    <span>ETB {payoutSuccessData.commission}.00</span>
-                  </div>
-                  <div className="flex justify-between text-emerald-400 font-bold border-t border-slate-800 pt-1">
-                    <span>Transferred to Lawyer:</span>
-                    <span>ETB {payoutSuccessData.netDisbursed}.00</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400 pt-1">
-                    <span>Recipient:</span>
-                    <span>{payoutSuccessData.advocate} ({payoutSuccessData.phone})</span>
-                  </div>
+                <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-left text-xs text-emerald-300 font-mono">
+                  ✓ Automated Ethio Telecom SMS dispatched to {payoutSuccessData.phone}
                 </div>
 
                 <button
@@ -709,7 +922,6 @@ export default function AdminPortal() {
                 </button>
               </div>
             )}
-
           </div>
         </div>
       )}
