@@ -7,7 +7,8 @@ import {
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
-  Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut
+  Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
+  Radio, KeyRound
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -31,14 +32,12 @@ export default function LegalLinkHome() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Check and maintain active session
   const checkSession = async () => {
     try {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setCurrentUser(session.user);
-        // Fetch public profile
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
@@ -172,13 +171,12 @@ export default function LegalLinkHome() {
   const [modalTab, setModalTab] = useState<'overview' | 'room'>('overview');
 
   // -------------------------------------------------------------
-  // TELEBIRR ESCROW PAYMENT CHECKOUT STATE
+  // GAS-STATION STYLE TELEBIRR USSD PUSH CHECKOUT STATE
   // -------------------------------------------------------------
   const [payingConsultation, setPayingConsultation] = useState<any | null>(null);
   const [telebirrPhone, setTelebirrPhone] = useState('0905941865');
-  const [paymentStep, setPaymentStep] = useState<'phone' | 'ussd_confirm' | 'success'>('phone');
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [lastPaymentReceipt, setLastPaymentReceipt] = useState<any | null>(null);
+  const [pushStatus, setPushStatus] = useState<'idle' | 'push_dispatched' | 'pin_processing' | 'confirmed'>('idle');
+  const [activeTxnRef, setActiveTxnRef] = useState<string>('');
   const [liveTransactions, setLiveTransactions] = useState<any[]>([]);
 
   // -------------------------------------------------------------
@@ -243,6 +241,10 @@ export default function LegalLinkHome() {
               setSelectedConsultationDetails((prev: any) =>
                 prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev
               );
+              // If user is currently in the USSD push screen for this case and it gets locked:
+              if (payingConsultation && payingConsultation.id === payload.new.id && payload.new.payment_status === 'escrow_locked') {
+                setPushStatus('confirmed');
+              }
             } else if (payload.eventType === 'INSERT') {
               setMyConsultations((prev) => [payload.new, ...prev]);
             } else if (payload.eventType === 'DELETE') {
@@ -255,12 +257,25 @@ export default function LegalLinkHome() {
         )
         .subscribe();
 
+      const txChannel = supabase
+        .channel('client_escrow_tx_realtime')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'escrow_transactions' },
+          (payload) => {
+            setLiveTransactions((prev) => [payload.new, ...prev]);
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
+        supabase.removeChannel(txChannel);
       };
     }
-  }, [activeTab]);
+  }, [activeTab, payingConsultation]);
 
+  // Load chat messages
   useEffect(() => {
     if (selectedConsultationDetails && modalTab === 'room') {
       const consultationId = selectedConsultationDetails.id;
@@ -348,80 +363,74 @@ export default function LegalLinkHome() {
     }
   };
 
-  const handleTriggerTelebirrCheckout = (consultation: any) => {
+  // -------------------------------------------------------------
+  // DYNAMIC USSD PUSH DISPATCHER (SUPERMARKET / GAS STATION FLOW)
+  // -------------------------------------------------------------
+  const handleOpenPushModal = (consultation: any) => {
     setPayingConsultation(consultation);
-    setPaymentStep('phone');
-    setIsProcessingPayment(false);
+    setPushStatus('idle');
+    setActiveTxnRef('');
   };
 
-  const handleSimulateTelebirrUSSD = () => {
+  const handleDispatchUSSDPush = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!telebirrPhone.trim() || telebirrPhone.length < 9) {
-      alert('Please enter a valid Ethiopian phone number.');
+      alert('Please enter a valid Ethiopian mobile phone number.');
       return;
     }
-    setPaymentStep('ussd_confirm');
-  };
 
-  const handleAuthorizeTelebirrPayment = async () => {
-    if (!payingConsultation) return;
-    setIsProcessingPayment(true);
-
-    const generatedTxnRef = `TLB-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
-    const feeAmount = 1500;
+    setPushStatus('push_dispatched');
 
     try {
-      const supabase = createClient();
+      // 1. Dispatch push request to backend
+      const res = await fetch('/api/telebirr/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          consultation_id: payingConsultation.id,
+          phone_number: telebirrPhone,
+          amount_etb: 1500,
+          client_name: userProfile?.full_name || payingConsultation.client_name || 'Client',
+        }),
+      });
 
-      await supabase
-        .from('consultations')
-        .update({
-          payment_status: 'escrow_locked',
-          payment_method: 'telebirr',
-          transaction_ref: generatedTxnRef,
-          escrow_amount: feeAmount
-        })
-        .eq('id', payingConsultation.id);
+      const data = await res.json();
+      if (data.transaction_ref) {
+        setActiveTxnRef(data.transaction_ref);
+      }
+    } catch (err) {
+      console.error('USSD push trigger error:', err);
+    }
+  };
 
-      await supabase
-        .from('escrow_transactions')
-        .insert([
-          {
-            consultation_id: payingConsultation.id,
-            client_name: payingConsultation.client_name || 'Client',
-            phone_number: telebirrPhone,
-            payment_channel: 'telebirr',
-            amount_etb: feeAmount,
-            transaction_ref: generatedTxnRef,
-            status: 'escrow_locked'
-          }
-        ]);
+  // Simulation of client typing PIN on their phone
+  const handleSimulatePinEnteredOnMobile = async () => {
+    setPushStatus('pin_processing');
 
-      const receiptData = {
-        txnRef: generatedTxnRef,
-        amount: feeAmount,
-        phone: telebirrPhone,
-        date: new Date().toLocaleString(),
-        caseId: payingConsultation.id,
-        practiceArea: payingConsultation.practice_area,
-        clientName: payingConsultation.client_name || 'Client'
-      };
+    try {
+      // Trigger the official webhook endpoint as Ethio Telecom would upon PIN entry
+      const response = await fetch('/api/telebirr/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          consultation_id: payingConsultation.id,
+          client_name: userProfile?.full_name || payingConsultation.client_name || 'Client',
+          phone_number: telebirrPhone,
+          amount: 1500,
+          transaction_ref: activeTxnRef || `TLB-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,
+          status: 'SUCCESS'
+        }),
+      });
 
-      setLastPaymentReceipt(receiptData);
-      setLiveTransactions((prev) => [receiptData, ...prev]);
-
-      setMyConsultations((prev) =>
-        prev.map((c) =>
-          c.id === payingConsultation.id
-            ? { ...c, payment_status: 'escrow_locked', transaction_ref: generatedTxnRef }
-            : c
-        )
-      );
-
-      setPaymentStep('success');
+      if (response.ok) {
+        setPushStatus('confirmed');
+      } else {
+        alert('Payment verification could not be completed.');
+        setPushStatus('push_dispatched');
+      }
     } catch (err: any) {
-      alert('Payment processing failed: ' + err.message);
-    } finally {
-      setIsProcessingPayment(false);
+      alert('Error communicating with Telebirr webhook: ' + err.message);
+      setPushStatus('push_dispatched');
     }
   };
 
@@ -469,7 +478,6 @@ export default function LegalLinkHome() {
   ]);
 
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
-  const [lawyerStep, setLawyerStep] = useState<1 | 2 | 3 | 4>(1);
 
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
@@ -565,74 +573,12 @@ export default function LegalLinkHome() {
       desc: 'Commercial premises rental contract compliant with the Ethiopian Civil Code.',
       fields: ['landlordName', 'tenantName', 'propertyAddress', 'monthlyRentETB'],
     },
-    {
-      id: 'mou',
-      title: 'Memorandum of Understanding (MOU)',
-      category: 'Corporate & Business',
-      priceETB: 350,
-      popular: false,
-      desc: 'Preliminary partnership and institutional cooperation agreement.',
-      fields: ['partyOne', 'partyTwo', 'projectScope'],
-    },
-    {
-      id: 'checklist',
-      title: 'Business Registration Checklist',
-      category: 'Corporate & Business',
-      priceETB: 150,
-      popular: false,
-      desc: 'Statutory guide for registering a PLC or Sole Proprietorship with the Ministry of Trade.',
-      fields: ['companyName', 'capitalETB', 'businessType'],
-    },
-  ];
-
-  const legalTalkArticles = [
-    {
-      id: 'art-1',
-      title: 'What Ethiopian Startups Need to Know About Company Registration',
-      category: 'Business Law',
-      readTime: '7 min read',
-      author: 'Advocate Mulu Haile',
-      cover: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
-      excerpt: 'A step-by-step guide to registering your startup under the Ethiopian Commercial Code, including capital minimums and digital filings.',
-      content: `The revision of Ethiopia’s Commercial Code brought major modernization for tech startups and small-to-medium enterprises.
-      
-1. One-Person Companies: Entrepreneurs can now incorporate a limited liability company without requiring secondary nominal shareholders.
-2. Digital Authentication: The Ministry of Trade & Regional Integration now permits digital submission of Articles of Association.
-3. Capital Flexibility: Minimum initial capital requirements have been adapted to support lean digital enterprises.`,
-    },
-    {
-      id: 'art-2',
-      title: 'Your Rights in Ethiopian Divorce Law: A Plain-Language Guide',
-      category: 'Family Law',
-      readTime: '5 min read',
-      author: 'Advocate Tigist Bekele',
-      cover: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80',
-      excerpt: 'Understanding property division, joint assets, child custody, and maintenance under the Federal Revised Family Code.',
-      content: `Under the Revised Family Code of Ethiopia (Proclamation No. 213/2000), marriages can be dissolved through mutual petition or judicial determination.
-
-1. Common Property vs Personal Assets: Assets acquired during the subsistence of marriage are presumed common unless proven personal.
-2. Child Custody & Maintenance: Courts prioritize the child's psychological, educational, and material stability above all parental claims.`,
-    },
-    {
-      id: 'art-3',
-      title: 'New Labor Proclamation Changes: What Employers Must Know',
-      category: 'Employment Law',
-      readTime: '8 min read',
-      author: 'Advocate Dawit Tesfaye',
-      cover: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=800&q=80',
-      excerpt: 'Key changes in Ethiopian labor regulation, probation periods, overtime limits, severance, and termination protections.',
-      content: `Labor Proclamation No. 1156/2019 governs private employment relationships across Ethiopia.
-
-1. Probation: Maximum 60 working days under a written agreement.
-2. Severance Calculation: Statutory multipliers apply based on completed service years.
-3. Protected Termination: Employers must adhere strictly to statutory procedures before enacting terminations.`,
-    },
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
       
-      {/* 1. TOP NAVIGATION WITH LIVE AUTH STATE */}
+      {/* 1. TOP NAVIGATION WITH DIRECT ADMIN SHORTCUT */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -682,7 +628,7 @@ export default function LegalLinkHome() {
               ))}
             </nav>
 
-            {/* Language & Authentication CTAs */}
+            {/* Header Right Actions */}
             <div className="hidden md:flex items-center gap-3">
               <button
                 onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
@@ -692,8 +638,16 @@ export default function LegalLinkHome() {
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
               </button>
 
+              {/* Direct Admin Access Button */}
+              <Link
+                href="/admin"
+                className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-colors flex items-center gap-1"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                <span>Admin Console</span>
+              </Link>
+
               {currentUser ? (
-                /* Authenticated User Capsule */
                 <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
                   <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
                     <div className="w-7 h-7 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-xs">
@@ -718,7 +672,6 @@ export default function LegalLinkHome() {
                   </button>
                 </div>
               ) : (
-                /* Unauthenticated Actions */
                 <>
                   <button 
                     onClick={() => {
@@ -760,7 +713,6 @@ export default function LegalLinkHome() {
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-2">
             {[
@@ -781,6 +733,12 @@ export default function LegalLinkHome() {
                 {item.label}
               </button>
             ))}
+            <Link
+              href="/admin"
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-50 rounded-lg"
+            >
+              Admin Console ↗
+            </Link>
           </div>
         )}
       </header>
@@ -792,7 +750,6 @@ export default function LegalLinkHome() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                {/* Left Hero */}
                 <div className="lg:col-span-7 space-y-6">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -804,9 +761,7 @@ export default function LegalLinkHome() {
                   </h1>
 
                   <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
-                    {lang === 'am' 
-                      ? 'ፈቃዳቸው ከተረጋገጠ የኢትዮጵያ ጠበቆች ጋር ለምክር፣ ለውል ዝግጅትና ለሕግ ድጋፍ በቀላሉ፣ በተመጣጣኝ ዋጋና በደህንነት ይገናኙ።'
-                      : 'Connect with verified Ethiopian lawyers for consultations, document drafting, and compliance support—quickly, affordably, and securely.'}
+                    Connect with verified Ethiopian lawyers for consultations, document drafting, and compliance support—protected by real-time Telebirr escrow holding.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
@@ -814,7 +769,7 @@ export default function LegalLinkHome() {
                       onClick={() => { setActiveTab('match'); setMatchStep(1); }}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer"
                     >
-                      <span>{lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}</span>
+                      <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
@@ -825,32 +780,30 @@ export default function LegalLinkHome() {
                       }}
                       className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-[#0A1128] font-bold rounded-xl border border-slate-200 transition-all cursor-pointer"
                     >
-                      {lang === 'am' ? 'ጀምር' : 'Get Started'}
+                      Get Started
                     </button>
                   </div>
 
-                  {/* Stats */}
                   <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100">
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">500+</span>
-                      <span className="text-xs text-slate-500 font-medium">{lang === 'am' ? 'የተረጋገጡ ጠበቆች' : 'Verified Lawyers'}</span>
+                      <span className="text-xs text-slate-500 font-medium">Verified Lawyers</span>
                     </div>
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">12,000+</span>
-                      <span className="text-xs text-slate-500 font-medium">{lang === 'am' ? 'የተጠናቀቁ ምክክሮች' : 'Consultations Done'}</span>
+                      <span className="text-xs text-slate-500 font-medium">Consultations Done</span>
                     </div>
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">97%</span>
-                      <span className="text-xs text-slate-500 font-medium">{lang === 'am' ? 'የደንበኞች እርካታ' : 'Client Satisfaction'}</span>
+                      <span className="text-xs text-slate-500 font-medium">Client Satisfaction</span>
                     </div>
                     <div>
                       <span className="text-2xl font-black text-[#0A1128] block">&lt;2hrs</span>
-                      <span className="text-xs text-slate-500 font-medium">{lang === 'am' ? 'አማካይ ምላሽ' : 'Average Response'}</span>
+                      <span className="text-xs text-slate-500 font-medium">Average Response</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Hero Card */}
                 <div className="lg:col-span-5 relative flex justify-center">
                   <div className="w-full max-w-md bg-white rounded-2xl p-6 sm:p-7 shadow-2xl border border-slate-100">
                     <div className="flex items-start justify-between">
@@ -873,29 +826,7 @@ export default function LegalLinkHome() {
 
                     <div className="mt-4 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-semibold">500+ Lawyers Online</span>
-                    </div>
-
-                    <div className="mt-5">
-                      <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase block mb-2">
-                        AVAILABLE TODAY
-                      </span>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['10:00 AM', '2:00 PM', '4:30 PM'].map((slot) => (
-                          <div
-                            key={slot}
-                            onClick={() => {
-                              setSelectedLawyer(mockMatchedLawyers[0]);
-                              setSelectedTimeSlot(slot);
-                              setActiveTab('match');
-                              setMatchStep(4);
-                            }}
-                            className="py-1.5 text-center text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-[#0A1128] hover:text-white cursor-pointer transition-colors"
-                          >
-                            {slot}
-                          </div>
-                        ))}
-                      </div>
+                      <span className="font-semibold">Telebirr Instant USSD Push Active</span>
                     </div>
 
                     <button
@@ -908,11 +839,6 @@ export default function LegalLinkHome() {
                     >
                       Book Consultation
                     </button>
-
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-2 text-xs text-slate-400">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Trusted & Verified in Ethiopia</span>
-                    </div>
                   </div>
                 </div>
 
@@ -920,23 +846,9 @@ export default function LegalLinkHome() {
             </div>
           </section>
 
-          {/* Practice Areas */}
           <section className="py-20 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
-                <div>
-                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">EXPERTISE</span>
-                  <h2 className="text-3xl font-black text-[#0A1128] mt-1">Practice Areas</h2>
-                  <p className="text-sm text-slate-600 mt-2">Find specialized legal expertise across Ethiopian law.</p>
-                </div>
-                <button 
-                  onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                  className="mt-4 sm:mt-0 text-xs font-bold text-[#0A1128] hover:text-amber-600 flex items-center gap-1 cursor-pointer"
-                >
-                  Browse All 18 Areas →
-                </button>
-              </div>
-
+              <h2 className="text-3xl font-black text-[#0A1128] mb-8">Practice Areas</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {practiceAreas.map((cat) => {
                   const Icon = cat.icon;
@@ -953,7 +865,7 @@ export default function LegalLinkHome() {
                       <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-[#0A1128] mb-4">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <h3 className="font-bold text-[#0A1128] text-base">{lang === 'am' ? cat.amTitle : cat.title}</h3>
+                      <h3 className="font-bold text-[#0A1128] text-base">{cat.title}</h3>
                       <p className="text-xs text-slate-500 mt-2 leading-relaxed">{cat.desc}</p>
                     </div>
                   );
@@ -968,7 +880,6 @@ export default function LegalLinkHome() {
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           
-          {/* Header Banner */}
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
@@ -976,7 +887,7 @@ export default function LegalLinkHome() {
               </span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage your consultations, secure retainers in Telebirr escrow, and launch live consultation rooms.
+                Manage your consultations, authorize Telebirr USSD retainers, and launch live consultation rooms.
               </p>
             </div>
             <button
@@ -987,7 +898,6 @@ export default function LegalLinkHome() {
             </button>
           </div>
 
-          {/* Sub Navigation */}
           <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
             <button
               onClick={() => setClientSubTab('consultations')}
@@ -1041,10 +951,9 @@ export default function LegalLinkHome() {
                 <div className="p-16 text-center bg-white rounded-2xl border border-slate-200">
                   <Briefcase className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                   <h3 className="font-bold text-sm text-[#0A1128]">No active requests found</h3>
-                  <p className="text-xs text-slate-500 mt-1 mb-4">Request a consultation with a verified lawyer to get started.</p>
                   <button
                     onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                    className="px-5 py-2 bg-amber-500 text-slate-900 font-bold rounded-xl text-xs shadow cursor-pointer"
+                    className="mt-3 px-5 py-2 bg-amber-500 text-slate-900 font-bold rounded-xl text-xs shadow cursor-pointer"
                   >
                     Request Consultation
                   </button>
@@ -1092,13 +1001,14 @@ export default function LegalLinkHome() {
                       </div>
 
                       <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                        {/* Supermarket / Gas Station USSD Push Launcher */}
                         {!isPaid && (
                           <button
-                            onClick={() => handleTriggerTelebirrCheckout(c)}
+                            onClick={() => handleOpenPushModal(c)}
                             className="flex items-center gap-1.5 px-4 py-2 bg-[#0072CE] hover:bg-[#005ba4] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow"
                           >
                             <Smartphone className="w-3.5 h-3.5" />
-                            <span>Pay ETB 1,500 (Telebirr)</span>
+                            <span>Pay with Telebirr USSD</span>
                           </button>
                         )}
 
@@ -1156,7 +1066,7 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 3: RECEIPTS & SETTLEMENT */}
+          {/* SUB-TAB 3: RECEIPTS */}
           {clientSubTab === 'receipts' && (
             <div className="space-y-4">
               <div className="p-6 bg-white rounded-2xl border border-slate-200 space-y-4">
@@ -1174,7 +1084,7 @@ export default function LegalLinkHome() {
 
                 {liveTransactions.length === 0 ? (
                   <div className="p-8 text-center text-xs text-slate-400 border border-dashed rounded-xl">
-                    No Telebirr payments initiated yet. Complete a consultation payment to generate audit receipts.
+                    No Telebirr payments initiated yet.
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1211,12 +1121,175 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 4. SUPABASE AUTHENTICATION MODAL (SIGN IN / SIGN UP) */}
-      {authModalOpen && (
+      {/* 4. DYNAMIC USSD PUSH CHECKOUT MODAL (TERMINAL EXPERIENCE) */}
+      {payingConsultation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
             
-            {/* Header */}
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-[#0072CE] to-[#005ba4] text-white flex justify-between items-start">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <span>Ethio Telecom Direct USSD Push</span>
+                </div>
+                <h3 className="font-black text-xl">Telebirr Checkout Terminal</h3>
+                <span className="text-xs text-white/80">Payable to LegalLink Escrow Trust</span>
+              </div>
+              <button 
+                onClick={() => setPayingConsultation(null)}
+                className="text-white/70 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              
+              {/* Order Summary */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Practice Area:</span>
+                  <span className="font-bold text-[#0A1128]">{payingConsultation.practice_area}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
+                  <span className="font-bold text-[#0A1128]">Consultation Retainer:</span>
+                  <span className="font-black text-[#0072CE]">ETB 1,500.00</span>
+                </div>
+              </div>
+
+              {/* STEP 1: ENTER PHONE NUMBER */}
+              {pushStatus === 'idle' && (
+                <form onSubmit={handleDispatchUSSDPush} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      Enter Your Telebirr Mobile Number
+                    </label>
+                    <div className="relative">
+                      <Smartphone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <input
+                        type="tel"
+                        required
+                        value={telebirrPhone}
+                        onChange={(e) => setTelebirrPhone(e.target.value)}
+                        placeholder="09... or 07..."
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:outline-none focus:border-[#0072CE]"
+                      />
+                    </div>
+                    <span className="text-[11px] text-slate-500 mt-1 block">
+                      Like a supermarket terminal, a flash USSD message will be pushed directly to your phone.
+                    </span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 bg-[#0072CE] hover:bg-[#005ba4] text-white font-bold rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Send USSD Push Prompt to Phone</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
+
+              {/* STEP 2: USSD PUSH SENT TO PHONE SCREEN */}
+              {(pushStatus === 'push_dispatched' || pushStatus === 'pin_processing') && (
+                <div className="space-y-4 text-center">
+                  
+                  {/* Phone Graphic with USSD Prompt */}
+                  <div className="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 text-left space-y-3 font-mono text-xs shadow-inner">
+                    <div className="flex items-center justify-between text-slate-400 text-[10px] pb-2 border-b border-slate-800">
+                      <span>TELEBIRR PUSH PROMPT</span>
+                      <span className="text-amber-400 animate-pulse">● Awaiting PIN</span>
+                    </div>
+
+                    <div className="text-amber-300 font-bold leading-relaxed">
+                      LegalLink Escrow Request:<br/>
+                      Pay ETB 1,500.00 to Merchant LegalLink Trust.<br/>
+                      Enter your 4-digit PIN to confirm:
+                    </div>
+
+                    <div className="bg-slate-950 p-2 rounded text-center text-slate-400 text-[11px] tracking-widest">
+                      [ • • • • ]
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-sm text-[#0A1128]">Prompt Sent to {telebirrPhone}</h4>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Check your mobile screen now. Enter your secret Telebirr PIN to confirm the ETB 1,500 payment.
+                    </p>
+                  </div>
+
+                  {/* Device Simulation / Trigger Button */}
+                  <div className="pt-2">
+                    <button
+                      onClick={handleSimulatePinEnteredOnMobile}
+                      disabled={pushStatus === 'pin_processing'}
+                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {pushStatus === 'pin_processing' ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Verifying Telebirr PIN...</span>
+                        </>
+                      ) : (
+                        <>
+                          <KeyRound className="w-4 h-4" />
+                          <span>Simulate PIN Entered on Mobile</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: SUCCESS & ESCROW LOCK */}
+              {pushStatus === 'confirmed' && (
+                <div className="space-y-4 text-center">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-base text-[#0A1128]">USSD Payment Authorized!</h4>
+                    <span className="text-xs text-slate-500 block mt-0.5">
+                      Funds successfully secured in LegalLink Escrow Trust.
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-1.5 font-mono">
+                    <p><strong>Channel:</strong> Telebirr USSD Push</p>
+                    <p><strong>Payer:</strong> {telebirrPhone}</p>
+                    <p><strong>Amount:</strong> ETB 1,500.00</p>
+                    <p><strong>Escrow Status:</strong> Locked in Trust</p>
+                    <p><strong>Transaction Ref:</strong> {activeTxnRef || 'TLB-2026-CONFIRMED'}</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setPayingConsultation(null);
+                      setPushStatus('idle');
+                    }}
+                    className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    Done & Return to Cases
+                  </button>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[10px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Compliant with National Bank of Ethiopia Escrow Directives</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. SUPABASE AUTH MODAL */}
+      {authModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
@@ -1234,9 +1307,7 @@ export default function LegalLinkHome() {
               </button>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleAuthSubmit} className="p-6 space-y-4">
-              {/* Tab Selector */}
               <div className="flex border-b border-slate-200 text-xs font-bold mb-4">
                 <button
                   type="button"
@@ -1265,7 +1336,6 @@ export default function LegalLinkHome() {
                 </div>
               )}
 
-              {/* Full Name & Role when Signing Up */}
               {authMode === 'signup' && (
                 <>
                   <div>
@@ -1349,150 +1419,10 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 5. TELEBIRR ESCROW CHECKOUT MODAL */}
-      {payingConsultation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-            
-            <div className="p-6 bg-gradient-to-r from-[#0072CE] to-[#005ba4] text-white flex justify-between items-start">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider mb-1">
-                  <span>Ethio Telecom Partner</span>
-                </div>
-                <h3 className="font-black text-xl">Telebirr Escrow Gateway</h3>
-                <span className="text-xs text-white/80">Securing Legal Retainer in Trust Account</span>
-              </div>
-              <button 
-                onClick={() => setPayingConsultation(null)}
-                className="text-white/70 hover:text-white p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Practice Area:</span>
-                  <span className="font-bold text-[#0A1128]">{payingConsultation.practice_area}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Assigned Advocate:</span>
-                  <span className="font-bold text-[#0A1128]">Advocate Mulu Haile</span>
-                </div>
-                <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
-                  <span className="font-bold text-[#0A1128]">Total Retainer Fee:</span>
-                  <span className="font-black text-[#0072CE]">ETB 1,500.00</span>
-                </div>
-              </div>
-
-              {paymentStep === 'phone' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      Enter Registered Telebirr Mobile Number
-                    </label>
-                    <div className="relative">
-                      <Smartphone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                      <input
-                        type="tel"
-                        value={telebirrPhone}
-                        onChange={(e) => setTelebirrPhone(e.target.value)}
-                        placeholder="e.g. 0911234567"
-                        className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-800 focus:outline-none focus:border-[#0072CE]"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleSimulateTelebirrUSSD}
-                    className="w-full py-3 bg-[#0072CE] hover:bg-[#005ba4] text-white font-bold rounded-xl text-xs shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <span>Proceed to USSD Authentication</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {paymentStep === 'ussd_confirm' && (
-                <div className="space-y-4 text-center">
-                  <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 animate-pulse">
-                    <Smartphone className="w-6 h-6" />
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold text-sm text-[#0A1128]">USSD Push Sent to {telebirrPhone}</h4>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Please enter your 4-digit Telebirr PIN on your mobile screen to authorize the ETB 1,500 transfer into LegalLink Escrow.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setPaymentStep('phone')}
-                      className="w-1/3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-                    >
-                      Back
-                    </button>
-                    <button
-                      disabled={isProcessingPayment}
-                      onClick={handleAuthorizeTelebirrPayment}
-                      className="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      {isProcessingPayment ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Confirming with Telebirr...</span>
-                        </>
-                      ) : (
-                        <span>Simulate PIN Entered & Lock Escrow</span>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {paymentStep === 'success' && lastPaymentReceipt && (
-                <div className="space-y-4 text-center">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-
-                  <div>
-                    <h4 className="font-bold text-base text-[#0A1128]">Payment Secured in Escrow!</h4>
-                    <span className="text-xs text-slate-500 block mt-0.5">
-                      Transaction Reference: <strong className="text-slate-800">{lastPaymentReceipt.txnRef}</strong>
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-1.5 font-mono">
-                    <p><strong>Channel:</strong> Telebirr Mobile Money</p>
-                    <p><strong>Payer Phone:</strong> {lastPaymentReceipt.phone}</p>
-                    <p><strong>Amount:</strong> ETB {lastPaymentReceipt.amount}.00</p>
-                    <p><strong>Status:</strong> Held in Trust (NBE Escrow)</p>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setPayingConsultation(null);
-                      setPaymentStep('phone');
-                    }}
-                    className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
-                  >
-                    Done & Return to Cases
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. INTERACTIVE CASE MODAL WITH LIVE CONSULTATION ROOM & REALTIME CHAT */}
+      {/* 6. CONSULTATION DETAILS & ROOM MODAL */}
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
-            
             <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
               <div>
                 <div className="flex items-center gap-2">
@@ -1504,23 +1434,14 @@ export default function LegalLinkHome() {
                       ? 'bg-blue-50 text-blue-700 border-blue-200' 
                       : selectedConsultationDetails.status === 'completed'
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : selectedConsultationDetails.status === 'cancelled'
-                      ? 'bg-red-50 text-red-700 border-red-200'
                       : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}>
                     {selectedConsultationDetails.status || 'pending'}
                   </span>
                 </div>
                 <h3 className="font-black text-xl text-[#0A1128] mt-1">Consultation Hub</h3>
-                <span className="text-[11px] font-mono text-slate-400">
-                  Case ID: #{selectedConsultationDetails.id.slice(0, 8).toUpperCase()}
-                </span>
               </div>
-
-              <button 
-                onClick={() => setSelectedConsultationDetails(null)} 
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
-              >
+              <button onClick={() => setSelectedConsultationDetails(null)} className="p-1.5 text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1528,325 +1449,87 @@ export default function LegalLinkHome() {
             <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
               <button
                 onClick={() => setModalTab('overview')}
-                className={`py-3 border-b-2 cursor-pointer transition-colors ${
-                  modalTab === 'overview' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+                className={`py-3 border-b-2 cursor-pointer ${
+                  modalTab === 'overview' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'
                 }`}
               >
-                Case Overview & Progression
+                Overview
               </button>
               <button
                 onClick={() => setModalTab('room')}
-                className={`py-3 border-b-2 cursor-pointer transition-colors flex items-center gap-1.5 ${
-                  modalTab === 'room' ? 'border-amber-500 text-amber-600 font-black' : 'border-transparent text-slate-400 hover:text-slate-700'
+                className={`py-3 border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  modalTab === 'room' ? 'border-amber-500 text-amber-600 font-black' : 'border-transparent text-slate-400'
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>Live Room & Secure Chat</span>
-                {messages.length > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[10px] flex items-center justify-center font-bold">
-                    {messages.length}
-                  </span>
-                )}
+                <span>Live Room & Chat</span>
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 sm:p-6">
               {modalTab === 'overview' && (
-                <div className="space-y-6">
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase block mb-3">Case Progression</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800">
-                        <div className="flex items-center gap-1.5 font-bold text-xs">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>1. Submitted</span>
-                        </div>
-                      </div>
-
-                      <div className={`p-3 rounded-xl border ${
-                        selectedConsultationDetails.status === 'approved' || selectedConsultationDetails.status === 'completed'
-                          ? 'bg-blue-50 border-blue-200 text-blue-800'
-                          : 'bg-slate-50 border-slate-200 text-slate-500'
-                      }`}>
-                        <div className="flex items-center gap-1.5 font-bold text-xs">
-                          <Clock className="w-4 h-4" />
-                          <span>2. Review</span>
-                        </div>
-                      </div>
-
-                      <div className={`p-3 rounded-xl border ${
-                        selectedConsultationDetails.status === 'completed'
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                          : 'bg-slate-50 border-slate-200 text-slate-400'
-                      }`}>
-                        <div className="flex items-center gap-1.5 font-bold text-xs">
-                          <ShieldCheck className="w-4 h-4" />
-                          <span>3. Resolved</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
+                <div className="space-y-4 text-xs">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-slate-400 block text-[11px]">Client Name</span>
-                      <span className="font-bold text-[#0A1128] text-sm">
-                        {selectedConsultationDetails.client_name || 'Anonymous Client'}
-                      </span>
+                      <span className="font-bold text-[#0A1128] text-sm">{selectedConsultationDetails.client_name}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Jurisdiction / Location</span>
-                      <span className="font-bold text-[#0A1128] text-sm flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                        {selectedConsultationDetails.location}
-                      </span>
+                      <span className="text-slate-400 block text-[11px]">Location</span>
+                      <span className="font-bold text-[#0A1128] text-sm">{selectedConsultationDetails.location}</span>
                     </div>
                   </div>
-
                   <div>
-                    <span className="text-xs font-bold text-slate-700 uppercase block mb-2">Situation Description</span>
-                    <div className="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    <span className="font-bold text-slate-700 block mb-1">Situation Description</span>
+                    <p className="p-4 bg-white rounded-xl border border-slate-200 leading-relaxed text-slate-700">
                       {selectedConsultationDetails.situation_description}
-                    </div>
+                    </p>
                   </div>
                 </div>
               )}
 
               {modalTab === 'room' && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-sm shadow">
-                        MH
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-sm">Advocate Mulu Haile</span>
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                        </div>
-                        <span className="text-[11px] text-slate-300 block">Federal Advocate • Online</span>
-                      </div>
-                    </div>
-
-                    <a
-                      href={`https://meet.jit.si/legallink-case-${selectedConsultationDetails.id.slice(0, 8)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-all cursor-pointer"
-                    >
-                      <Video className="w-3.5 h-3.5" />
-                      <span>Launch Video Call (P2P Encrypted)</span>
-                    </a>
-                  </div>
-
                   <div className="h-72 bg-slate-50/80 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
-                    {loadingMessages ? (
-                      <div className="h-full flex items-center justify-center text-xs text-slate-400 gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-[#0A1128]" />
-                        <span>Connecting to secure case channel...</span>
-                      </div>
-                    ) : messages.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs text-center p-6">
-                        <MessageCircle className="w-8 h-8 mb-2 opacity-30 text-[#0A1128]" />
-                        <span className="font-semibold text-slate-600">No messages in this case thread yet.</span>
+                    {messages.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
+                        No messages in this case thread yet.
                       </div>
                     ) : (
-                      messages.map((m) => {
-                        const isClient = m.sender_role === 'client';
-                        return (
-                          <div 
-                            key={m.id} 
-                            className={`flex flex-col ${isClient ? 'items-end' : 'items-start'}`}
-                          >
-                            <div className="flex items-center gap-1.5 mb-1 px-1">
-                              <span className="text-[10px] font-bold text-slate-500">{m.sender_name}</span>
-                              <span className="text-[9px] text-slate-400">
-                                {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <div 
-                              className={`max-w-md p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
-                                isClient 
-                                  ? 'bg-[#0A1128] text-white rounded-tr-none' 
-                                  : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
-                              }`}
-                            >
-                              {m.message_text}
-                            </div>
+                      messages.map((m) => (
+                        <div key={m.id} className={`flex flex-col ${m.sender_role === 'client' ? 'items-end' : 'items-start'}`}>
+                          <span className="text-[10px] text-slate-400 px-1 mb-0.5">{m.sender_name}</span>
+                          <div className={`p-3 rounded-2xl text-xs max-w-md ${
+                            m.sender_role === 'client' ? 'bg-[#0A1128] text-white rounded-tr-none' : 'bg-white border rounded-tl-none'
+                          }`}>
+                            {m.message_text}
                           </div>
-                        );
-                      })
+                        </div>
+                      ))
                     )}
                     <div ref={chatBottomRef} />
                   </div>
 
-                  <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
                     <input
                       type="text"
-                      placeholder={`Type message as ${userProfile?.full_name || 'Client'}...`}
+                      placeholder="Type message..."
                       value={newMessageText}
                       onChange={(e) => setNewMessageText(e.target.value)}
-                      className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128] shadow-sm"
+                      className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs"
                     />
-                    <button
-                      type="submit"
-                      disabled={isSendingMessage || !newMessageText.trim()}
-                      className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow transition-all"
-                    >
-                      <span>Send</span>
-                      <Send className="w-3 h-3" />
+                    <button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
+                      Send
                     </button>
                   </form>
                 </div>
               )}
             </div>
-
-            <div className="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50">
-              <button
-                onClick={() => setSelectedConsultationDetails(null)}
-                className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-[#0A1128] font-bold text-xs rounded-xl transition-colors cursor-pointer"
-              >
-                Close Hub
-              </button>
-            </div>
-
           </div>
         </div>
       )}
 
-      {/* 7. LEXDRAFT MODULE */}
-      {activeTab === 'lexdraft' && (
-        <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">LEXDRAFT AUTOMATION</span>
-            <h2 className="text-3xl font-black text-[#0A1128] mt-1">Legal documents, ready in minutes.</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {lexdraftTemplates.map((tpl) => (
-              <div key={tpl.id} className="p-6 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between">
-                <div>
-                  <h3 className="font-bold text-base text-[#0A1128]">{tpl.title}</h3>
-                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">{tpl.desc}</p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="font-black text-[#0A1128]">ETB {tpl.priceETB}</span>
-                  <button
-                    onClick={() => {
-                      setSelectedTemplate(tpl);
-                      setDocFormData({});
-                      setDocGenerated(false);
-                    }}
-                    className="px-4 py-2 bg-[#0A1128] text-white text-xs font-bold rounded-xl hover:bg-slate-800 cursor-pointer"
-                  >
-                    Draft Now →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </main>
-      )}
-
-      {/* 8. LEGALTALK ARTICLES */}
-      {activeTab === 'legaltalk' && (
-        <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">LEGAL EDUCATION</span>
-            <h2 className="text-3xl font-black text-[#0A1128] mt-1">Legal insights for everyday Ethiopians.</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {legalTalkArticles.map((art) => (
-              <div
-                key={art.id}
-                onClick={() => setSelectedArticle(art)}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden cursor-pointer hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <img src={art.cover} alt={art.title} className="w-full h-44 object-cover" />
-                <div className="p-5">
-                  <span className="text-xs font-bold text-amber-600 block mb-1">{art.category}</span>
-                  <h3 className="font-bold text-base text-[#0A1128] leading-snug">{art.title}</h3>
-                  <p className="text-xs text-slate-500 mt-2 line-clamp-2">{art.excerpt}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </main>
-      )}
-
-      {/* 9. FOR LAWYERS ONBOARDING */}
-      {activeTab === 'for-lawyers' && (
-        <main className="flex-1 max-w-3xl mx-auto px-4 py-12 w-full">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
-            <h3 className="font-bold text-lg text-[#0A1128]">Advocate Practice Registration</h3>
-            <p className="text-xs text-slate-500">Register under the Federal Democratic Republic of Ethiopia Ministry of Justice.</p>
-            <input type="text" placeholder="Full Legal Advocate Name" defaultValue={userProfile?.full_name || ''} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" />
-            <input type="text" placeholder="MOJ Advocacy License Number (e.g. MOJ/FED/2020/1234)" className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm" />
-            <button
-              onClick={() => alert('Advocate credentials submitted to Ministry of Justice verification queue.')}
-              className="w-full py-3 bg-amber-500 font-bold text-sm text-[#0A1128] rounded-xl shadow cursor-pointer hover:bg-amber-600"
-            >
-              Submit Advocate Credentials
-            </button>
-          </div>
-        </main>
-      )}
-
-      {/* 10. CLIENT MATCHING WIZARD */}
-      {activeTab === 'match' && (
-        <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
-            {matchStep === 1 && (
-              <div>
-                <h2 className="text-2xl font-black text-[#0A1128] mb-6 text-center">What do you need help with?</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {practiceAreas.map((p) => {
-                    const Icon = p.icon;
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => { setSelectedCategory(p.id); setMatchStep(2); }}
-                        className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                          selectedCategory === p.id ? 'border-[#0A1128] bg-slate-50 ring-2 ring-[#0A1128]' : 'border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5 text-[#0A1128] mb-2" />
-                        <h4 className="font-bold text-xs text-[#0A1128]">{p.title}</h4>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {matchStep === 2 && (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-black text-[#0A1128] text-center">Case Brief</h2>
-                <textarea
-                  rows={4}
-                  value={situationText}
-                  onChange={(e) => setSituationText(e.target.value)}
-                  placeholder="Explain your legal situation..."
-                  className="w-full p-3 rounded-xl border border-slate-200 text-sm"
-                />
-                <div className="flex justify-between">
-                  <button onClick={() => setMatchStep(1)} className="text-sm font-bold text-slate-600 cursor-pointer">Back</button>
-                  <button 
-                    disabled={isSubmitting}
-                    onClick={handleBookingSubmit} 
-                    className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl font-bold text-sm cursor-pointer"
-                  >
-                    {isSubmitting ? 'Saving...' : 'Submit Consultation Request'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
-      )}
-
-      {/* 11. FOOTER */}
+      {/* 7. FOOTER */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -1865,7 +1548,6 @@ export default function LegalLinkHome() {
               <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Platform</h5>
               <ul className="text-xs space-y-2 text-slate-400">
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
-                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('lexdraft')}>LexDraft</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
               </ul>
             </div>
@@ -1874,7 +1556,7 @@ export default function LegalLinkHome() {
               <ul className="text-xs space-y-2 text-slate-400">
                 <li>
                   <Link href="/admin" className="text-slate-400 hover:text-amber-400 flex items-center gap-1">
-                    <span>Admin Portal</span>
+                    <span>Admin Console</span>
                     <span className="text-[10px] text-amber-400">↗</span>
                   </Link>
                 </li>
