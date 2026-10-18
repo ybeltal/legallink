@@ -8,7 +8,7 @@ import {
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
   Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
-  KeyRound, Award
+  KeyRound, Award, FileCode, Edit3
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -204,6 +204,36 @@ export default function LegalLinkHome() {
   const [senderRole, setSenderRole] = useState<'client' | 'advocate'>('client');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // -------------------------------------------------------------
+  // LEXDRAFT CONTRACT BUILDER & PDF GENERATOR STATE
+  // -------------------------------------------------------------
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
+  const [docFormData, setDocFormData] = useState<Record<string, string>>({});
+  const [savedContracts, setSavedContracts] = useState<any[]>([
+    { 
+      id: 'cnt-1', 
+      title: 'Employment Contract - Senior Developer', 
+      date: '2026-10-14', 
+      fee: 'ETB 450', 
+      status: 'Ready',
+      partyA: 'EthioTech Solutions PLC',
+      partyB: 'Ybeltal Semagn',
+      jurisdiction: 'Addis Ababa',
+      type: 'emp'
+    },
+    { 
+      id: 'cnt-2', 
+      title: 'Bilingual Mutual NDA', 
+      date: '2026-10-09', 
+      fee: 'ETB 300', 
+      status: 'Ready',
+      partyA: 'Alpha Consulting SC',
+      partyB: 'Horizon Logistics',
+      jurisdiction: 'FDRE Commercial Court',
+      type: 'nda'
+    }
+  ]);
 
   const fetchMyConsultations = async () => {
     setLoadingMyConsultations(true);
@@ -468,7 +498,7 @@ export default function LegalLinkHome() {
   };
 
   // -------------------------------------------------------------
-  // ISOLATED POPUP PRINT HANDLER (CLEAN 1-PAGE VOUCHER)
+  // ISOLATED POPUP PRINT HANDLER (RECEIPT VOUCHER)
   // -------------------------------------------------------------
   const handlePrintReceipt = (tx: any) => {
     const printWindow = window.open('', '_blank', 'width=750,height=850');
@@ -577,6 +607,194 @@ export default function LegalLinkHome() {
     printWindow.document.close();
   };
 
+  // -------------------------------------------------------------
+  // LEXDRAFT DYNAMIC PDF CONTRACT GENERATOR ENGINE
+  // -------------------------------------------------------------
+  const handleExportContractPDF = (contract: any) => {
+    const printWindow = window.open('', '_blank', 'width=850,height=950');
+    if (!printWindow) {
+      alert('Please allow popups to download/print your legal contract.');
+      return;
+    }
+
+    const type = contract.type || 'emp';
+    const partyA = contract.partyA || 'Employer / Disclosing Party';
+    const partyB = contract.partyB || 'Employee / Receiving Party';
+    const roleOrPurpose = contract.roleOrPurpose || 'Professional Services & Duties';
+    const salaryOrRent = contract.salaryOrRent || 'ETB 25,000.00';
+    const locationName = contract.jurisdiction || 'Addis Ababa, Federal Democratic Republic of Ethiopia';
+    const startDate = contract.date || new Date().toISOString().split('T')[0];
+
+    let contractBody = '';
+
+    if (type === 'emp') {
+      contractBody = `
+        <div class="preamble">
+          This Employment Agreement ("Agreement") is executed on this day, <strong>${startDate}</strong>, in accordance with the <strong>Labor Proclamation No. 1156/2019</strong> of the Federal Democratic Republic of Ethiopia, between:
+        </div>
+
+        <div class="parties-box">
+          <strong>1. EMPLOYER:</strong> ${partyA}, a business entity registered under the laws of Ethiopia.<br/>
+          <strong>2. EMPLOYEE:</strong> ${partyB}, residing in ${locationName}.
+        </div>
+
+        <div class="section-title">ARTICLE 1: POSITION AND DUTIES</div>
+        <p>The Employee is employed in the capacity of <strong>${roleOrPurpose}</strong>. The Employee agrees to execute all lawful directives, assignments, and fiduciary duties faithfully and in full accordance with the Employer's workplace policies and Ethiopian statutory labor regulations.</p>
+
+        <div class="section-title">ARTICLE 2: REMUNERATION AND BENEFITS</div>
+        <p>In consideration of the services rendered, the Employer shall pay the Employee a monthly gross remuneration of <strong>${salaryOrRent}</strong>, subject to statutory income tax and employee pension deductions (7%) mandated by the Federal Democratic Republic of Ethiopia.</p>
+
+        <div class="section-title">ARTICLE 3: PROBATIONARY PERIOD</div>
+        <p>Pursuant to Article 11 of Labor Proclamation No. 1156/2019, the Employee shall be subject to a probationary period not exceeding sixty (60) working days from the commencement date.</p>
+
+        <div class="section-title">ARTICLE 4: TERMINATION & DISPUTE SETTLEMENT</div>
+        <p>Termination of this Agreement shall be governed strictly by Articles 24 through 32 of Labor Proclamation No. 1156/2019. Any dispute arising out of this Agreement that cannot be settled amicably shall be submitted to the competent Labor Relations Board or First Instance Court of ${locationName}.</p>
+      `;
+    } else if (type === 'nda') {
+      contractBody = `
+        <div class="preamble">
+          This Mutual Non-Disclosure Agreement ("Agreement") is entered into on <strong>${startDate}</strong>, under the provisions of the <strong>Civil Code and Commercial Code of Ethiopia</strong>, between:
+        </div>
+
+        <div class="parties-box">
+          <strong>PARTY A:</strong> ${partyA}<br/>
+          <strong>PARTY B:</strong> ${partyB}
+        </div>
+
+        <div class="section-title">ARTICLE 1: PURPOSE OF DISCLOSURE</div>
+        <p>The parties intend to explore collaborative business opportunities relating to: <strong>${roleOrPurpose}</strong> ("Permitted Purpose").</p>
+
+        <div class="section-title">ARTICLE 2: CONFIDENTIAL INFORMATION & OBLIGATIONS</div>
+        <p>Each Receiving Party agrees to maintain in strict confidence all proprietary, financial, trade secret, software, and commercial data disclosed by the other party. Neither party shall disclose Confidential Information to any third party without prior written consent.</p>
+
+        <div class="section-title">ARTICLE 3: DURATION AND GOVERNING JURISDICTION</div>
+        <p>This confidentiality obligation shall persist for a period of two (2) years from the date of disclosure. This Agreement is governed by the laws of Ethiopia, and disputes shall be subject to arbitration under the Addis Ababa Chamber of Commerce Arbitration Center.</p>
+      `;
+    } else {
+      contractBody = `
+        <div class="preamble">
+          This Commercial Lease Agreement ("Lease") is executed on <strong>${startDate}</strong>, pursuant to Book IV of the <strong>Civil Code of Ethiopia</strong>, between:
+        </div>
+
+        <div class="parties-box">
+          <strong>LESSOR (LANDLORD):</strong> ${partyA}<br/>
+          <strong>LESSEE (TENANT):</strong> ${partyB}
+        </div>
+
+        <div class="section-title">ARTICLE 1: LEASED PREMISES</div>
+        <p>The Lessor hereby leases to the Lessee commercial premises situated in: <strong>${locationName}</strong> for commercial business use (${roleOrPurpose}).</p>
+
+        <div class="section-title">ARTICLE 2: RENT AND PAYMENT SCHEDULE</div>
+        <p>The agreed monthly rental fee is <strong>${salaryOrRent}</strong>, payable in advance on or before the 5th day of each calendar month via authorized bank transfer or Telebirr merchant payment.</p>
+
+        <div class="section-title">ARTICLE 3: STATUTORY COMPLIANCE</div>
+        <p>The Lessee shall maintain the premises in good condition and comply with all commercial licensing, environmental, and municipal fire safety codes of the Addis Ababa City Administration.</p>
+      `;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${contract.title} - Official LexDraft Document</title>
+          <style>
+            @page { size: portrait; margin: 20mm; }
+            body { font-family: "Times New Roman", Times, Georgia, serif; color: #111827; line-height: 1.6; font-size: 13px; margin: 0; padding: 25px; }
+            .contract-header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 24px; }
+            .republic { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #4b5563; font-weight: bold; }
+            .contract-title { font-size: 20px; font-weight: bold; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
+            .preamble { margin-bottom: 18px; text-align: justify; }
+            .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.8; }
+            .section-title { font-size: 13px; font-weight: bold; margin-top: 18px; margin-bottom: 6px; color: #0A1128; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px; }
+            p { margin: 0 0 12px 0; text-align: justify; }
+            .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; page-break-inside: avoid; }
+            .sig-line { border-top: 1px solid #111827; padding-top: 6px; font-size: 12px; }
+            .seal-box { border: 1px dashed #9ca3af; border-radius: 6px; height: 70px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #9ca3af; text-transform: uppercase; }
+            .footer-note { margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 9px; color: #6b7280; font-family: sans-serif; display: flex; justify-content: space-between; }
+          </style>
+        </head>
+        <body>
+          <div class="contract-header">
+            <div class="republic">FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA</div>
+            <div class="contract-title">${contract.title.toUpperCase()}</div>
+            <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">LEXDRAFT STATUTORY TEMPLATE • JURISDICTION: ${locationName.toUpperCase()}</div>
+          </div>
+
+          ${contractBody}
+
+          <div class="signature-grid">
+            <div>
+              <div class="seal-box">[ OFFICIAL STAMP / SIGNATURE ]</div>
+              <div class="sig-line">
+                <strong>FOR FIRST PARTY:</strong><br/>
+                Name: ${partyA}<br/>
+                Date: ________________________
+              </div>
+            </div>
+            <div>
+              <div class="seal-box">[ OFFICIAL STAMP / SIGNATURE ]</div>
+              <div class="sig-line">
+                <strong>FOR SECOND PARTY:</strong><br/>
+                Name: ${partyB}<br/>
+                Date: ________________________
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-note">
+            <span>Generated securely via LegalLink Ethiopia LexDraft Automation</span>
+            <span>Document Ref: ${contract.id.toUpperCase()}-STAMPED</span>
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() { window.close(); }
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handleCreateDocumentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTemplate) return;
+
+    const newId = `cnt-${Date.now().toString().slice(-4)}`;
+    const partyA = docFormData.partyA?.trim() || 'First Party Entity';
+    const partyB = docFormData.partyB?.trim() || userProfile?.full_name || 'Second Party';
+    const roleOrPurpose = docFormData.roleOrPurpose?.trim() || 'General Services';
+    const salaryOrRent = docFormData.salaryOrRent?.trim() || 'ETB 15,000.00';
+    const jurisdiction = docFormData.jurisdiction?.trim() || 'Addis Ababa';
+
+    const newContractRecord = {
+      id: newId,
+      title: `${selectedTemplate.title} - ${partyB}`,
+      date: new Date().toISOString().split('T')[0],
+      fee: `ETB ${selectedTemplate.priceETB}`,
+      status: 'Ready',
+      partyA,
+      partyB,
+      roleOrPurpose,
+      salaryOrRent,
+      jurisdiction,
+      type: selectedTemplate.id,
+    };
+
+    setSavedContracts((prev) => [newContractRecord, ...prev]);
+    setSelectedTemplate(null);
+    setDocFormData({});
+
+    // Launch instant print preview
+    handleExportContractPDF(newContractRecord);
+
+    // Route user to Client Portal -> Saved Contracts
+    setActiveTab('my-consultations');
+    setClientSubTab('contracts');
+  };
+
   const handleBookingSubmit = async () => {
     if (!situationText.trim()) {
       alert('Please describe your legal situation before submitting.');
@@ -611,14 +829,6 @@ export default function LegalLinkHome() {
       setIsSubmitting(false);
     }
   };
-
-  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-  const [docFormData, setDocFormData] = useState<Record<string, string>>({});
-  const [docGenerated, setDocGenerated] = useState(false);
-  const [savedContracts] = useState<any[]>([
-    { id: 'cnt-1', title: 'Employment Contract - Senior Developer', date: '2026-10-14', fee: 'ETB 450', status: 'Ready' },
-    { id: 'cnt-2', title: 'Bilingual Mutual NDA', date: '2026-10-09', fee: 'ETB 300', status: 'Ready' }
-  ]);
 
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
 
@@ -695,8 +905,15 @@ export default function LegalLinkHome() {
       category: 'Labor Law',
       priceETB: 450,
       popular: true,
-      desc: 'Compliant with Ethiopian Labor Proclamation No. 1156/2019 for fixed or indefinite terms.',
-      fields: ['employerName', 'employeeName', 'jobTitle', 'monthlySalary', 'startDate'],
+      desc: 'Fully compliant with Ethiopian Labor Proclamation No. 1156/2019 for fixed or indefinite terms.',
+      statute: 'Labor Proclamation No. 1156/2019',
+      fields: [
+        { key: 'partyA', label: 'Employer Entity Name (e.g. Acme Tech PLC)', placeholder: 'e.g. Safaricom Telecommunications PLC' },
+        { key: 'partyB', label: 'Employee Legal Name', placeholder: 'e.g. Abebe Bikila' },
+        { key: 'roleOrPurpose', label: 'Job Title & Responsibilities', placeholder: 'e.g. Senior Software Engineer' },
+        { key: 'salaryOrRent', label: 'Gross Monthly Salary (ETB)', placeholder: 'e.g. ETB 35,000.00' },
+        { key: 'jurisdiction', label: 'Workplace Jurisdiction City', placeholder: 'e.g. Addis Ababa' },
+      ],
     },
     {
       id: 'nda',
@@ -704,8 +921,15 @@ export default function LegalLinkHome() {
       category: 'Corporate & Business',
       priceETB: 300,
       popular: true,
-      desc: 'Protects proprietary secrets, financials, customer databases, and trade disclosures in Ethiopia.',
-      fields: ['disclosingParty', 'receivingParty', 'purpose', 'termYears'],
+      desc: 'Protects proprietary secrets, financials, customer databases, and commercial partnerships in Ethiopia.',
+      statute: 'Civil Code of Ethiopia Art. 2027 et seq.',
+      fields: [
+        { key: 'partyA', label: 'Disclosing Party Name', placeholder: 'e.g. FinTech Innovators PLC' },
+        { key: 'partyB', label: 'Receiving Party / Contractor Name', placeholder: 'e.g. Addis Tech Partners' },
+        { key: 'roleOrPurpose', label: 'Confidential Business Purpose', placeholder: 'e.g. Joint Payment Gateway Pilot Integration' },
+        { key: 'salaryOrRent', label: 'Liquidated Breach Damages (ETB)', placeholder: 'e.g. ETB 100,000.00' },
+        { key: 'jurisdiction', label: 'Arbitration Jurisdiction', placeholder: 'e.g. Addis Ababa Chamber of Commerce' },
+      ],
     },
     {
       id: 'lease',
@@ -713,15 +937,22 @@ export default function LegalLinkHome() {
       category: 'Property & Real Estate',
       priceETB: 600,
       popular: true,
-      desc: 'Commercial premises rental contract compliant with the Ethiopian Civil Code.',
-      fields: ['landlordName', 'tenantName', 'propertyAddress', 'monthlyRentETB'],
+      desc: 'Commercial premises rental contract with deposit and municipal compliance terms under Ethiopian Civil Code.',
+      statute: 'Civil Code of Ethiopia Art. 2896 et seq.',
+      fields: [
+        { key: 'partyA', label: 'Lessor (Landlord) Full Legal Name', placeholder: 'e.g. Haile Gebreselassie' },
+        { key: 'partyB', label: 'Lessee (Tenant) Business Name', placeholder: 'e.g. Blue Nile Trading PLC' },
+        { key: 'roleOrPurpose', label: 'Permitted Commercial Use', placeholder: 'e.g. Retail Office and Software Center' },
+        { key: 'salaryOrRent', label: 'Agreed Monthly Rent (ETB)', placeholder: 'e.g. ETB 45,000.00' },
+        { key: 'jurisdiction', label: 'Property Location (Sub-city, Woreda)', placeholder: 'e.g. Bole Sub-City, Woreda 03, Addis Ababa' },
+      ],
     },
   ];
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-amber-900 font-sans">
       
-      {/* 1. TOP NAVIGATION WITH ADVOCATE PORTAL & ADMIN SHORTCUTS */}
+      {/* 1. TOP NAVIGATION */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -781,7 +1012,6 @@ export default function LegalLinkHome() {
                 <span>{lang === 'en' ? 'አማ (AM)' : 'EN (US)'}</span>
               </button>
 
-              {/* Direct Advocate Workspace Link */}
               <Link
                 href="/advocate"
                 className="px-3 py-1.5 rounded-lg bg-slate-100 text-[#0A1128] hover:bg-slate-200 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 shadow-sm"
@@ -790,7 +1020,6 @@ export default function LegalLinkHome() {
                 <span>Advocate Portal</span>
               </Link>
 
-              {/* Direct Admin Access */}
               <Link
                 href="/admin"
                 className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 text-xs font-bold border border-amber-300 transition-colors flex items-center gap-1"
@@ -1045,15 +1274,23 @@ export default function LegalLinkHome() {
               </span>
               <h1 className="text-2xl sm:text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300 mt-1 max-w-md">
-                Manage your consultations, authorize Telebirr USSD retainers, and access printable escrow receipts.
+                Manage consultations, download generated LexDraft contracts, and access printable escrow receipts.
               </p>
             </div>
-            <button
-              onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-bold rounded-xl text-xs shadow-lg transition-all cursor-pointer"
-            >
-              + Book New Advocate
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('lexdraft')}
+                className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 transition-all cursor-pointer"
+              >
+                + Draft New Contract
+              </button>
+              <button
+                onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-bold rounded-xl text-xs shadow-lg transition-all cursor-pointer"
+              >
+                + Book Advocate
+              </button>
+            </div>
           </div>
 
           <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
@@ -1201,30 +1438,27 @@ export default function LegalLinkHome() {
             </div>
           )}
 
-          {/* SUB-TAB 2: CONTRACTS */}
+          {/* SUB-TAB 2: CONTRACTS (WITH DYNAMIC PDF RE-DOWNLOAD) */}
           {clientSubTab === 'contracts' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedContracts.map((doc) => (
-                <div key={doc.id} className="p-5 rounded-2xl border border-slate-200 bg-white flex justify-between items-center shadow-sm">
-                  <div>
-                    <span className="text-[10px] font-bold text-amber-600 uppercase">LexDraft Stored Document</span>
-                    <h4 className="font-bold text-sm text-[#0A1128] mt-0.5">{doc.title}</h4>
-                    <span className="text-[11px] text-slate-400 block mt-1">Generated: {doc.date} • {doc.fee}</span>
+                <div key={doc.id} className="p-5 rounded-2xl border border-slate-200 bg-white flex justify-between items-center shadow-sm hover:border-[#0A1128] transition-all">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-amber-600 uppercase flex items-center gap-1">
+                      <FileText className="w-3 h-3" />
+                      LexDraft Statutory Document
+                    </span>
+                    <h4 className="font-bold text-sm text-[#0A1128]">{doc.title}</h4>
+                    <span className="text-[11px] text-slate-500 block">
+                      Parties: {doc.partyA} & {doc.partyB} • {doc.date}
+                    </span>
                   </div>
                   <button 
-                    onClick={() => {
-                      handlePrintReceipt({
-                        transaction_ref: 'DOC-' + doc.id.toUpperCase(),
-                        client_name: userProfile?.full_name || 'Client',
-                        phone_number: 'N/A (Document Contract)',
-                        amount_etb: doc.fee.replace(/\D/g, ''),
-                        created_at: doc.date,
-                      });
-                    }}
-                    className="p-2.5 bg-slate-100 hover:bg-slate-200 text-[#0A1128] rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => handleExportContractPDF(doc)}
+                    className="p-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
                   >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Print PDF</span>
+                    <Printer className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Export PDF</span>
                   </button>
                 </div>
               ))}
@@ -1287,7 +1521,129 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 4. TELEBIRR USSD PUSH CHECKOUT MODAL */}
+      {/* 4. LEXDRAFT AUTOMATION TAB */}
+      {activeTab === 'lexdraft' && (
+        <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">ETHIOPIAN LEGAL DOCUMENT AUTOMATION</span>
+            <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mt-1">LexDraft Contract Builder</h1>
+            <p className="text-xs sm:text-sm text-slate-600 mt-2">
+              Generate fully customized, legally binding Ethiopian contracts and agreements with instant PDF download and witness seals.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {lexdraftTemplates.map((tpl) => (
+              <div key={tpl.id} className="p-6 rounded-3xl border border-slate-200 bg-white flex flex-col justify-between hover:shadow-xl transition-all border-t-4 border-t-[#0A1128]">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 uppercase">
+                      {tpl.category}
+                    </span>
+                    <span className="font-black text-sm text-[#0A1128]">ETB {tpl.priceETB}</span>
+                  </div>
+
+                  <h3 className="font-black text-lg text-[#0A1128]">{tpl.title}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
+
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-600 font-medium">
+                    ⚖️ <strong>Statute:</strong> {tpl.statute}
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      setSelectedTemplate(tpl);
+                      setDocFormData({
+                        partyA: '',
+                        partyB: userProfile?.full_name || '',
+                        roleOrPurpose: '',
+                        salaryOrRent: '',
+                        jurisdiction: 'Addis Ababa',
+                      });
+                    }}
+                    className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow transition-all"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Customize & Export PDF</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      )}
+
+      {/* 5. LEXDRAFT BUILDER MODAL (CUSTOMIZE TERMS & GENERATE PDF) */}
+      {selectedTemplate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+            
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  LEXDRAFT DYNAMIC DOCUMENT ENGINE
+                </span>
+                <h3 className="font-black text-xl">{selectedTemplate.title}</h3>
+                <span className="text-xs text-slate-300 font-mono mt-0.5 block">
+                  Governed by {selectedTemplate.statute}
+                </span>
+              </div>
+              <button 
+                onClick={() => setSelectedTemplate(null)}
+                className="text-white/70 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Builder Form */}
+            <form onSubmit={handleCreateDocumentSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+              {selectedTemplate.fields.map((f: any) => (
+                <div key={f.key}>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                    {f.label}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={docFormData[f.key] || ''}
+                    onChange={(e) => setDocFormData({ ...docFormData, [f.key]: e.target.value })}
+                    placeholder={f.placeholder}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+              ))}
+
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+                Clicking <strong>"Generate & Export PDF"</strong> immediately compiles the complete statutory legal contract, opens the official PDF print window, and saves the document to your <strong>Client Portal</strong>.
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTemplate(null)}
+                  className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-2/3 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow"
+                >
+                  <Printer className="w-4 h-4 text-amber-400" />
+                  <span>Generate & Export PDF</span>
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* 6. TELEBIRR USSD PUSH CHECKOUT MODAL */}
       {payingConsultation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
@@ -1422,7 +1778,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 5. SUPABASE AUTH MODAL WITH GOOGLE OAUTH */}
+      {/* 7. SUPABASE AUTH MODAL WITH GOOGLE OAUTH */}
       {authModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
@@ -1442,7 +1798,6 @@ export default function LegalLinkHome() {
 
             <div className="p-6 space-y-4">
               
-              {/* GOOGLE SIGN IN DIRECT BUTTON */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -1457,7 +1812,6 @@ export default function LegalLinkHome() {
                 <span>Continue with Google</span>
               </button>
 
-              {/* DIVIDER */}
               <div className="relative my-2">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200"></div>
@@ -1467,7 +1821,6 @@ export default function LegalLinkHome() {
                 </div>
               </div>
 
-              {/* Tab Selector */}
               <div className="flex border-b border-slate-200 text-xs font-bold">
                 <button
                   type="button"
@@ -1582,7 +1935,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 6. CONSULTATION DETAILS & ROOM MODAL */}
+      {/* 8. CONSULTATION DETAILS & ROOM MODAL */}
       {selectedConsultationDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
@@ -1692,7 +2045,7 @@ export default function LegalLinkHome() {
         </div>
       )}
 
-      {/* 7. FOOTER */}
+      {/* 9. FOOTER */}
       <footer className="bg-[#060B1A] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -1711,6 +2064,7 @@ export default function LegalLinkHome() {
               <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Platform</h5>
               <ul className="text-xs space-y-2 text-slate-400">
                 <li className="cursor-pointer hover:text-white" onClick={() => { setActiveTab('match'); setMatchStep(1); }}>Find a Lawyer</li>
+                <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('lexdraft')}>LexDraft Builder</li>
                 <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('my-consultations')}>Client Portal</li>
                 <li>
                   <Link href="/advocate" className="text-slate-400 hover:text-amber-400">Advocate Workspace ↗</Link>
