@@ -104,7 +104,9 @@ export default function LegalLinkHome() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -349,7 +351,9 @@ export default function LegalLinkHome() {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(reviewsChannel);
+    return () => {
+      void supabase.removeChannel(reviewsChannel);
+    };
   }, []);
 
   const handleOpenReviewModal = (c: any) => {
@@ -411,12 +415,58 @@ export default function LegalLinkHome() {
     }
   };
 
+  // Fixed type error: returning void from useEffect cleanup
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
       fetchTransactions();
+
+      const supabase = createClient();
+      const channel = supabase
+        .channel('client_consultations_realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'consultations' },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              setMyConsultations((prev) =>
+                prev.map((item) => (item.id === payload.new.id ? { ...item, ...payload.new } : item))
+              );
+              setSelectedConsultationDetails((prev: any) =>
+                prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev
+              );
+              if (payingConsultation && payingConsultation.id === payload.new.id && payload.new.payment_status === 'escrow_locked') {
+                setPushStatus('confirmed');
+              }
+            } else if (payload.eventType === 'INSERT') {
+              setMyConsultations((prev) => [payload.new, ...prev]);
+            } else if (payload.eventType === 'DELETE') {
+              setMyConsultations((prev) => prev.filter((item) => item.id !== payload.old.id));
+              setSelectedConsultationDetails((prev: any) =>
+                prev?.id === payload.old.id ? null : prev
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      const txChannel = supabase
+        .channel('client_escrow_tx_realtime')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'escrow_transactions' },
+          (payload) => {
+            setLiveTransactions((prev) => [payload.new, ...prev]);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        void supabase.removeChannel(channel);
+        void supabase.removeChannel(txChannel);
+      };
     }
-  }, [activeTab]);
+  }, [activeTab, payingConsultation]);
 
   // Real-time Chat
   const [messages, setMessages] = useState<any[]>([]);
@@ -426,49 +476,72 @@ export default function LegalLinkHome() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
+  // Fixed type error: returning void from useEffect cleanup
   useEffect(() => {
-    if (selectedConsultationDetails) {
-      const consultationId = selectedConsultationDetails.id;
-      fetchCaseDocuments(consultationId);
+    if (!selectedConsultationDetails) return;
 
-      const supabase = createClient();
+    const consultationId = selectedConsultationDetails.id;
+    fetchCaseDocuments(consultationId);
 
-      if (modalTab === 'room') {
-        setLoadingMessages(true);
-        const fetchHistory = async () => {
-          const { data, error } = await supabase
-            .from('consultation_messages')
-            .select('*')
-            .eq('consultation_id', consultationId)
-            .order('created_at', { ascending: true });
+    const supabase = createClient();
+    let chatChannel: any = null;
 
-          if (!error && data) setMessages(data);
-          setLoadingMessages(false);
-        };
-        fetchHistory();
+    if (modalTab === 'room') {
+      setLoadingMessages(true);
+      const fetchHistory = async () => {
+        const { data, error } = await supabase
+          .from('consultation_messages')
+          .select('*')
+          .eq('consultation_id', consultationId)
+          .order('created_at', { ascending: true });
 
-        const chatChannel = supabase
-          .channel(`chat_${consultationId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'consultation_messages',
-              filter: `consultation_id=eq.${consultationId}`,
-            },
-            (payload) => {
-              setMessages((prev) => {
-                if (prev.some((m) => m.id === payload.new.id)) return prev;
-                return [...prev, payload.new];
-              });
-            }
-          )
-          .subscribe();
+        if (!error && data) setMessages(data);
+        setLoadingMessages(false);
+      };
+      fetchHistory();
 
-        return () => supabase.removeChannel(chatChannel);
-      }
+      chatChannel = supabase
+        .channel(`chat_${consultationId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'consultation_messages',
+            filter: `consultation_id=eq.${consultationId}`,
+          },
+          (payload) => {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
+            });
+          }
+        )
+        .subscribe();
     }
+
+    const docsChannel = supabase
+      .channel(`docs_${consultationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'case_documents',
+          filter: `consultation_id=eq.${consultationId}`,
+        },
+        (payload) => {
+          setCaseDocuments((prev) => [payload.new, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (chatChannel) {
+        void supabase.removeChannel(chatChannel);
+      }
+      void supabase.removeChannel(docsChannel);
+    };
   }, [selectedConsultationDetails, modalTab]);
 
   useEffect(() => {
@@ -810,7 +883,7 @@ export default function LegalLinkHome() {
             <strong>2. EMPLOYEE:</strong> ${partyB} (${locationName})
           </div>
           <div class="section-title">ARTICLE 1: POSITION AND DUTIES</div>
-          <p>The Employee is employed as <strong>${roleOrPurpose}</strong> in accordance with Labor Proclamation No. 1156/2019.</p>
+          <p>The Employee is employed in the capacity of <strong>${roleOrPurpose}</strong> in accordance with Labor Proclamation No. 1156/2019.</p>
           <div class="section-title">ARTICLE 2: REMUNERATION</div>
           <p>The monthly remuneration is <strong>${salaryOrRent}</strong>, subject to statutory tax and pension deductions.</p>
         `;
@@ -1061,27 +1134,7 @@ export default function LegalLinkHome() {
     return matchesCategory && matchesSearch;
   });
 
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const clientFaqs = [
-    {
-      q: 'How does Telebirr Escrow protect my money?',
-      a: 'When you book a consultation, your ETB 1,500 retainer is NOT paid immediately to the advocate. It is held securely in LegalLink’s segregated trust account. Only after your consultation is completed and authorized does the payout get released. If an advocate does not attend, you receive an automated 100% refund.'
-    },
-    {
-      q: 'Are all lawyers on LegalLink licensed by the Ministry of Justice?',
-      a: 'Yes. Every advocate must submit their active Federal or Regional Ministry of Justice practicing license and bar credentials during onboarding. Our administrative compliance officers verify every advocate before their profile goes live.'
-    },
-    {
-      q: 'Can I draft contracts in Amharic (አማርኛ) for DARA registration?',
-      a: 'Yes! LexDraft supports full Amharic script and dual-column bilingual output (English and Amharic) formatted according to Federal Documents Authentication and Registration Agency (DARA) requirements, complete with witness signature blocks.'
-    },
-    {
-      q: 'What if I am in the Ethiopian diaspora or outside Addis Ababa?',
-      a: 'LegalLink is designed for remote accessibility. You can book consultations from anywhere worldwide, authorize payments via international cards or Telebirr, and conduct consultations through our encrypted video rooms.'
-    }
-  ];
-
-  // Common Practice Areas
+  // Practice Areas
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
     { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce, custody, adoption, inheritance disputes.' },
@@ -1417,11 +1470,52 @@ export default function LegalLinkHome() {
             </div>
           </div>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-2">
+            <button
+              onClick={() => { setActiveTab('match'); setMatchStep(1); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
+            </button>
+            <button
+              onClick={() => { setActiveTab('legaltalk'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              LegalTalk Forum
+            </button>
+            <button
+              onClick={() => { setActiveTab('lexdraft'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              LexDraft Builder
+            </button>
+            <button
+              onClick={() => { setActiveTab('my-consultations'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-lg"
+            >
+              {lang === 'am' ? 'የደንበኛ ገጽ' : 'Client Portal'}
+            </button>
+            <Link
+              href="/advocate"
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-[#0A1128] hover:bg-slate-100 rounded-lg"
+            >
+              Advocate Portal ↗
+            </Link>
+            <Link
+              href="/admin"
+              className="block w-full text-left px-3 py-2 text-sm font-bold text-amber-700 hover:bg-amber-50 rounded-lg"
+            >
+              Admin Console ↗
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* 2. TAB ROUTING VIEW */}
       
-      {/* VIEW A: COMPLETE LANDING PAGE (ALL 8 ORIGINAL SECTIONS) */}
+      {/* VIEW A: COMPLETE LANDING PAGE (ALL 8 ORIGINAL SECTIONS RESTORED) */}
       {activeTab === 'home' && (
         <main className="flex-1">
           
