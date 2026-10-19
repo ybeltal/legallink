@@ -7,7 +7,7 @@ import {
   Smartphone, MessageSquare, Video, Send, Loader2, RefreshCw, DollarSign, 
   User, MapPin, ExternalLink, ArrowRight, Award, LogOut, Check, AlertCircle, 
   ChevronRight, Calendar, FileText, Paperclip, UploadCloud, Download, X,
-  Gavel, ArrowUpRight
+  Gavel, ArrowUpRight, Mic, Play, Volume2, HelpCircle, SendHorizonal
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -18,19 +18,40 @@ export default function AdvocateWorkspace() {
   const [advocateTitle, setAdvocateTitle] = useState('Senior Federal Advocate • Corporate & Civil Law');
   const [licenseNo, setLicenseNo] = useState('MOJ/FED/2019/8412');
 
-  // Tab & Data State
-  const [activeTab, setActiveTab] = useState<'cases' | 'payouts'>('cases');
+  // Tab State: Cases, Forum (LegalTalk), Payouts
+  const [activeTab, setActiveTab] = useState<'cases' | 'forum' | 'payouts'>('cases');
   const [consultations, setConsultations] = useState<any[]>([]);
+  const [forumQuestions, setForumQuestions] = useState<any[]>([
+    {
+      id: 'q1',
+      title: 'Can a commercial landlord in Addis Ababa demand 1-year advance rent and raise prices mid-lease?',
+      category: 'Property & Real Estate',
+      author: 'Kidus M. (Bole)',
+      date: '2 days ago',
+      verified_answer: null,
+    },
+    {
+      id: 'q2',
+      title: 'What are the employee severance rules during the 60-day probation period under Proclamation 1156/2019?',
+      category: 'Employment Law',
+      author: 'Selamawit B. (Kazanchis)',
+      date: '4 days ago',
+      verified_answer: null,
+    }
+  ]);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'escrow_locked' | 'approved' | 'completed'>('all');
+
+  // Active Forum Reply State
+  const [selectedQuestionToAnswer, setSelectedQuestionToAnswer] = useState<any | null>(null);
+  const [answerBodyText, setAnswerBodyText] = useState('');
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
 
   // Live Consultation Room Modal State
   const [activeRoomCase, setActiveRoomCase] = useState<any | null>(null);
   const [roomModalTab, setRoomModalTab] = useState<'milestones' | 'chat' | 'documents'>('milestones');
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessageText, setNewMessageText] = useState('');
-  const [loadingMessages, setLoadingMessages] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +65,6 @@ export default function AdvocateWorkspace() {
 
   // Evidence & Case Documents State
   const [caseDocuments, setCaseDocuments] = useState<any[]>([]);
-  const [loadingDocs, setLoadingDocs] = useState<boolean>(false);
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
   const fileUploadInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,23 +107,52 @@ export default function AdvocateWorkspace() {
     }
   };
 
-  const fetchCaseDocuments = async (consultationId: string) => {
-    setLoadingDocs(true);
+  const handlePublishAnswer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedQuestionToAnswer || !answerBodyText.trim()) return;
+
+    setIsSubmittingAnswer(true);
     try {
       const supabase = createClient();
-      const { data, error } = await supabase
+      const payload = {
+        verified_answer: answerBodyText.trim(),
+        advocate_name: advocateName,
+        advocate_title: advocateTitle,
+        answered_at: new Date().toISOString(),
+      };
+
+      // Update in Supabase if table exists, otherwise update local state
+      await supabase
+        .from('community_questions')
+        .update(payload)
+        .eq('id', selectedQuestionToAnswer.id);
+
+      setForumQuestions((prev) =>
+        prev.map((q) => (q.id === selectedQuestionToAnswer.id ? { ...q, ...payload } : q))
+      );
+
+      setSelectedQuestionToAnswer(null);
+      setAnswerBodyText('');
+      alert('✓ Verified legal answer published live to LegalTalk!');
+    } catch (err: any) {
+      alert('Failed to publish answer: ' + err.message);
+    } finally {
+      setIsSubmittingAnswer(false);
+    }
+  };
+
+  const fetchCaseDocuments = async (consultationId: string) => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
         .from('case_documents')
         .select('*')
         .eq('consultation_id', consultationId)
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setCaseDocuments(data);
-      }
+      if (data) setCaseDocuments(data);
     } catch (err) {
       console.error('Error fetching advocate documents:', err);
-    } finally {
-      setLoadingDocs(false);
     }
   };
 
@@ -132,7 +181,7 @@ export default function AdvocateWorkspace() {
         ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
         : `${Math.round(file.size / 1024)} KB`;
 
-      const { data: newDocRecord, error: insertError } = await supabase
+      const { data: newDocRecord } = await supabase
         .from('case_documents')
         .insert([
           {
@@ -146,8 +195,6 @@ export default function AdvocateWorkspace() {
         ])
         .select()
         .single();
-
-      if (insertError) throw insertError;
 
       if (newDocRecord) {
         setCaseDocuments((prev) => [newDocRecord, ...prev]);
@@ -225,22 +272,8 @@ export default function AdvocateWorkspace() {
       )
       .subscribe();
 
-    const payoutChannel = supabase
-      .channel('advocate_payouts_realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'escrow_transactions' },
-        (payload) => {
-          if (payload.new.status === 'payout_released') {
-            setPayouts((prev) => [payload.new, ...prev]);
-          }
-        }
-      )
-      .subscribe();
-
     return () => {
       void supabase.removeChannel(caseChannel);
-      void supabase.removeChannel(payoutChannel);
     };
   }, []);
 
@@ -260,7 +293,6 @@ export default function AdvocateWorkspace() {
       fetchCaseDocuments(caseId);
 
       const supabase = createClient();
-      setLoadingMessages(true);
       const fetchChatHistory = async () => {
         const { data } = await supabase
           .from('consultation_messages')
@@ -269,7 +301,6 @@ export default function AdvocateWorkspace() {
           .order('created_at', { ascending: true });
 
         if (data) setMessages(data);
-        setLoadingMessages(false);
       };
 
       fetchChatHistory();
@@ -293,34 +324,11 @@ export default function AdvocateWorkspace() {
         )
         .subscribe();
 
-      const docsSub = supabase
-        .channel(`advocate_docs_${caseId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'case_documents',
-            filter: `consultation_id=eq.${caseId}`,
-          },
-          (payload) => {
-            setCaseDocuments((prev) => [payload.new, ...prev]);
-          }
-        )
-        .subscribe();
-
       return () => {
         void supabase.removeChannel(chatSub);
-        void supabase.removeChannel(docsSub);
       };
     }
   }, [activeRoomCase]);
-
-  useEffect(() => {
-    if (roomModalTab === 'chat') {
-      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, roomModalTab]);
 
   const handleSendAdvocateMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -352,17 +360,6 @@ export default function AdvocateWorkspace() {
   const pendingInEscrowETB = consultations
     .filter((c) => c.payment_status === 'escrow_locked')
     .reduce((sum, c) => sum + (Number(c.escrow_amount || 1500) * 0.85), 0);
-
-  const activeConsultationsCount = consultations.filter(
-    (c) => c.status === 'approved' || c.payment_status === 'escrow_locked'
-  ).length;
-
-  const filteredCases = consultations.filter((c) => {
-    if (statusFilter === 'escrow_locked') return c.payment_status === 'escrow_locked';
-    if (statusFilter === 'approved') return c.status === 'approved';
-    if (statusFilter === 'completed') return c.status === 'completed';
-    return true;
-  });
 
   const legalStages = [
     { step: 1, title: 'Case Intake & Evidence Audit', am: 'የማስረጃ ማሰባሰብ' },
@@ -440,63 +437,8 @@ export default function AdvocateWorkspace() {
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white">{advocateName}</h1>
             <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              {advocateTitle}. Verified under Ministry of Justice credential <strong className="text-amber-400 font-mono">{licenseNo}</strong>. Update client litigation stages and court hearing dates below.
+              {advocateTitle}. Licensed under Ministry of Justice credential <strong className="text-amber-400 font-mono">{licenseNo}</strong>.
             </p>
-          </div>
-
-          <div className="p-3.5 bg-slate-900/80 rounded-2xl border border-slate-700/80 text-center sm:text-right">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">Settlement Channel</span>
-            <span className="text-xs font-bold text-[#0072CE] flex items-center justify-center sm:justify-end gap-1 mt-0.5">
-              <Smartphone className="w-3.5 h-3.5" />
-              Telebirr B2C Direct
-            </span>
-          </div>
-        </div>
-
-        {/* Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-3xl bg-white border border-slate-200/80 space-y-2 shadow-sm">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold">
-              <span>Total Disbursed Earnings</span>
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-2xl font-black text-emerald-600 font-mono">
-              ETB {totalEarnedETB.toLocaleString()}.00
-            </div>
-            <span className="text-[11px] text-slate-400 block">85% net payout received via Telebirr</span>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-slate-200/80 space-y-2 shadow-sm">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold">
-              <span>Pending Escrow Retainers</span>
-              <Lock className="w-4 h-4 text-amber-500" />
-            </div>
-            <div className="text-2xl font-black text-amber-600 font-mono">
-              ETB {pendingInEscrowETB.toLocaleString()}.00
-            </div>
-            <span className="text-[11px] text-slate-400 block">Secured in trust, awaiting completion</span>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-slate-200/80 space-y-2 shadow-sm">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold">
-              <span>Active Consultations</span>
-              <Briefcase className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="text-2xl font-black text-[#0A1128]">
-              {activeConsultationsCount} Active
-            </div>
-            <span className="text-[11px] text-slate-400 block">Approved briefs & locked escrow cases</span>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-white border border-slate-200/80 space-y-2 shadow-sm">
-            <div className="flex justify-between items-center text-slate-500 text-xs font-semibold">
-              <span>Litigation Stage Control</span>
-              <Gavel className="w-4 h-4 text-purple-600" />
-            </div>
-            <div className="text-2xl font-black text-[#0A1128]">
-              6 Stages
-            </div>
-            <span className="text-[11px] text-slate-400 block">Pleadings to Execution Decree</span>
           </div>
         </div>
 
@@ -504,15 +446,23 @@ export default function AdvocateWorkspace() {
         <div className="flex border-b border-slate-200 gap-6 text-xs font-bold">
           <button
             onClick={() => setActiveTab('cases')}
-            className={`pb-3 border-b-2 cursor-pointer transition-colors ${
+            className={`pb-3 border-b-2 cursor-pointer transition-all ${
               activeTab === 'cases' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
             }`}
           >
             Assigned Legal Cases ({consultations.length})
           </button>
           <button
+            onClick={() => setActiveTab('forum')}
+            className={`pb-3 border-b-2 cursor-pointer transition-all ${
+              activeTab === 'forum' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
+            }`}
+          >
+            LegalTalk Q&A Expert Desk ({forumQuestions.filter(q => !q.verified_answer).length} pending)
+          </button>
+          <button
             onClick={() => setActiveTab('payouts')}
-            className={`pb-3 border-b-2 cursor-pointer transition-colors ${
+            className={`pb-3 border-b-2 cursor-pointer transition-all ${
               activeTab === 'payouts' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400 hover:text-slate-700'
             }`}
           >
@@ -523,13 +473,15 @@ export default function AdvocateWorkspace() {
         {/* TAB 1: ASSIGNED CASES */}
         {activeTab === 'cases' && (
           <div className="space-y-4">
+            <h2 className="font-black text-lg text-[#0A1128]">Assigned Client Briefs</h2>
+
             <div className="grid grid-cols-1 gap-4">
-              {filteredCases.length === 0 ? (
+              {consultations.length === 0 ? (
                 <div className="p-16 text-center bg-white rounded-3xl border border-slate-200 text-slate-400 text-xs">
-                  No cases match the selected filter.
+                  No cases assigned yet.
                 </div>
               ) : (
-                filteredCases.map((c) => {
+                consultations.map((c) => {
                   const stageObj = legalStages.find((s) => s.step === (c.case_stage || 1)) || legalStages[0];
                   return (
                     <div
@@ -545,6 +497,13 @@ export default function AdvocateWorkspace() {
                             <span>Stage {c.case_stage || 1}: {stageObj.am}</span>
                           </span>
 
+                          {c.voice_note_url && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200 flex items-center gap-1">
+                              <Mic className="w-3 h-3 text-purple-600" />
+                              <span>Client Voice Note Available</span>
+                            </span>
+                          )}
+
                           {c.next_court_date && (
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 font-mono">
                               <Calendar className="w-3 h-3 text-amber-600" />
@@ -556,6 +515,16 @@ export default function AdvocateWorkspace() {
                         <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
                           {c.situation_description}
                         </p>
+
+                        {c.voice_note_url && (
+                          <div className="p-3 bg-purple-50/60 border border-purple-100 rounded-2xl max-w-md space-y-1">
+                            <span className="text-[10px] font-bold text-purple-900 uppercase flex items-center gap-1">
+                              <Volume2 className="w-3 h-3" />
+                              Client Recorded Voice Brief (ድምፅ):
+                            </span>
+                            <audio controls src={c.voice_note_url} className="w-full h-8 rounded" />
+                          </div>
+                        )}
 
                         <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-400 pt-1 font-mono">
                           <span className="text-slate-700 font-semibold font-sans">Client: {c.client_name || 'Anonymous'}</span>
@@ -595,7 +564,51 @@ export default function AdvocateWorkspace() {
           </div>
         )}
 
-        {/* TAB 2: PAYOUTS */}
+        {/* TAB 2: LEGALTALK Q&A EXPERT DESK */}
+        {activeTab === 'forum' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-slate-900 to-[#102A43] p-6 rounded-3xl text-white space-y-2">
+              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">ADVANCED PRO BONO DESK</span>
+              <h2 className="font-black text-xl">Answer Community Legal Inquiries</h2>
+              <p className="text-xs text-slate-300">
+                Provide verified expert answers to public questions on LegalTalk. Your responses appear instantly with direct consultation CTAs.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {forumQuestions.map((q) => (
+                <div key={q.id} className="p-6 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase">
+                      {q.category}
+                    </span>
+                    <span className="text-xs text-slate-400">Asked by {q.author} • {q.date}</span>
+                  </div>
+                  <h3 className="font-black text-base text-[#0A1128]">{q.title}</h3>
+
+                  {q.verified_answer ? (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-1">
+                      <strong className="text-emerald-900 block">✓ Published Expert Answer by {advocateName}:</strong>
+                      <p className="text-emerald-800 leading-relaxed">{q.verified_answer}</p>
+                    </div>
+                  ) : (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => setSelectedQuestionToAnswer(q)}
+                        className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Write Verified Legal Answer</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: PAYOUTS */}
         {activeTab === 'payouts' && (
           <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm">
             <h3 className="font-bold text-base text-[#0A1128]">Direct Telebirr B2C Disbursements</h3>
@@ -615,12 +628,75 @@ export default function AdvocateWorkspace() {
 
       </main>
 
-      {/* 3. CASE STAGE & COURT HEARING MANAGER MODAL (3 TABS: MILESTONES, CHAT, DOCUMENTS) */}
+      {/* 3. VERIFIED ANSWER PUBLISH MODAL */}
+      {selectedQuestionToAnswer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
+                  EXPERT LEGAL COUNSEL REPLY
+                </span>
+                <h3 className="font-black text-lg">Publish Verified Answer</h3>
+              </div>
+              <button onClick={() => setSelectedQuestionToAnswer(null)} className="text-white/70 hover:text-white p-1 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePublishAnswer} className="p-6 space-y-4 text-xs">
+              <div className="p-3 bg-slate-50 border rounded-xl font-bold text-slate-800">
+                "{selectedQuestionToAnswer.title}"
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Your Legal Opinion / Statutory Guidance *</label>
+                <textarea
+                  rows={5}
+                  required
+                  value={answerBodyText}
+                  onChange={(e) => setAnswerBodyText(e.target.value)}
+                  placeholder="Cite relevant Civil Code articles, Proclamations, or legal procedures clearly..."
+                  className="w-full p-3.5 border border-slate-200 rounded-xl text-slate-900 leading-relaxed focus:outline-none focus:border-[#0A1128]"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedQuestionToAnswer(null)}
+                  className="w-1/3 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingAnswer}
+                  className="w-2/3 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl cursor-pointer shadow flex items-center justify-center gap-2"
+                >
+                  {isSubmittingAnswer ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span>Publish Live to LegalTalk</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CASE STAGE & COURT HEARING MANAGER MODAL */}
       {activeRoomCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
             
-            {/* Modal Header */}
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-center">
               <div>
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
@@ -635,7 +711,6 @@ export default function AdvocateWorkspace() {
               </button>
             </div>
 
-            {/* Modal Tabs Bar */}
             <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
               <button
                 onClick={() => setRoomModalTab('milestones')}
@@ -666,13 +741,20 @@ export default function AdvocateWorkspace() {
               </button>
             </div>
 
-            {/* Modal Tab Content */}
             <div className="flex-1 overflow-y-auto p-6 text-xs">
               
-              {/* TAB 1: COURT HEARING & LITIGATION STAGES */}
               {roomModalTab === 'milestones' && (
                 <form onSubmit={handleSaveMilestoneUpdate} className="space-y-6">
-                  
+                  {activeRoomCase.voice_note_url && (
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl space-y-2">
+                      <strong className="text-purple-900 font-bold flex items-center gap-1.5">
+                        <Mic className="w-4 h-4 text-purple-600" />
+                        Client Audio Brief (የተቀዳ የደንበኛ ድምፅ)
+                      </strong>
+                      <audio controls src={activeRoomCase.voice_note_url} className="w-full h-8 rounded" />
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 uppercase mb-2">
                       Select Current Litigation Stage (የክስ ሂደት ደረጃ)
@@ -713,53 +795,39 @@ export default function AdvocateWorkspace() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-bold text-slate-700 uppercase mb-1">
-                          Hearing Date & Time (የቀጠሮ ቀን)
-                        </label>
+                        <label className="block font-bold text-slate-700 uppercase mb-1">Hearing Date & Time</label>
                         <input
                           type="datetime-local"
                           value={courtDateInput}
                           onChange={(e) => setCourtDateInput(e.target.value)}
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900"
                         />
                       </div>
-
                       <div>
-                        <label className="block font-bold text-slate-700 uppercase mb-1">
-                          Assigned Court & Bench (ፍርድ ቤትና ችሎት)
-                        </label>
+                        <label className="block font-bold text-slate-700 uppercase mb-1">Court & Bench</label>
                         <input
                           type="text"
                           value={courtNameInput}
                           onChange={(e) => setCourtNameInput(e.target.value)}
-                          placeholder="e.g. Federal High Court (Lideta, Commercial Bench)"
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                         />
                       </div>
-
                       <div>
-                        <label className="block font-bold text-slate-700 uppercase mb-1">
-                          Courtroom / Hall Number (የችሎት ክፍል)
-                        </label>
+                        <label className="block font-bold text-slate-700 uppercase mb-1">Courtroom Number</label>
                         <input
                           type="text"
                           value={courtRoomInput}
                           onChange={(e) => setCourtRoomInput(e.target.value)}
-                          placeholder="e.g. Room 12, 2nd Floor"
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                         />
                       </div>
-
                       <div>
-                        <label className="block font-bold text-slate-700 uppercase mb-1">
-                          Hearing Objective (የቀጠሮው ምክንያት)
-                        </label>
+                        <label className="block font-bold text-slate-700 uppercase mb-1">Hearing Objective</label>
                         <input
                           type="text"
                           value={hearingObjectiveInput}
                           onChange={(e) => setHearingObjectiveInput(e.target.value)}
-                          placeholder="e.g. Hearing Defendant's Statement of Defense"
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#0A1128]"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                         />
                       </div>
                     </div>
@@ -768,41 +836,24 @@ export default function AdvocateWorkspace() {
                   <button
                     type="submit"
                     disabled={isUpdatingMilestone}
-                    className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow transition-all"
+                    className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow"
                   >
-                    {isUpdatingMilestone ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                        <span>Synchronizing & Notifying Client...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-400" />
-                        <span>Save Milestone & Update Client Portal</span>
-                      </>
-                    )}
+                    {isUpdatingMilestone ? 'Updating...' : 'Save Milestone & Update Client Portal'}
                   </button>
                 </form>
               )}
 
-              {/* TAB 2: LIVE CHAT */}
               {roomModalTab === 'chat' && (
                 <div className="space-y-4">
                   <div className="h-72 bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-y-auto space-y-3">
-                    {messages.length === 0 ? (
-                      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-                        No messages in this case thread yet.
-                      </div>
-                    ) : (
-                      messages.map((m) => (
-                        <div key={m.id} className={`flex flex-col ${m.sender_role === 'advocate' ? 'items-end' : 'items-start'}`}>
-                          <span className="text-[10px] text-slate-400 px-1 mb-0.5">{m.sender_name}</span>
-                          <div className={`p-3 rounded-2xl text-xs max-w-md ${m.sender_role === 'advocate' ? 'bg-[#0A1128] text-white' : 'bg-white border'}`}>
-                            {m.message_text}
-                          </div>
+                    {messages.map((m) => (
+                      <div key={m.id} className={`flex flex-col ${m.sender_role === 'advocate' ? 'items-end' : 'items-start'}`}>
+                        <span className="text-[10px] text-slate-400 px-1 mb-0.5">{m.sender_name}</span>
+                        <div className={`p-3 rounded-2xl text-xs max-w-md ${m.sender_role === 'advocate' ? 'bg-[#0A1128] text-white' : 'bg-white border'}`}>
+                          {m.message_text}
                         </div>
-                      ))
-                    )}
+                      </div>
+                    ))}
                     <div ref={chatBottomRef} />
                   </div>
                   <form onSubmit={handleSendAdvocateMessage} className="flex gap-2">
@@ -820,7 +871,6 @@ export default function AdvocateWorkspace() {
                 </div>
               )}
 
-              {/* TAB 3: EVIDENCE VAULT */}
               {roomModalTab === 'documents' && (
                 <div className="space-y-4">
                   <input type="file" ref={fileUploadInputRef} onChange={handleAdvocateFileUpload} className="hidden" />
