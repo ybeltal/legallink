@@ -16,8 +16,8 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
-  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'dara' | 'for-lawyers' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
-  const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts' | 'receipts'>('consultations');
+  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'dara' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
+  const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts'>('consultations');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // In-app Toast Feedback State
@@ -55,14 +55,6 @@ export default function LegalLinkHome() {
   // -------------------------------------------------------------
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authFullName, setAuthFullName] = useState('');
-  const [authRole, setAuthRole] = useState<'client' | 'advocate'>('client');
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const checkSession = async () => {
     try {
@@ -110,63 +102,6 @@ export default function LegalLinkHome() {
     };
   }, []);
 
-  const handleAuthSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError(null);
-    setAuthLoading(true);
-
-    try {
-      const supabase = createClient();
-
-      if (authMode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({
-          email: authEmail.trim(),
-          password: authPassword,
-          options: {
-            data: {
-              full_name: authFullName.trim() || 'LegalLink Member',
-              role: authRole,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          setCurrentUser(data.user);
-          setUserProfile({ full_name: authFullName, role: authRole });
-          setAuthModalOpen(false);
-          setClientName(authFullName);
-          showToast(`Welcome to LegalLink, ${authFullName}!`);
-          if (authRole === 'advocate') {
-            window.location.href = '/advocate';
-          } else {
-            setActiveTab('my-consultations');
-          }
-        }
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: authEmail.trim(),
-          password: authPassword,
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          setCurrentUser(data.user);
-          await checkSession();
-          setAuthModalOpen(false);
-          showToast('Authenticated session successfully.');
-          setActiveTab('my-consultations');
-        }
-      }
-    } catch (err: any) {
-      setAuthError(err.message || 'Authentication failed. Please verify credentials.');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const handleSignOut = async () => {
     try {
       const supabase = createClient();
@@ -188,8 +123,6 @@ export default function LegalLinkHome() {
   const [selectedCategory, setSelectedCategory] = useState('Corporate & Business Law');
   const [location, setLocation] = useState('Addis Ababa');
   const [consultLanguage, setConsultLanguage] = useState('Amharic');
-  const [budgetRange, setBudgetRange] = useState('Free Consultation');
-  const [urgency, setUrgency] = useState('within_24h');
   const [situationText, setSituationText] = useState('');
   const [selectedLawyer, setSelectedLawyer] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -219,9 +152,9 @@ export default function LegalLinkHome() {
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
-        const previewUrl = URL.createObjectURL(audioBlob);
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        const previewUrl = URL.createObjectURL(blob);
         setAudioPreviewUrl(previewUrl);
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -267,16 +200,12 @@ export default function LegalLinkHome() {
   // USER DASHBOARD & EVIDENCE STATE
   // -------------------------------------------------------------
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
-  const [loadingMyConsultations, setLoadingMyConsultations] = useState(false);
   const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<any | null>(null);
-  const [modalTab, setModalTab] = useState<'overview' | 'milestones' | 'room' | 'documents'>('milestones');
+  const [modalTab, setModalTab] = useState<'milestones' | 'room' | 'documents'>('milestones');
   const [caseDocuments, setCaseDocuments] = useState<any[]>([]);
-  const [loadingDocs, setLoadingDocs] = useState<boolean>(false);
-  const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
   const fileUploadInputRef = useRef<HTMLInputElement>(null);
 
   const fetchMyConsultations = async () => {
-    setLoadingMyConsultations(true);
     try {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -288,13 +217,10 @@ export default function LegalLinkHome() {
       }
     } catch (err) {
       console.error('Fetch error:', err);
-    } finally {
-      setLoadingMyConsultations(false);
     }
   };
 
   const fetchCaseDocuments = async (consultationId: string) => {
-    setLoadingDocs(true);
     try {
       const supabase = createClient();
       const { data, error } = await supabase
@@ -308,8 +234,6 @@ export default function LegalLinkHome() {
       }
     } catch (err) {
       console.error('Error fetching documents:', err);
-    } finally {
-      setLoadingDocs(false);
     }
   };
 
@@ -317,7 +241,6 @@ export default function LegalLinkHome() {
     const file = e.target.files?.[0];
     if (!file || !selectedConsultationDetails) return;
 
-    setIsUploadingFile(true);
     try {
       const supabase = createClient();
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -363,7 +286,6 @@ export default function LegalLinkHome() {
     } catch (err: any) {
       alert('Failed to upload document: ' + (err.message || 'Storage error'));
     } finally {
-      setIsUploadingFile(false);
       if (fileUploadInputRef.current) {
         fileUploadInputRef.current.value = '';
       }
@@ -373,41 +295,32 @@ export default function LegalLinkHome() {
   // -------------------------------------------------------------
   // REVIEWS & RATING ENGINE STATE
   // -------------------------------------------------------------
-  const [reviewsList, setReviewsList] = useState<any[]>([]);
-  const [reviewModalCase, setReviewModalCase] = useState<any | null>(null);
-  const [ratingScore, setRatingScore] = useState<number>(5);
-  const [reviewComment, setReviewComment] = useState<string>('');
-  const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
-
-  const fetchReviews = async () => {
-    try {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from('advocate_reviews')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (data) setReviewsList(data);
-    } catch (err) {
-      console.error('Reviews fetch error:', err);
+  const [reviewsList, setReviewsList] = useState<any[]>([
+    {
+      id: 'rev-1',
+      rating: 5,
+      review_comment: 'Advocate Mulu helped restructure our PLC share agreement efficiently. Clear communication throughout.',
+      client_name: 'Dawit Alemu',
+      advocate_name: 'Advocate Mulu Haile',
+      created_at: '2026-10-18'
+    },
+    {
+      id: 'rev-2',
+      rating: 5,
+      review_comment: 'Handled our commercial lease compliance dispute in Bole with speed and thoroughness.',
+      client_name: 'Bethlehem Tadesse',
+      advocate_name: 'Advocate Mulu Haile',
+      created_at: '2026-10-17'
+    },
+    {
+      id: 'rev-3',
+      rating: 4,
+      review_comment: 'Fast response and very helpful guidance on the labor severance calculation.',
+      client_name: 'Abebe K.',
+      advocate_name: 'Advocate Tigist Bekele',
+      created_at: '2026-10-15'
     }
-  };
-
-  useEffect(() => {
-    fetchReviews();
-    const supabase = createClient();
-    const reviewsChannel = supabase
-      .channel('public_reviews_realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'advocate_reviews' },
-        (payload) => setReviewsList((prev) => [payload.new, ...prev])
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(reviewsChannel);
-    };
-  }, []);
+  ]);
 
   // -------------------------------------------------------------
   // CONSULTATIONS REAL-TIME SYNC
@@ -445,10 +358,7 @@ export default function LegalLinkHome() {
 
   // Real-time Chat
   const [messages, setMessages] = useState<any[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(false);
   const [newMessageText, setNewMessageText] = useState('');
-  const [senderRole, setSenderRole] = useState<'client' | 'advocate'>('client');
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -461,7 +371,6 @@ export default function LegalLinkHome() {
     let chatChannel: any = null;
 
     if (modalTab === 'room') {
-      setLoadingMessages(true);
       const fetchHistory = async () => {
         const { data, error } = await supabase
           .from('consultation_messages')
@@ -470,7 +379,6 @@ export default function LegalLinkHome() {
           .order('created_at', { ascending: true });
 
         if (!error && data) setMessages(data);
-        setLoadingMessages(false);
       };
       fetchHistory();
 
@@ -526,12 +434,9 @@ export default function LegalLinkHome() {
     e.preventDefault();
     if (!newMessageText.trim() || !selectedConsultationDetails) return;
 
-    setIsSendingMessage(true);
     try {
       const supabase = createClient();
-      const senderName = senderRole === 'client' 
-        ? (userProfile?.full_name || selectedConsultationDetails.client_name || 'Client') 
-        : 'Advocate Mulu Haile (Senior Counsel)';
+      const senderName = userProfile?.full_name || selectedConsultationDetails.client_name || 'Client';
 
       const { error } = await supabase
         .from('consultation_messages')
@@ -539,7 +444,7 @@ export default function LegalLinkHome() {
           {
             consultation_id: selectedConsultationDetails.id,
             sender_name: senderName,
-            sender_role: senderRole,
+            sender_role: 'client',
             message_text: newMessageText.trim(),
           },
         ]);
@@ -551,8 +456,6 @@ export default function LegalLinkHome() {
       }
     } catch (err: any) {
       alert('Error transmitting message');
-    } finally {
-      setIsSendingMessage(false);
     }
   };
 
@@ -592,8 +495,8 @@ export default function LegalLinkHome() {
           practice_area: selectedCategory,
           location: location,
           situation_description: briefDescription,
-          budget_range: budgetRange,
-          urgency: urgency,
+          budget_range: 'Free Consultation',
+          urgency: 'within_24h',
           status: 'pending',
           payment_status: 'free_promotional',
           escrow_amount: 0,
@@ -816,7 +719,6 @@ export default function LegalLinkHome() {
     vehicle: {
       title: 'Vehicle Sale & Title Transfer',
       amTitle: 'የተሽከርካሪ ሽያጭና ስም ማዘዋወር',
-      icon: Car,
       checklist: [
         { id: 'v1', text: 'Original Libre (የተሽከርካሪ ኦሪጅናል ሊብሮ) without any bank lien/mortgage stamp.' },
         { id: 'v2', text: 'Valid Annual Vehicle Inspection Sticker (የዘመኑ የቴክኒክ ምርመራ ቦሎ/ቴስቲሞኒዮ).' },
@@ -829,7 +731,6 @@ export default function LegalLinkHome() {
     lease: {
       title: 'Real Estate & Commercial Lease',
       amTitle: 'የንግድና መኖሪያ ቤት ኪራይ ውል',
-      icon: Home,
       checklist: [
         { id: 'l1', text: 'Original Land Holding Certificate / Title Deed (ኦሪጅናል የይዞታ ማረጋገጫ ካርታ).' },
         { id: 'l2', text: 'Current Municipal Tax Clearance Receipt (የዘመኑ የግብር ደረሰኝ ከክፍለ ከተማ).' },
@@ -841,7 +742,6 @@ export default function LegalLinkHome() {
     poa: {
       title: 'Power of Attorney (POA)',
       amTitle: 'ጠቅላላና ልዩ የውክልና ስልጣን',
-      icon: Key,
       checklist: [
         { id: 'p1', text: 'Physical presence of the Principal (ወካይ) with valid Kebele ID or National Passport.' },
         { id: 'p2', text: 'Certified copy of Agent (ተወካይ) Kebele ID.' },
@@ -853,10 +753,9 @@ export default function LegalLinkHome() {
     loan: {
       title: 'Loan & Debt Acknowledgement',
       amTitle: 'የብድርና የዕዳ መቀበያ ውል',
-      icon: Handshake,
       checklist: [
         { id: 'd1', text: 'Drafted Loan Contract with exact repayment date and interest terms compliant with NBE caps.' },
-        { id: 'd2', text: 'Bank Transfer Slip / Cheque Copy verifying fund disbursement (Cash over ETB 10,000 discouraged).' },
+        { id: 'd2', text: 'Bank Transfer Slip / Cheque Copy verifying fund disbursement.' },
         { id: 'd3', text: 'Borrower and Creditor valid Kebele/Fayda IDs.' },
         { id: 'd4', text: 'Collateral ownership document (if debt is secured by vehicle or property).' },
         { id: 'd5', text: '2 Witnesses with non-expired government-issued IDs.' }
@@ -890,26 +789,18 @@ export default function LegalLinkHome() {
             .table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
             .table th { background: #0A1128; color: white; padding: 10px; text-align: left; }
             .table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
-            .notice { background: #fef3c7; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; font-size: 11px; color: #92400e; margin-top: 20px; }
           </style>
         </head>
         <body>
           <div class="header">
             <div>
-              <div style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase;">Federal Documents Authentication and Registration Agency (DARA / ሰነዶች ማረጋገጫ)</div>
-              <div class="title">Counter-Ready Pre-Flight Certificate</div>
-              <div style="font-size:12px; font-weight:bold; margin-top:3px;">Transaction: ${daraCategories[daraDocType].title} (${daraCategories[daraDocType].amTitle})</div>
+              <div class="title">DARA Pre-Flight Pass: ${daraCategories[daraDocType].title}</div>
+              <div>${daraCategories[daraDocType].amTitle}</div>
             </div>
-            <div class="badge">VERIFIED PASS (${readinessPercent}%)</div>
+            <div class="badge">VERIFIED (${readinessPercent}%)</div>
           </div>
-
           <table class="table">
-            <thead>
-              <tr>
-                <th style="width: 40px;">Status</th>
-                <th>Required Document & Witness Criteria</th>
-              </tr>
-            </thead>
+            <thead><tr><th>Status</th><th>Requirement</th></tr></thead>
             <tbody>
               ${currentChecklist.map((item) => `
                 <tr>
@@ -921,10 +812,6 @@ export default function LegalLinkHome() {
               `).join('')}
             </tbody>
           </table>
-
-          <div class="notice">
-            <strong>DARA Official Counter Notice:</strong> Having all items verified as READY ensures you will not be turned away at the document authentication registration window. Bring originals and photocopies of all participant IDs.
-          </div>
           <script>window.onload = function() { window.print(); window.close(); }</script>
         </body>
       </html>
@@ -952,20 +839,6 @@ export default function LegalLinkHome() {
       jurisdiction: '7 Calendar Days (Addis Ababa)',
       type: 'demand',
       contractLang: 'bilingual'
-    },
-    { 
-      id: 'cnt-2', 
-      title: 'Bilingual Employment Contract', 
-      date: '2026-10-14', 
-      fee: 'ETB 450', 
-      status: 'Ready',
-      partyA: 'EthioTech Solutions PLC',
-      partyB: 'Ybeltal Semagn',
-      roleOrPurpose: 'Senior Software Engineer',
-      salaryOrRent: 'ETB 35,000.00',
-      jurisdiction: 'Addis Ababa',
-      type: 'emp',
-      contractLang: 'bilingual'
     }
   ]);
 
@@ -976,9 +849,8 @@ export default function LegalLinkHome() {
       amTitle: 'የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ',
       category: 'Dispute & Debt Recovery',
       priceETB: 0,
-      popular: true,
       desc: 'Mandatory statutory default notice under Ethiopian Civil Code Art. 1772 for unpaid debts, tenant eviction, or breach of contract.',
-      statute: 'Civil Code of Ethiopia Art. 1772–1775 (ፍትሐብሔር ሕግ ቁጥር 1772-1775)',
+      statute: 'Civil Code of Ethiopia Art. 1772–1775',
       fields: [
         { key: 'partyA', label: 'Claimant / Creditor Name (ገንዘብ ጠያቂ / አበዳሪ)', placeholder: 'e.g. Bethlehem Desta (Creditor)' },
         { key: 'partyB', label: 'Debtor / Defaulting Party (ተበዳሪ / ውል አፍራሽ)', placeholder: 'e.g. Yohannes Girma (Debtor)' },
@@ -993,9 +865,8 @@ export default function LegalLinkHome() {
       amTitle: 'የሥራ ውል ስምምነት',
       category: 'Labor Law',
       priceETB: 450,
-      popular: true,
       desc: 'Compliant with Ethiopian Labor Proclamation No. 1156/2019 for fixed or indefinite terms.',
-      statute: 'Labor Proclamation No. 1156/2019 (አዋጅ ቁጥር 1156/2011)',
+      statute: 'Labor Proclamation No. 1156/2019',
       fields: [
         { key: 'partyA', label: 'Employer Entity Name / የአሰሪው ድርጅት ስም', placeholder: 'e.g. Safaricom Telecommunications PLC' },
         { key: 'partyB', label: 'Employee Legal Name / የሠራተኛው ሙሉ ስም', placeholder: 'e.g. Abebe Bikila' },
@@ -1003,92 +874,19 @@ export default function LegalLinkHome() {
         { key: 'salaryOrRent', label: 'Gross Monthly Salary / ወርሃዊ ደመወዝ (ETB)', placeholder: 'e.g. ETB 35,000.00' },
         { key: 'jurisdiction', label: 'Workplace City / የሥራ ቦታ ከተማ', placeholder: 'e.g. Addis Ababa / አዲስ አበባ' },
       ],
-    },
-    {
-      id: 'lease',
-      title: 'Commercial Lease Agreement',
-      amTitle: 'የንግድ ቤት ኪራይ ውል ስምምነት',
-      category: 'Property & Real Estate',
-      priceETB: 600,
-      popular: true,
-      desc: 'Commercial premises rental contract with deposit and municipal compliance terms under Ethiopian Civil Code.',
-      statute: 'Civil Code of Ethiopia Art. 2896 (ፍትሐብሔር ሕግ ቁጥር 2896)',
-      fields: [
-        { key: 'partyA', label: 'Lessor (Landlord) Full Legal Name / የአከራይ ስም', placeholder: 'e.g. Haile Gebreselassie' },
-        { key: 'partyB', label: 'Lessee (Tenant) Business Name / የተከራይ ስም', placeholder: 'e.g. Blue Nile Trading PLC' },
-        { key: 'roleOrPurpose', label: 'Permitted Commercial Use / የንግድ ቤት አገልግሎት', placeholder: 'e.g. Retail Office and Software Center' },
-        { key: 'salaryOrRent', label: 'Agreed Monthly Rent / ወርሃዊ ኪራይ (ETB)', placeholder: 'e.g. ETB 45,000.00' },
-        { key: 'jurisdiction', label: 'Property Location / የቤቱ አድራሻ', placeholder: 'e.g. Bole Sub-City, Woreda 03, Addis Ababa' },
-      ],
-    },
-    {
-      id: 'nda',
-      title: 'Non-Disclosure Agreement (NDA)',
-      amTitle: 'ሚስጥር የመጠበቅ ስምምነት',
-      category: 'Corporate & Business',
-      priceETB: 300,
-      popular: true,
-      desc: 'Protects proprietary secrets, financials, customer databases, and commercial partnerships in Ethiopia.',
-      statute: 'Civil Code of Ethiopia Art. 2027 (ፍትሐብሔር ሕግ ቁጥር 2027)',
-      fields: [
-        { key: 'partyA', label: 'Disclosing Party Name / መረጃ ሰጪ ወገን', placeholder: 'e.g. FinTech Innovators PLC' },
-        { key: 'partyB', label: 'Receiving Party / መረጃ ተቀባይ ወገን', placeholder: 'e.g. Addis Tech Partners' },
-        { key: 'roleOrPurpose', label: 'Confidential Business Purpose / ሚስጥራዊ የንግድ ዓላማ', placeholder: 'e.g. Payment Gateway Integration' },
-        { key: 'salaryOrRent', label: 'Liquidated Damages / የካሳ መጠን (ETB)', placeholder: 'e.g. ETB 100,000.00' },
-        { key: 'jurisdiction', label: 'Arbitration Jurisdiction / የግልግል ዳኝነት ቦታ', placeholder: 'e.g. Addis Ababa Chamber of Commerce' },
-      ],
-    },
+    }
   ];
 
   const handleExportContractPDF = (contract: any) => {
     const printWindow = window.open('', '_blank', 'width=900,height=950');
     if (!printWindow) return alert('Please allow popups to download/print your legal contract.');
 
-    const type = contract.type || 'demand';
-    const cLang = contract.contractLang || contractLanguage || 'bilingual';
-    const partyA = contract.partyA || 'Claimant / First Party / ገንዘብ ጠያቂ';
-    const partyB = contract.partyB || 'Debtor / Second Party / ተበዳሪ';
+    const partyA = contract.partyA || 'Claimant / Creditor';
+    const partyB = contract.partyB || 'Debtor / Defaulting Party';
     const roleOrPurpose = contract.roleOrPurpose || 'Outstanding Commercial Default';
     const salaryOrRent = contract.salaryOrRent || 'ETB 50,000.00';
     const locationName = contract.jurisdiction || 'Addis Ababa / 7 Calendar Days';
     const startDate = contract.date || new Date().toISOString().split('T')[0];
-
-    let headerTitle = '';
-    let contractBody = '';
-
-    if (type === 'demand') {
-      if (cLang === 'am') {
-        headerTitle = 'በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 1772 መሠረት የተሰጠ የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ';
-        contractBody = `
-          <div class="parties-box">
-            <strong>ለ (ተበዳሪ/ውል አፍራሽ)፦</strong> ${partyB}<br/>
-            <strong>ከ (ገንዘብ ጠያቂ/አበዳሪ)፦</strong> ${partyA}<br/>
-            <strong>ቀን፦</strong> ${startDate}<br/>
-            <strong>ጉዳዩ፦</strong> በፍትሐብሔር ሕግ ቁጥር 1772 እና ተከታዮቹ ድንጋጌዎች መሠረት ዕዳን ስለማሳወቅና የመጨረሻ ማስጠንቀቂያ ስለመስጠት፤
-          </div>
-          <p>እርስዎ ከላይ ስምዎ የተጠቀሰው ተበዳሪ/ውል አፍራሽ ወገን ከ[${partyA}] ጋር በነበረዎት የ<strong>${roleOrPurpose}</strong> ስምምነት መሠረት መክፈል የሚገባዎትን ጠቅላላ የብር <strong>${salaryOrRent}</strong> እስካሁን ድረስ ባለመክፈልዎ በኢትዮጵያ ፍትሐብሔር ሕግ ቁጥር 1771 መሠረት ግዴታዎን አላከበሩም።</p>
-          <div class="section-title">የመጨረሻ የጊዜ ገደብ (GRACE PERIOD)</div>
-          <p>ስለሆነም ይህ ሕጋዊ የጽሑፍ ማስጠንቀቂያ በደረስዎት በ<strong>${locationName}</strong> ውስጥ የተጠቀሰውን የብር <strong>${salaryOrRent}</strong> ሙሉ በሙሉ ገቢ እንዲያደርጉ በጥብቅ እናሳስባለን።</p>
-          <div class="section-title">ሕጋዊ እርምጃዎችን ስለመውሰድ</div>
-          <p>በተጠቀሰው የጊዜ ገደብ ውስጥ ይህንን ግዴታዎን የማይፈጽሙ ከሆነ፣ በፍትሐብሔር ሕግ ቁጥር 1772 ድንጋጌ መሠረት ያለተጨማሪ ማሳሰቢያ ጉዳዩ በቀጥታ ወደ ስልጣን ወዳለው ፍርድ ቤት የሚቀርብ ሲሆን፤ ለሚከተሉት ማናቸውም የፍርድ ቤት ውሎ አበል፣ የሕግ ባለሙያ (ጠበቃ) አገልግሎት ክፍያ እና ለዘገየበት ጊዜ ሕጋዊ ወለድ (Delay Damages) እርስዎ ሙሉ በሙሉ ኃላፊነቱን የሚወስዱ መሆኑን በጥብቅ እናሳውቃለን።</p>
-        `;
-      } else {
-        headerTitle = 'STATUTORY NOTICE OF DEFAULT & DEMAND LETTER / የመጨረሻ የጽሑፍ ማስጠንቀቂያ ደብዳቤ';
-        contractBody = `
-          <div class="parties-box">
-            <div><strong>CREDITOR:</strong> ${partyA} • <strong>DEBTOR:</strong> ${partyB}</div>
-            <div style="margin-top:6px;"><strong>CLAIM:</strong> ${salaryOrRent} • <strong>GROUND:</strong> ${roleOrPurpose}</div>
-          </div>
-          <p>Pursuant to Article 1772 of the Civil Code of Ethiopia, you are formally placed in default. Remit full payment within <strong>${locationName}</strong> to avoid civil litigation.</p>
-        `;
-      }
-    } else if (type === 'emp') {
-      headerTitle = 'STATUTORY EMPLOYMENT AGREEMENT (PROC. 1156/2019)';
-      contractBody = `<p>Employment contract executed between ${partyA} and ${partyB} in ${locationName} for the position of ${roleOrPurpose}. Monthly wage: ${salaryOrRent}.</p>`;
-    } else {
-      headerTitle = 'STATUTORY LEGAL AGREEMENT / ሕጋዊ ስምምነት';
-      contractBody = `<p>Executed between ${partyA} and ${partyB} regarding ${roleOrPurpose} in ${locationName}.</p>`;
-    }
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -1100,15 +898,20 @@ export default function LegalLinkHome() {
             body { font-family: "Century Gothic", "Nyala", sans-serif; color: #111827; padding: 20px; line-height: 1.6; font-size: 13px; }
             .header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
             .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; }
-            .section-title { font-weight: bold; margin-top: 14px; margin-bottom: 4px; color: #0A1128; }
           </style>
         </head>
         <body>
           <div class="header">
-            <h3>${headerTitle}</h3>
-            <span>Civil Code Art. 1772 Enforceable Default Notice • Date: ${startDate}</span>
+            <h3>STATUTORY DEFAULT NOTICE / የጽሑፍ ማስጠንቀቂያ ደብዳቤ</h3>
+            <span>Civil Code Art. 1772 Enforceable Notice • Date: ${startDate}</span>
           </div>
-          ${contractBody}
+          <div class="parties-box">
+            <strong>FROM (CREDITOR):</strong> ${partyA}<br/>
+            <strong>TO (DEBTOR):</strong> ${partyB}<br/>
+            <strong>CLAIM:</strong> ${salaryOrRent}<br/>
+            <strong>GROUND:</strong> ${roleOrPurpose}
+          </div>
+          <p>Pursuant to Article 1772 of the Civil Code of Ethiopia, you are formally placed in default. You are granted ${locationName} to tender full payment or action before immediate civil proceedings are initiated.</p>
           <script>window.onload = function() { window.print(); window.close(); }</script>
         </body>
       </html>
@@ -1165,20 +968,14 @@ export default function LegalLinkHome() {
     { id: 'NGO & Compliance', title: 'NGO & Compliance', amTitle: 'የድርጅቶችና ማህበራት ሕግ', icon: Building, desc: 'Registration, compliance, grant agreements.' },
   ];
 
-  const muluHaileReviews = reviewsList.filter((r) => r.advocate_name === 'Advocate Mulu Haile');
-  const dynamicRating = muluHaileReviews.length > 0 
-    ? (muluHaileReviews.reduce((sum, r) => sum + r.rating, 0) / muluHaileReviews.length).toFixed(2)
-    : '4.95';
-  const dynamicReviewCount = 438 + muluHaileReviews.length;
-
   const mockMatchedLawyers = [
     {
       id: 'l1',
       name: 'Advocate Mulu Haile',
       title: 'Corporate & Business Specialist',
       experience: '12 yrs exp',
-      rating: Number(dynamicRating),
-      reviews: dynamicReviewCount,
+      rating: 4.95,
+      reviews: 442,
       hourlyRate: 1500,
       location: 'Addis Ababa',
       bio: 'Senior Federal Advocate specializing in commercial contract drafting, debt recovery, and dispute resolution.',
@@ -1207,19 +1004,7 @@ export default function LegalLinkHome() {
       location: 'Hawassa / Addis Ababa',
       bio: 'Former land administration legal advisor. Expert in commercial lease defaults, eviction notices, and title verification.',
       avatarInitials: 'DT',
-    },
-    {
-      id: 'l4',
-      name: 'Advocate Selamawit Girma',
-      title: 'Immigration & Diaspora Counsel',
-      experience: '8 yrs exp',
-      rating: 4.85,
-      reviews: 274,
-      hourlyRate: 2000,
-      location: 'Addis Ababa / Remote',
-      bio: 'Dedicated to helping the Ethiopian diaspora resolve legal claims, investment licensing, and dual citizenship matters remotely.',
-      avatarInitials: 'SG',
-    },
+    }
   ];
 
   const legalTalkArticles = [
@@ -1417,7 +1202,7 @@ export default function LegalLinkHome() {
                       <span className="text-xs text-slate-500 font-medium">Consultations Done</span>
                     </div>
                     <div>
-                      <span className="text-2xl font-black text-[#0A1128] block">{dynamicRating} ★</span>
+                      <span className="text-2xl font-black text-[#0A1128] block">4.95 ★</span>
                       <span className="text-xs text-slate-500 font-medium">Average Rating</span>
                     </div>
                     <div>
@@ -1442,8 +1227,8 @@ export default function LegalLinkHome() {
                           <p className="text-xs text-slate-500">Corporate & Business Law</p>
                           <div className="flex items-center gap-1 mt-1 text-xs font-bold text-amber-600">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                            <span>{dynamicRating}</span>
-                            <span className="text-slate-400 font-normal">({dynamicReviewCount} reviews)</span>
+                            <span>4.95</span>
+                            <span className="text-slate-400 font-normal">(442 reviews)</span>
                           </div>
                         </div>
                       </div>
@@ -1586,15 +1371,15 @@ export default function LegalLinkHome() {
                   <p className="text-xs text-slate-500 mt-1">Senior counsel with verified Ministry of Justice practicing licenses.</p>
                 </div>
                 <Link
-                  href="/advocate/join"
+                  href="/advocate"
                   className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Are you an advocate? Join our network</span>
+                  <span>Open Advocate Portal</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {mockMatchedLawyers.map((lawyer, idx) => (
                   <div key={lawyer.id} className={`p-6 rounded-3xl bg-white border border-slate-200 flex flex-col justify-between card-hover-effect space-y-4 reveal reveal-delay-${idx + 1}`}>
                     <div className="space-y-3">
@@ -1840,7 +1625,7 @@ export default function LegalLinkHome() {
                       <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
-                  <span className="text-sm font-black text-[#0A1128]">{dynamicRating} / 5.0</span>
+                  <span className="text-sm font-black text-[#0A1128]">4.95 / 5.0</span>
                 </div>
               </div>
 
@@ -1881,7 +1666,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW B: DARA COUNTER-READY CHECKLIST (NEW SELF-SERVICE TOOL) */}
+      {/* VIEW B: DARA COUNTER-READY CHECKLIST */}
       {activeTab === 'dara' && (
         <main className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -1982,20 +1767,6 @@ export default function LegalLinkHome() {
                 );
               })}
             </div>
-
-            <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
-              <div className="space-y-0.5">
-                <strong className="text-amber-900 block">Need a DARA-compliant contract drafted first?</strong>
-                <span className="text-amber-800">Generate your bilingual contract with proper witness blocks in LexDraft before printing.</span>
-              </div>
-              <button
-                onClick={() => setActiveTab('lexdraft')}
-                className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-              >
-                <span>Open LexDraft</span>
-                <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-              </button>
-            </div>
           </div>
         </main>
       )}
@@ -2053,68 +1824,42 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW D: LEXDRAFT & DEMAND LETTER BUILDER */}
+      {/* VIEW D: LEXDRAFT & DEMAND LETTER */}
       {activeTab === 'lexdraft' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
-                DARA & COURT ADMISSIBLE AUTOMATION
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-black">LexDraft Document Builder</h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Generate court-enforceable demand notices under Civil Code Art. 1772, commercial contracts, and lease agreements with instant bilingual PDF export.
-              </p>
-            </div>
-
-            <div className="p-3 bg-white/10 rounded-2xl border border-white/20 text-center">
-              <span className="text-[10px] uppercase font-bold text-amber-400 block">Current Promotion</span>
-              <span className="text-xs font-black text-emerald-400">Demand Letters: 100% Free</span>
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 text-white shadow-xl flex justify-between items-center">
+            <div>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">DOCUMENT AUTOMATION</span>
+              <h1 className="text-3xl font-black mt-1">LexDraft Document Builder</h1>
+              <p className="text-xs text-slate-300 mt-1">Generate demand notices under Civil Code Art. 1772 or contracts with instant bilingual export.</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {lexdraftTemplates.map((tpl) => (
-              <div 
-                key={tpl.id} 
-                className={`p-6 rounded-3xl border bg-white flex flex-col justify-between space-y-4 hover:shadow-xl transition-all ${
-                  tpl.id === 'demand' ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200'
-                }`}
-              >
-                <div className="space-y-2">
+              <div key={tpl.id} className="p-6 rounded-3xl border border-slate-200 bg-white flex flex-col justify-between space-y-4 shadow-sm">
+                <div>
                   <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase">
-                      {tpl.category}
-                    </span>
-                    <span className="font-mono font-black text-xs text-emerald-600">
-                      {tpl.priceETB === 0 ? 'FREE' : `ETB ${tpl.priceETB}`}
-                    </span>
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">{tpl.category}</span>
+                    <span className="font-mono font-bold text-xs text-emerald-600">{tpl.priceETB === 0 ? 'FREE' : `ETB ${tpl.priceETB}`}</span>
                   </div>
-                  <h3 className="font-black text-base text-[#0A1128]">{tpl.title}</h3>
-                  <span className="text-[11px] font-bold text-slate-400 block font-mono">{tpl.amTitle}</span>
-                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
+                  <h3 className="font-black text-base text-[#0A1128] mt-2">{tpl.title}</h3>
+                  <span className="text-[11px] font-mono text-slate-400 block">{tpl.amTitle}</span>
+                  <p className="text-xs text-slate-500 mt-2">{tpl.desc}</p>
                 </div>
-
-                <div className="pt-2">
-                  <button 
-                    onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }} 
-                    className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs ${
-                      tpl.id === 'demand' 
-                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black' 
-                        : 'bg-[#0A1128] hover:bg-[#102A43] text-white'
-                    }`}
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>{tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}</span>
-                  </button>
-                </div>
+                <button 
+                  onClick={() => { setSelectedTemplate(tpl); setDocFormData({}); }}
+                  className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs hover:bg-[#102A43] transition-all"
+                >
+                  {tpl.id === 'demand' ? 'Generate Demand Letter' : 'Customize & Export'}
+                </button>
               </div>
             ))}
           </div>
         </main>
       )}
 
-      {/* VIEW E: FIND A LAWYER WITH VOICE NOTE INTAKE */}
+      {/* VIEW E: FIND A LAWYER WITH VOICE INTAKE */}
       {activeTab === 'match' && (
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
@@ -2199,14 +1944,30 @@ export default function LegalLinkHome() {
       {/* VIEW F: LEGALTALK FORUM */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center shadow-xl">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">COMMUNITY FORUM</span>
               <h1 className="text-3xl font-black mt-1">LegalTalk Ethiopia</h1>
+              <p className="text-xs text-slate-300 mt-1">Browse answers by licensed Ethiopian advocates or post a free inquiry.</p>
             </div>
-            <button onClick={() => setAskModalOpen(true)} className="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs">
+            <button onClick={() => setAskModalOpen(true)} className="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs shadow">
               + Ask a Free Question
             </button>
+          </div>
+
+          <div className="space-y-4">
+            {filteredQuestions.map((q) => (
+              <div key={q.id} className="p-6 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-sm">
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">{q.category}</span>
+                <h3 className="text-base font-black text-[#0A1128]">{q.title}</h3>
+                {q.verifiedAnswer && (
+                  <div className="p-4 bg-slate-50 border rounded-2xl text-xs space-y-2">
+                    <strong className="text-[#0A1128] block">{q.verifiedAnswer.advocate} (✓ Verified Counsel)</strong>
+                    <p className="text-slate-600 leading-relaxed">{q.verifiedAnswer.body}</p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </main>
       )}
@@ -2220,7 +1981,7 @@ export default function LegalLinkHome() {
               <h1 className="text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300">Track court hearings (ቀጠሮ), case litigation stages, and voice briefs in real time.</p>
             </div>
-            <button onClick={() => { setActiveTab('match'); setMatchStep(1); }} className="px-5 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">
+            <button onClick={() => { setActiveTab('match'); setMatchStep(1); }} className="px-5 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs shadow">
               + New Case
             </button>
           </div>
@@ -2306,15 +2067,85 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* 3. LEXDRAFT BUILDER MODAL */}
+      {/* 3. CASE DETAIL & LITIGATION MODAL */}
+      {selectedConsultationDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden">
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-center">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">CASE AUDIT & LITIGATION TRACKER</span>
+                <h3 className="font-black text-lg mt-0.5">{selectedConsultationDetails.practice_area}</h3>
+              </div>
+              <button onClick={() => setSelectedConsultationDetails(null)} className="p-1.5 text-white/70 hover:text-white rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex border-b border-slate-200 bg-white px-6 gap-6 text-xs font-bold">
+              <button onClick={() => setModalTab('milestones')} className={`py-3 border-b-2 cursor-pointer flex items-center gap-1.5 ${modalTab === 'milestones' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'}`}>
+                <Gavel className="w-3.5 h-3.5" />
+                <span>Court Hearings & Timeline</span>
+              </button>
+              <button onClick={() => setModalTab('room')} className={`py-3 border-b-2 cursor-pointer flex items-center gap-1.5 ${modalTab === 'room' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'}`}>
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Live Chat</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 text-xs space-y-4">
+              {modalTab === 'milestones' && (
+                <div className="space-y-4">
+                  {selectedConsultationDetails.next_court_date && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                      <strong className="block text-amber-900 font-bold">Next Court Hearing (ቀጣይ ቀጠሮ):</strong>
+                      <span className="text-slate-700">{new Date(selectedConsultationDetails.next_court_date).toLocaleDateString()} at {selectedConsultationDetails.court_name || 'Lideta Bench'}</span>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    {legalStages.map((st) => (
+                      <div key={st.step} className={`p-3 rounded-xl border flex items-center gap-3 ${st.step <= (selectedConsultationDetails.case_stage || 1) ? 'border-emerald-300 bg-emerald-50/40 text-emerald-900' : 'border-slate-200'}`}>
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs">{st.step}</div>
+                        <div>
+                          <strong>{st.title} ({st.am})</strong>
+                          <span className="text-[10px] text-slate-500 block">{st.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {modalTab === 'room' && (
+                <div className="space-y-4">
+                  <div className="h-64 bg-slate-50 border rounded-2xl p-4 overflow-y-auto space-y-2">
+                    {messages.map((m) => (
+                      <div key={m.id} className={`flex flex-col ${m.sender_role === 'client' ? 'items-end' : 'items-start'}`}>
+                        <span className="text-[10px] text-slate-400">{m.sender_name}</span>
+                        <div className={`p-2.5 rounded-xl text-xs max-w-sm ${m.sender_role === 'client' ? 'bg-[#0A1128] text-white' : 'bg-white border'}`}>
+                          {m.message_text}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={chatBottomRef} />
+                  </div>
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <input type="text" placeholder="Type message..." value={newMessageText} onChange={(e) => setNewMessageText(e.target.value)} className="flex-1 px-3 py-2 border rounded-xl text-xs" />
+                    <button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Send</button>
+                  </form>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. LEXDRAFT BUILDER MODAL */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">
-                  LEXDRAFT BILINGUAL ENGINE
-                </span>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">LEXDRAFT BILINGUAL ENGINE</span>
                 <h3 className="font-black text-xl">{selectedTemplate.title}</h3>
                 <span className="text-xs text-slate-300 font-mono mt-0.5 block">{selectedTemplate.statute}</span>
               </div>
@@ -2324,44 +2155,6 @@ export default function LegalLinkHome() {
             </div>
 
             <form onSubmit={handleCreateDocumentSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
-                  Select Output Language
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setContractLanguage('bilingual')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                      contractLanguage === 'bilingual' ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span>Bilingual (Dual-Col)</span>
-                    <span className="text-[10px] opacity-80">ሁለት ቋንቋ</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setContractLanguage('am')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                      contractLanguage === 'am' ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span>አማርኛ ብቻ</span>
-                    <span className="text-[10px] opacity-80">Amharic Script</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setContractLanguage('en')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                      contractLanguage === 'en' ? 'border-[#0A1128] bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-600'
-                    }`}
-                  >
-                    <span>English Only</span>
-                    <span className="text-[10px] opacity-80">Commercial Text</span>
-                  </button>
-                </div>
-              </div>
-
               {selectedTemplate.fields.map((f: any) => (
                 <div key={f.key}>
                   <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">{f.label}</label>
@@ -2377,13 +2170,47 @@ export default function LegalLinkHome() {
               ))}
 
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setSelectedTemplate(null)} className="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="w-2/3 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow">
+                <button type="button" onClick={() => setSelectedTemplate(null)} className="w-1/3 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl text-xs">Cancel</button>
+                <button type="submit" className="w-2/3 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow">
                   <Printer className="w-4 h-4 text-amber-400" />
                   <span>Generate & Export PDF</span>
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. ASK QUESTION MODAL */}
+      {askModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+            <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
+              <div>
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">COMMUNITY FORUM INQUIRY</span>
+                <h3 className="font-black text-xl">Ask a Free Legal Question</h3>
+              </div>
+              <button onClick={() => setAskModalOpen(false)} className="text-white/70 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePostNewQuestion} className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Legal Domain</label>
+                <select value={newQuestionCategory} onChange={(e) => setNewQuestionCategory(e.target.value)} className="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                  <option value="Property & Real Estate">Property & Real Estate (መሬትና ንብረት)</option>
+                  <option value="Employment Law">Employment Law (የሥራና ሠራተኛ አዋጅ 1156)</option>
+                  <option value="Corporate & Business Law">Corporate & Business (የንግድና ኩባንያ ሕግ)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Question Summary *</label>
+                <input type="text" required placeholder="Type legal question..." value={newQuestionTitle} onChange={(e) => setNewQuestionTitle(e.target.value)} className="w-full p-2.5 border rounded-xl" />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setAskModalOpen(false)} className="w-1/3 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="w-2/3 py-3 bg-[#0A1128] text-white font-bold rounded-xl shadow">Post Question</button>
               </div>
             </form>
           </div>
