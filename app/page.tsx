@@ -10,7 +10,8 @@ import {
   Video, Send, MessageSquare, User, MessageCircle, Smartphone, Receipt, LogOut,
   KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
   ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp, Calculator, Gavel,
-  Mic, Square, Play, Trash2, Volume2, AlertTriangle, ClipboardCheck, Car, Key, Handshake
+  Mic, Square, Play, Trash2, Volume2, AlertTriangle, ClipboardCheck, Car, Key, Handshake,
+  Landmark, TrendingUp
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -569,19 +570,48 @@ export default function LegalLinkHome() {
     showToast('Document generated and exported via LexDraft.');
   };
 
-  // LegalTalk Forum State
+  // -------------------------------------------------------------
+  // LEGALTALK FORUM STATE (WITH CAPITAL MARKETS & ECMA CATEGORY)
+  // -------------------------------------------------------------
+  const [legalTalkFilter, setLegalTalkFilter] = useState<string>('all');
   const [askModalOpen, setAskModalOpen] = useState(false);
   const [newQuestionTitle, setNewQuestionTitle] = useState('');
-  const [newQuestionCategory, setNewQuestionCategory] = useState('Property & Real Estate');
+  const [newQuestionCategory, setNewQuestionCategory] = useState('Capital Markets & Securities');
+  
   const [communityQuestions, setCommunityQuestions] = useState<any[]>([
+    {
+      id: 'q-ecma-1',
+      title: 'Can a Private Limited Company (PLC) in Ethiopia issue shares or raise equity from outside investors under ECMA Directive 1030/2024?',
+      category: 'Capital Markets & Securities',
+      author: 'Yohannes T. (Kirkos)',
+      date: '1 day ago',
+      verifiedAnswer: {
+        advocate: 'Advocate Mulu Haile',
+        title: 'Senior Corporate & Capital Markets Counsel',
+        body: 'Under the Ethiopian Commercial Code (Arts. 495 & 496) and ECMA Directive No. 1030/2024, a PLC is strictly barred from offering securities or transferable equity to the public. To legally bring in outside investors without triggering unauthorized securities issuance penalties under Article 106 of Proclamation 1248/2021, the PLC must first pass an extraordinary general meeting (EGM) resolution converting into a Share Company (S.C.), adopt new Articles of Association authenticated by DARA, and comply with either private placement thresholds or formal ECMA registration.',
+      }
+    },
+    {
+      id: 'q-ecma-2',
+      title: 'What legal liabilities do board directors, promoters, and counsel face when filing an ESX public prospectus?',
+      category: 'Capital Markets & Securities',
+      author: 'Bethlehem G. (Bole)',
+      date: '3 days ago',
+      verifiedAnswer: {
+        advocate: 'Advocate Dawit Tesfaye',
+        title: 'Securities & Regulatory Advisory Counsel',
+        body: 'Chapter Three of ECMA Directive No. 1030/2024 establishes a strict joint and several liability regime. The Issuer, every member of the Board of Directors, promoters, and expert professional parties (including licensed attorneys and auditing firms who authorize statements) are jointly and severally liable to compensate investors for any damages resulting from inaccurate, misleading, or omitted material facts in a prospectus. Any contractual clause or disclaimer attempting to limit or waive this legal liability is null and void under the directive.',
+      }
+    },
     {
       id: 'q1',
       title: 'Can a commercial landlord in Addis Ababa demand 1-year advance rent and raise prices mid-lease?',
       category: 'Property & Real Estate',
       author: 'Kidus M. (Bole)',
-      date: '2 days ago',
+      date: '4 days ago',
       verifiedAnswer: {
         advocate: 'Advocate Dawit Tesfaye',
+        title: 'Property & Real Estate Counsel',
         body: 'Under Book IV of the Ethiopian Civil Code (Art. 2896 et seq.) and current Addis Ababa municipal directives, unilateral rent increments within an active, registered lease term are legally prohibited unless an explicit indexation clause is stated.',
       }
     },
@@ -590,9 +620,10 @@ export default function LegalLinkHome() {
       title: 'What are the employee severance rules during the 60-day probation period under Proclamation 1156/2019?',
       category: 'Employment Law',
       author: 'Selamawit B. (Kazanchis)',
-      date: '4 days ago',
+      date: '5 days ago',
       verifiedAnswer: {
         advocate: 'Advocate Tigist Bekele',
+        title: 'Civil & Labor Advocate',
         body: 'Pursuant to Article 11(3) of Ethiopian Labor Proclamation No. 1156/2019, if an employee is found unsuited during the probationary period, the employment agreement may be terminated without notice and without obligation to pay severance.',
       }
     }
@@ -614,13 +645,18 @@ export default function LegalLinkHome() {
     setCommunityQuestions([newQ, ...communityQuestions]);
     setAskModalOpen(false);
     setNewQuestionTitle('');
-    showToast('Question posted! Advocates notified.');
+    showToast('Question posted! Corporate advocates notified.');
   };
+
+  const filteredCommunityQuestions = communityQuestions.filter((q) => {
+    if (legalTalkFilter === 'all') return true;
+    return q.category === legalTalkFilter;
+  });
 
   // Static Data
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
-    { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce, custody, adoption, inheritance disputes.' },
+    { id: 'Capital Markets & Securities', title: 'Capital Markets & ESX', amTitle: 'የካፒታል ገበያና አክሲዮን (ECMA)', icon: Landmark, desc: 'ESX listing compliance, ECMA Directive 1030/2024, prospectus legal audits.' },
     { id: 'Property & Real Estate', title: 'Property & Real Estate', amTitle: 'የንብረትና ይዞታ ሕግ', icon: Home, desc: 'Land rights, title verification, lease agreements.' },
     { id: 'Intellectual Property', title: 'Intellectual Property', amTitle: 'የአእምሯዊ ንብረት ሕግ', icon: Lightbulb, desc: 'Trademarks, copyright, patents, IP protection.' },
     { id: 'Employment Law', title: 'Employment Law', amTitle: 'የሥራና ሠራተኛ ሕግ', icon: Users, desc: 'Labor disputes, contracts, workplace rights.' },
@@ -633,13 +669,13 @@ export default function LegalLinkHome() {
     {
       id: 'l1',
       name: 'Advocate Mulu Haile',
-      title: 'Corporate & Business Specialist',
+      title: 'Corporate & Capital Markets Counsel',
       experience: '12 yrs exp',
       rating: 4.95,
       reviews: 442,
       hourlyRate: 1500,
       location: 'Addis Ababa',
-      bio: 'Senior Federal Advocate specializing in commercial contract drafting, debt recovery, and dispute resolution.',
+      bio: 'Senior Federal Advocate specializing in ECMA Directive 1030/2024 compliance, commercial contracts, and ESX readiness.',
       avatarInitials: 'MH',
     },
     {
@@ -657,13 +693,13 @@ export default function LegalLinkHome() {
     {
       id: 'l3',
       name: 'Advocate Dawit Tesfaye',
-      title: 'Property & Real Estate Attorney',
+      title: 'Property & Securities Counsel',
       experience: '15 yrs exp',
       rating: 4.92,
       reviews: 521,
       hourlyRate: 1800,
       location: 'Hawassa / Addis Ababa',
-      bio: 'Former land administration legal advisor. Expert in commercial lease defaults, eviction notices, and title verification.',
+      bio: 'Specialist in land title audit (ካርታ), commercial leases, and Share Company conversion compliance.',
       avatarInitials: 'DT',
     }
   ];
@@ -680,11 +716,11 @@ export default function LegalLinkHome() {
   const legalTalkArticles = [
     {
       id: 1,
-      tag: 'CORPORATE GOVERNANCE',
-      title: "Understanding the Ethiopian Commercial Code: Key Takeaways for PLCs & Share Companies",
+      tag: 'CAPITAL MARKETS & ECMA',
+      title: "Ethiopia's ECMA Directive 1030/2024: Prospectus Disclosure & Joint Liability Standards",
       author: 'Advocate Mulu Haile',
       readTime: '6 min read',
-      excerpt: 'Crucial corporate compliance rules governing director liability, minimum capital allocations, shareholder resolutions, and regulatory auditing in Ethiopia.'
+      excerpt: 'A comprehensive legal breakdown of strict joint and several liability rules for board members, promoters, and counsel under Directive 1030/2024.'
     },
     {
       id: 2,
@@ -899,7 +935,7 @@ export default function LegalLinkHome() {
                             <h3 className="font-bold text-[#0A1128] text-base">Advocate Mulu Haile</h3>
                             <ShieldCheck className="w-4 h-4 text-emerald-600" />
                           </div>
-                          <p className="text-xs text-slate-500">Corporate & Business Law</p>
+                          <p className="text-xs text-slate-500">Corporate & Capital Markets Law</p>
                           <div className="flex items-center gap-1 mt-1 text-xs font-bold text-amber-600">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                             <span>4.95</span>
@@ -1567,29 +1603,87 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW E: LEGALTALK FORUM */}
+      {/* VIEW E: LEGALTALK FORUM (WITH ECMA & CAPITAL MARKETS FILTER) */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center shadow-xl">
+          <div className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-[#0A1128] rounded-3xl p-8 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xl">
             <div>
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">COMMUNITY FORUM</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                  COMMUNITY FORUM
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  ECMA & ESX Ready
+                </span>
+              </div>
               <h1 className="text-3xl font-black mt-1">LegalTalk Ethiopia</h1>
-              <p className="text-xs text-slate-300 mt-1">Browse answers by licensed Ethiopian advocates or post a free inquiry.</p>
+              <p className="text-xs text-slate-300 mt-1">
+                Browse verified statutory answers from licensed advocates or post a free corporate inquiry.
+              </p>
             </div>
-            <button onClick={() => setAskModalOpen(true)} className="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl text-xs shadow">
-              + Ask a Free Question
+            <button onClick={() => setAskModalOpen(true)} className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow transition-all cursor-pointer">
+              + Ask a Free Legal Question
             </button>
           </div>
 
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-2 text-xs font-bold">
+            {[
+              { id: 'all', label: 'All Inquiries' },
+              { id: 'Capital Markets & Securities', label: '🏛️ Capital Markets & ECMA' },
+              { id: 'Property & Real Estate', label: '🏠 Property & Real Estate' },
+              { id: 'Employment Law', label: '👔 Labor & Employment' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setLegalTalkFilter(cat.id)}
+                className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+                  legalTalkFilter === cat.id
+                    ? 'bg-[#0A1128] text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
           <div className="space-y-4">
-            {communityQuestions.map((q) => (
-              <div key={q.id} className="p-6 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-sm">
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">{q.category}</span>
+            {filteredCommunityQuestions.map((q) => (
+              <div key={q.id} className="p-6 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-xs">
+                <div className="flex justify-between items-start">
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase ${
+                    q.category === 'Capital Markets & Securities'
+                      ? 'bg-amber-50 text-amber-900 border-amber-200'
+                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}>
+                    {q.category}
+                  </span>
+                  <span className="text-xs text-slate-400">{q.date} • by {q.author}</span>
+                </div>
+
                 <h3 className="text-base font-black text-[#0A1128]">{q.title}</h3>
+
                 {q.verifiedAnswer && (
-                  <div className="p-4 bg-slate-50 border rounded-2xl text-xs space-y-2">
-                    <strong className="text-[#0A1128] block">{q.verifiedAnswer.advocate} (✓ Verified Counsel)</strong>
-                    <p className="text-slate-600 leading-relaxed">{q.verifiedAnswer.body}</p>
+                  <div className="p-5 bg-slate-50/80 border border-slate-200 rounded-2xl text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#0A1128] text-amber-400 text-[10px] font-bold flex items-center justify-center">
+                          ✓
+                        </div>
+                        <div>
+                          <strong className="text-[#0A1128] block">{q.verifiedAnswer.advocate}</strong>
+                          <span className="text-[10px] text-slate-400">{q.verifiedAnswer.title || 'Verified Counsel'}</span>
+                        </div>
+                      </div>
+                      <Link
+                        href="/find-a-lawyer"
+                        className="px-3 py-1.5 bg-[#0A1128] hover:bg-[#102A43] text-white rounded-lg font-bold text-[10px] transition-colors"
+                      >
+                        Consult Advocate ➔
+                      </Link>
+                    </div>
+                    <p className="text-slate-700 leading-relaxed pt-1">{q.verifiedAnswer.body}</p>
                   </div>
                 )}
               </div>
@@ -1824,7 +1918,12 @@ export default function LegalLinkHome() {
             <form onSubmit={handlePostNewQuestion} className="p-6 space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 uppercase mb-1">Legal Domain</label>
-                <select value={newQuestionCategory} onChange={(e) => setNewQuestionCategory(e.target.value)} className="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                <select 
+                  value={newQuestionCategory} 
+                  onChange={(e) => setNewQuestionCategory(e.target.value)} 
+                  className="w-full p-2.5 bg-slate-50 border rounded-xl font-bold"
+                >
+                  <option value="Capital Markets & Securities">Capital Markets & Securities (የካፒታል ገበያና አክሲዮን - ECMA)</option>
                   <option value="Property & Real Estate">Property & Real Estate (መሬትና ንብረት)</option>
                   <option value="Employment Law">Employment Law (የሥራና ሠራተኛ አዋጅ 1156)</option>
                   <option value="Corporate & Business Law">Corporate & Business (የንግድና ኩባንያ ሕግ)</option>
