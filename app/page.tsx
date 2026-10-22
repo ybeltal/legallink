@@ -7,7 +7,7 @@ import {
   ArrowRight, ArrowLeft, Star, ShieldCheck, CheckCircle2, Clock, Lock, Sparkles, 
   X, Menu, Phone, Mail, MapPin, Loader2, Printer, FileText, RefreshCw, UserCheck,
   Calendar, Check, AlertCircle, CreditCard, Download, ExternalLink, ChevronRight,
-  Video, Send, MessageSquare, User as UserIcon, MessageCircle, Smartphone, Receipt, LogOut,
+  Video, Send, MessageSquare, User, MessageCircle, Smartphone, Receipt, LogOut,
   KeyRound, Award, FileCode, Edit3, Paperclip, UploadCloud, Languages, UserPlus,
   ThumbsUp, Search, HelpCircle, CheckCircle, ChevronDown, ChevronUp, Calculator, Gavel,
   Mic, Square, Play, Trash2, Volume2, AlertTriangle, ClipboardCheck, Car, Key, Handshake
@@ -18,7 +18,6 @@ export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
   const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'dara' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
   const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts'>('consultations');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // In-app Toast Feedback State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -27,9 +26,7 @@ export default function LegalLinkHome() {
     setTimeout(() => setToastMessage(null), 3800);
   };
 
-  // -------------------------------------------------------------
-  // DYNAMIC INTERSECTION OBSERVER FOR SCROLL ANIMATIONS
-  // -------------------------------------------------------------
+  // Scroll Animations Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -50,9 +47,7 @@ export default function LegalLinkHome() {
     };
   }, [activeTab]);
 
-  // -------------------------------------------------------------
-  // USER AUTHENTICATION & SESSION
-  // -------------------------------------------------------------
+  // Auth & Session
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);
 
@@ -102,22 +97,7 @@ export default function LegalLinkHome() {
     };
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      setCurrentUser(null);
-      setUserProfile(null);
-      showToast('Signed out of LegalLink.');
-      setActiveTab('home');
-    } catch (err) {
-      console.error('Sign out error:', err);
-    }
-  };
-
-  // -------------------------------------------------------------
-  // CLIENT MATCHING & VOICE NOTE RECORDER STATE
-  // -------------------------------------------------------------
+  // Client Matching & Voice Note Intake State
   const [matchStep, setMatchStep] = useState<1 | 2 | 3 | 4>(1);
   const [clientName, setClientName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Corporate & Business Law');
@@ -196,9 +176,7 @@ export default function LegalLinkHome() {
     setRecordingSeconds(0);
   };
 
-  // -------------------------------------------------------------
-  // USER DASHBOARD & EVIDENCE STATE
-  // -------------------------------------------------------------
+  // Client Dashboard & Realtime State
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
   const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<any | null>(null);
   const [modalTab, setModalTab] = useState<'milestones' | 'room' | 'documents'>('milestones');
@@ -237,94 +215,7 @@ export default function LegalLinkHome() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedConsultationDetails) return;
-
-    try {
-      const supabase = createClient();
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filePath = `${selectedConsultationDetails.id}/${Date.now()}_${cleanFileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('case-documents')
-        .upload(filePath, file, { cacheControl: '3600', upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('case-documents')
-        .getPublicUrl(filePath);
-
-      const publicUrl = urlData.publicUrl;
-      const formattedSize = file.size > 1024 * 1024 
-        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
-        : `${Math.round(file.size / 1024)} KB`;
-
-      const uploader = userProfile?.full_name || selectedConsultationDetails.client_name || 'Client';
-      const { data: newDocRecord, error: insertError } = await supabase
-        .from('case_documents')
-        .insert([
-          {
-            consultation_id: selectedConsultationDetails.id,
-            file_name: file.name,
-            file_url: publicUrl,
-            file_size: formattedSize,
-            uploader_name: uploader,
-            uploader_role: 'client',
-          },
-        ])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      if (newDocRecord) {
-        setCaseDocuments((prev) => [newDocRecord, ...prev]);
-      }
-      showToast('Document uploaded and shared securely with advocate.');
-    } catch (err: any) {
-      alert('Failed to upload document: ' + (err.message || 'Storage error'));
-    } finally {
-      if (fileUploadInputRef.current) {
-        fileUploadInputRef.current.value = '';
-      }
-    }
-  };
-
-  // -------------------------------------------------------------
-  // REVIEWS & RATING ENGINE STATE
-  // -------------------------------------------------------------
-  const [reviewsList, setReviewsList] = useState<any[]>([
-    {
-      id: 'rev-1',
-      rating: 5,
-      review_comment: 'Advocate Mulu helped restructure our PLC share agreement efficiently. Clear communication throughout.',
-      client_name: 'Dawit Alemu',
-      advocate_name: 'Advocate Mulu Haile',
-      created_at: '2026-10-18'
-    },
-    {
-      id: 'rev-2',
-      rating: 5,
-      review_comment: 'Handled our commercial lease compliance dispute in Bole with speed and thoroughness.',
-      client_name: 'Bethlehem Tadesse',
-      advocate_name: 'Advocate Mulu Haile',
-      created_at: '2026-10-17'
-    },
-    {
-      id: 'rev-3',
-      rating: 4,
-      review_comment: 'Fast response and very helpful guidance on the labor severance calculation.',
-      client_name: 'Abebe K.',
-      advocate_name: 'Advocate Tigist Bekele',
-      created_at: '2026-10-15'
-    }
-  ]);
-
-  // -------------------------------------------------------------
-  // CONSULTATIONS REAL-TIME SYNC
-  // -------------------------------------------------------------
+  // Realtime Sync for Consultations
   useEffect(() => {
     if (activeTab === 'my-consultations') {
       fetchMyConsultations();
@@ -356,7 +247,7 @@ export default function LegalLinkHome() {
     }
   }, [activeTab]);
 
-  // Real-time Chat
+  // Realtime Consultation Chat
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessageText, setNewMessageText] = useState('');
   const chatBottomRef = useRef<HTMLDivElement>(null);
@@ -402,25 +293,8 @@ export default function LegalLinkHome() {
         .subscribe();
     }
 
-    const docsChannel = supabase
-      .channel(`docs_${consultationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'case_documents',
-          filter: `consultation_id=eq.${consultationId}`,
-        },
-        (payload) => {
-          setCaseDocuments((prev) => [payload.new, ...prev]);
-        }
-      )
-      .subscribe();
-
     return () => {
       if (chatChannel) void supabase.removeChannel(chatChannel);
-      void supabase.removeChannel(docsChannel);
     };
   }, [selectedConsultationDetails, modalTab]);
 
@@ -459,9 +333,7 @@ export default function LegalLinkHome() {
     }
   };
 
-  // -------------------------------------------------------------
-  // CONSULTATION SUBMISSION WITH VOICE NOTE UPLOAD
-  // -------------------------------------------------------------
+  // Submit Consultation Intake
   const handleBookingSubmit = async () => {
     if (!situationText.trim() && !audioBlob) {
       alert('Please describe your legal situation or record a voice note.');
@@ -516,111 +388,11 @@ export default function LegalLinkHome() {
     }
   };
 
-  // -------------------------------------------------------------
-  // LEGALTALK Q&A COMMUNITY FORUM ENGINE
-  // -------------------------------------------------------------
-  const [legalTalkFilter, setLegalTalkFilter] = useState<string>('all');
-  const [legalTalkSearch, setLegalTalkSearch] = useState<string>('');
-  const [askModalOpen, setAskModalOpen] = useState(false);
-  const [newQuestionTitle, setNewQuestionTitle] = useState('');
-  const [newQuestionCategory, setNewQuestionCategory] = useState('Property & Real Estate');
-  const [newQuestionDetails, setNewQuestionDetails] = useState('');
-
-  const [communityQuestions, setCommunityQuestions] = useState<any[]>([
-    {
-      id: 'q1',
-      title: 'Can a commercial landlord in Addis Ababa demand 1-year advance rent and raise prices mid-lease?',
-      category: 'Property & Real Estate',
-      author: 'Kidus M. (Bole)',
-      date: '2 days ago',
-      upvotes: 38,
-      hasUpvoted: false,
-      answersCount: 1,
-      verifiedAnswer: {
-        advocate: 'Advocate Dawit Tesfaye',
-        title: 'Property & Real Estate Counsel (15 yrs exp)',
-        date: 'Yesterday',
-        body: 'Under Book IV of the Ethiopian Civil Code (Art. 2896 et seq.) and current Addis Ababa municipal commercial tenancy directives, unilateral rent increments within an active, registered lease term are legally prohibited unless an explicit indexation clause is stated. Furthermore, advance payment exceeding standard contractual benchmarks requires mutual assent registered with DARA.',
-        advocateId: 'l3'
-      }
-    },
-    {
-      id: 'q2',
-      title: 'What are the employee severance rules during the 60-day probation period under Proclamation 1156/2019?',
-      category: 'Employment Law',
-      author: 'Selamawit B. (Kazanchis)',
-      date: '4 days ago',
-      upvotes: 54,
-      hasUpvoted: false,
-      answersCount: 1,
-      verifiedAnswer: {
-        advocate: 'Advocate Tigist Bekele',
-        title: 'Civil & Labor Advocate (9 yrs exp)',
-        date: '3 days ago',
-        body: 'Pursuant to Article 11(3) of Ethiopian Labor Proclamation No. 1156/2019, if an employee is found unsuited during the probationary period, the employment agreement may be terminated without notice and without obligation to pay severance or compensation. However, all accrued regular wages for days worked must be disbursed immediately.',
-        advocateId: 'l2'
-      }
-    }
-  ]);
-
-  const handleUpvoteQuestion = (qId: string) => {
-    setCommunityQuestions((prev) =>
-      prev.map((q) => {
-        if (q.id === qId) {
-          const newStatus = !q.hasUpvoted;
-          showToast(newStatus ? 'Upvoted question!' : 'Removed upvote');
-          return {
-            ...q,
-            upvotes: newStatus ? q.upvotes + 1 : q.upvotes - 1,
-            hasUpvoted: newStatus,
-          };
-        }
-        return q;
-      })
-    );
-  };
-
-  const handlePostNewQuestion = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newQuestionTitle.trim()) return;
-
-    const newQ = {
-      id: `q-${Date.now()}`,
-      title: newQuestionTitle.trim(),
-      category: newQuestionCategory,
-      author: userProfile?.full_name || 'Anonymous Client',
-      date: 'Just now',
-      upvotes: 1,
-      hasUpvoted: true,
-      answersCount: 0,
-      verifiedAnswer: null,
-      details: newQuestionDetails.trim(),
-    };
-
-    setCommunityQuestions([newQ, ...communityQuestions]);
-    setAskModalOpen(false);
-    setNewQuestionTitle('');
-    setNewQuestionDetails('');
-    showToast('Question posted! Advocates notified.');
-  };
-
-  const filteredQuestions = communityQuestions.filter((q) => {
-    const matchesCategory = legalTalkFilter === 'all' || q.category === legalTalkFilter;
-    const matchesSearch = !legalTalkSearch.trim() || 
-      q.title.toLowerCase().includes(legalTalkSearch.toLowerCase()) ||
-      q.category.toLowerCase().includes(legalTalkSearch.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  // -------------------------------------------------------------
-  // STATUTORY LABOR & SEVERANCE CALCULATOR ENGINE (PROC. 1156/2019)
-  // -------------------------------------------------------------
+  // Statutory Labor & Severance Calculator (Proc. 1156/2019)
   const [calcSalary, setCalcSalary] = useState<number>(20000);
   const [calcYears, setCalcYears] = useState<number>(3);
   const [calcMonths, setCalcMonths] = useState<number>(4);
-  const [calcReason, setCalcReason] = useState<'redundancy' | 'unlawful' | 'bankruptcy' | 'lawful_notice'>('redundancy');
-  const [calcGaveNotice, setCalcGaveNotice] = useState<boolean>(false);
-  const [calcUnusedLeaveDays, setCalcUnusedLeaveDays] = useState<number>(12);
+  const [calcReason, setCalcReason] = useState<'redundancy' | 'unlawful' | 'bankruptcy'>('redundancy');
 
   const dailyWage = calcSalary / 30;
   const totalServiceFraction = calcYears + (calcMonths / 12);
@@ -643,16 +415,14 @@ export default function LegalLinkHome() {
   let noticePeriodMonths = 1;
   if (calcReason === 'redundancy') {
     noticePeriodMonths = 2;
-  } else if (calcYears < 1) {
-    noticePeriodMonths = 1;
   } else if (calcYears >= 1 && calcYears <= 9) {
     noticePeriodMonths = 2;
   } else if (calcYears > 9) {
     noticePeriodMonths = 3;
   }
 
-  const noticeIndemnity = calcGaveNotice ? 0 : (noticePeriodMonths * calcSalary);
-  const leaveIndemnity = calcUnusedLeaveDays * dailyWage;
+  const noticeIndemnity = noticePeriodMonths * calcSalary;
+  const leaveIndemnity = 12 * dailyWage;
   const totalCalculatedPackage = baseSeverance + additionalRedundancyPay + noticeIndemnity + leaveIndemnity;
 
   const handlePrintLaborCalculation = () => {
@@ -666,9 +436,9 @@ export default function LegalLinkHome() {
           <title>Statutory Severance Calculation - Proc. 1156/2019</title>
           <style>
             @page { size: portrait; margin: 15mm; }
-            body { font-family: "Century Gothic", sans-serif; color: #0A1128; padding: 25px; }
+            body { font-family: -apple-system, sans-serif; color: #0A1128; padding: 25px; }
             .header { border-bottom: 2px solid #0A1128; padding-bottom: 10px; margin-bottom: 20px; }
-            .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
             .table th { background: #0A1128; color: white; padding: 10px; text-align: left; }
             .table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
             .total { background: #f1f5f9; font-weight: bold; font-size: 14px; }
@@ -699,19 +469,7 @@ export default function LegalLinkHome() {
     printWindow.document.close();
   };
 
-  // 6 Litigation Stages
-  const legalStages = [
-    { step: 1, title: 'Case Intake & Evidence Audit', am: 'የማስረጃ ማሰባሰብ', desc: 'Advocate reviews briefs, contract clauses, and evidence records.' },
-    { step: 2, title: 'Pleadings & Statement of Claim Drafted', am: 'መክፈቻ አቤቱታ ዝግጅት', desc: 'Formal petition drafted pursuant to Civil Procedure Code.' },
-    { step: 3, title: 'Court Registry & Summons Served', am: 'የክስ መዝገብና መጥሪያ', desc: 'Case docket registered at First Instance/High Court and summons dispatched.' },
-    { step: 4, title: 'Preliminary Objections & Defense', am: 'የመጀመሪያ ደረጃ መቃወሚያ', desc: 'Bench reviews jurisdiction, limitations, and statement of defense.' },
-    { step: 5, title: 'Witness Examination & Hearing', am: 'የምስክር መስማት', desc: 'Examination and cross-examination of documentary evidence & witnesses.' },
-    { step: 6, title: 'Final Judgment & Execution Decree', am: 'የመጨረሻ ፍርድና አፈፃፀም', desc: 'Final decree rendered and formal execution writ enforced.' },
-  ];
-
-  // -------------------------------------------------------------
-  // DARA COUNTER-READY CHECKLIST ENGINE (ሰነዶች ማረጋገጫ ቅድመ-ዝግጅት)
-  // -------------------------------------------------------------
+  // DARA Counter-Ready Checklist
   const [daraDocType, setDaraDocType] = useState<'vehicle' | 'lease' | 'poa' | 'loan'>('vehicle');
   const [daraCheckedItems, setDaraCheckedItems] = useState<Record<string, boolean>>({});
 
@@ -720,45 +478,41 @@ export default function LegalLinkHome() {
       title: 'Vehicle Sale & Title Transfer',
       amTitle: 'የተሽከርካሪ ሽያጭና ስም ማዘዋወር',
       checklist: [
-        { id: 'v1', text: 'Original Libre (የተሽከርካሪ ኦሪጅናል ሊብሮ) without any bank lien/mortgage stamp.' },
-        { id: 'v2', text: 'Valid Annual Vehicle Inspection Sticker (የዘመኑ የቴክኒክ ምርመራ ቦሎ/ቴስቲሞኒዮ).' },
-        { id: 'v3', text: 'Active Resident Kebele ID or Fayda Digital ID for both Buyer and Seller.' },
+        { id: 'v1', text: 'Original Libre (የተሽከርካሪ ኦሪጅናል ሊብሮ) without bank mortgage stamp.' },
+        { id: 'v2', text: 'Valid Annual Vehicle Inspection Sticker (የዘመኑ የቴክኒክ ምርመራ ቦሎ).' },
+        { id: 'v3', text: 'Active Resident Kebele ID or Fayda Digital ID for Buyer and Seller.' },
         { id: 'v4', text: 'Spousal Consent (የባል/ሚስት ፈቃድ) in person or certified Single/Divorce certificate.' },
-        { id: 'v5', text: '2 Ethiopian Citizen Witnesses present with valid Kebele IDs and passport photos.' },
-        { id: 'v6', text: 'Customs Duty Clearance Certificate (if previously purchased under duty-free privilege).' }
+        { id: 'v5', text: '2 Ethiopian Citizen Witnesses present with valid Kebele IDs.' },
       ]
     },
     lease: {
       title: 'Real Estate & Commercial Lease',
       amTitle: 'የንግድና መኖሪያ ቤት ኪራይ ውል',
       checklist: [
-        { id: 'l1', text: 'Original Land Holding Certificate / Title Deed (ኦሪጅናል የይዞታ ማረጋገጫ ካርታ).' },
-        { id: 'l2', text: 'Current Municipal Tax Clearance Receipt (የዘመኑ የግብር ደረሰኝ ከክፍለ ከተማ).' },
+        { id: 'l1', text: 'Original Land Holding Certificate / Title Deed (ኦሪጅናል የይዞታ ካርታ).' },
+        { id: 'l2', text: 'Current Municipal Tax Clearance Receipt (የዘመኑ የግብር ደረሰኝ).' },
         { id: 'l3', text: 'Valid Resident IDs of both Landlord and Tenant.' },
         { id: 'l4', text: '2 Witnesses with active Kebele IDs who are not direct family beneficiaries.' },
-        { id: 'l5', text: 'TIN Number & Commercial Registration (for commercial premise leasing).' }
       ]
     },
     poa: {
       title: 'Power of Attorney (POA)',
       amTitle: 'ጠቅላላና ልዩ የውክልና ስልጣን',
       checklist: [
-        { id: 'p1', text: 'Physical presence of the Principal (ወካይ) with valid Kebele ID or National Passport.' },
+        { id: 'p1', text: 'Physical presence of the Principal (ወካይ) with valid Kebele ID or Passport.' },
         { id: 'p2', text: 'Certified copy of Agent (ተወካይ) Kebele ID.' },
-        { id: 'p3', text: 'Exact Bank Account Numbers or Motor/Land Plate Numbers written out explicitly for Special POA.' },
+        { id: 'p3', text: 'Exact Bank Account Numbers or Land Plate Numbers specified in writing.' },
         { id: 'p4', text: '2 Witnesses with valid resident IDs present at the DARA desk.' },
-        { id: 'p5', text: 'Embassy Seal & Ministry of Foreign Affairs (MFA) Stamp (for Diaspora POA).' }
       ]
     },
     loan: {
       title: 'Loan & Debt Acknowledgement',
       amTitle: 'የብድርና የዕዳ መቀበያ ውል',
       checklist: [
-        { id: 'd1', text: 'Drafted Loan Contract with exact repayment date and interest terms compliant with NBE caps.' },
+        { id: 'd1', text: 'Drafted Loan Contract with exact repayment date and interest terms.' },
         { id: 'd2', text: 'Bank Transfer Slip / Cheque Copy verifying fund disbursement.' },
         { id: 'd3', text: 'Borrower and Creditor valid Kebele/Fayda IDs.' },
-        { id: 'd4', text: 'Collateral ownership document (if debt is secured by vehicle or property).' },
-        { id: 'd5', text: '2 Witnesses with non-expired government-issued IDs.' }
+        { id: 'd4', text: '2 Witnesses with non-expired government-issued IDs.' }
       ]
     }
   };
@@ -782,7 +536,7 @@ export default function LegalLinkHome() {
           <title>DARA Counter-Ready Pre-Flight Certificate</title>
           <style>
             @page { size: portrait; margin: 15mm; }
-            body { font-family: "Century Gothic", "Nyala", sans-serif; color: #0A1128; padding: 25px; }
+            body { font-family: -apple-system, sans-serif; color: #0A1128; padding: 25px; }
             .header { border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
             .title { font-size: 20px; font-weight: 900; }
             .badge { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 9999px; font-weight: bold; font-size: 11px; }
@@ -819,26 +573,21 @@ export default function LegalLinkHome() {
     printWindow.document.close();
   };
 
-  // -------------------------------------------------------------
-  // LEXDRAFT BILINGUAL CONTRACT & DEMAND LETTER ENGINE
-  // -------------------------------------------------------------
+  // LexDraft & Statutory Demand Letters
   const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [docFormData, setDocFormData] = useState<Record<string, string>>({});
-  const [contractLanguage, setContractLanguage] = useState<'en' | 'am' | 'bilingual'>('bilingual');
   const [savedContracts, setSavedContracts] = useState<any[]>([
     { 
       id: 'cnt-1', 
       title: 'Demand Letter - Commercial Loan Default', 
       date: '2026-10-18', 
       fee: 'FREE', 
-      status: 'Ready',
       partyA: 'Ethio Capital Partners',
       partyB: 'Alazar Solomon',
       roleOrPurpose: 'Default on Loan Agreement dated 12/03/2026',
       salaryOrRent: 'ETB 150,000.00',
       jurisdiction: '7 Calendar Days (Addis Ababa)',
       type: 'demand',
-      contractLang: 'bilingual'
     }
   ]);
 
@@ -895,7 +644,7 @@ export default function LegalLinkHome() {
           <title>${contract.title} - Official LegalLink LexDraft</title>
           <style>
             @page { size: portrait; margin: 18mm; }
-            body { font-family: "Century Gothic", "Nyala", sans-serif; color: #111827; padding: 20px; line-height: 1.6; font-size: 13px; }
+            body { font-family: -apple-system, sans-serif; color: #111827; padding: 20px; line-height: 1.6; font-size: 13px; }
             .header { text-align: center; border-bottom: 2px solid #0A1128; padding-bottom: 12px; margin-bottom: 20px; }
             .parties-box { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; }
           </style>
@@ -935,14 +684,12 @@ export default function LegalLinkHome() {
       title: `${selectedTemplate.title} - ${partyB}`,
       date: new Date().toISOString().split('T')[0],
       fee: selectedTemplate.priceETB === 0 ? 'FREE' : `ETB ${selectedTemplate.priceETB}`,
-      status: 'Ready',
       partyA,
       partyB,
       roleOrPurpose,
       salaryOrRent,
       jurisdiction,
       type: selectedTemplate.id,
-      contractLang: contractLanguage,
     };
 
     setSavedContracts((prev) => [newContractRecord, ...prev]);
@@ -956,7 +703,55 @@ export default function LegalLinkHome() {
     showToast('Document generated and exported via LexDraft.');
   };
 
-  // Practice Areas (8 Core Domains)
+  // LegalTalk Forum State
+  const [askModalOpen, setAskModalOpen] = useState(false);
+  const [newQuestionTitle, setNewQuestionTitle] = useState('');
+  const [newQuestionCategory, setNewQuestionCategory] = useState('Property & Real Estate');
+  const [communityQuestions, setCommunityQuestions] = useState<any[]>([
+    {
+      id: 'q1',
+      title: 'Can a commercial landlord in Addis Ababa demand 1-year advance rent and raise prices mid-lease?',
+      category: 'Property & Real Estate',
+      author: 'Kidus M. (Bole)',
+      date: '2 days ago',
+      verifiedAnswer: {
+        advocate: 'Advocate Dawit Tesfaye',
+        body: 'Under Book IV of the Ethiopian Civil Code (Art. 2896 et seq.) and current Addis Ababa municipal directives, unilateral rent increments within an active, registered lease term are legally prohibited unless an explicit indexation clause is stated.',
+      }
+    },
+    {
+      id: 'q2',
+      title: 'What are the employee severance rules during the 60-day probation period under Proclamation 1156/2019?',
+      category: 'Employment Law',
+      author: 'Selamawit B. (Kazanchis)',
+      date: '4 days ago',
+      verifiedAnswer: {
+        advocate: 'Advocate Tigist Bekele',
+        body: 'Pursuant to Article 11(3) of Ethiopian Labor Proclamation No. 1156/2019, if an employee is found unsuited during the probationary period, the employment agreement may be terminated without notice and without obligation to pay severance.',
+      }
+    }
+  ]);
+
+  const handlePostNewQuestion = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newQuestionTitle.trim()) return;
+
+    const newQ = {
+      id: `q-${Date.now()}`,
+      title: newQuestionTitle.trim(),
+      category: newQuestionCategory,
+      author: userProfile?.full_name || 'Anonymous Client',
+      date: 'Just now',
+      verifiedAnswer: null,
+    };
+
+    setCommunityQuestions([newQ, ...communityQuestions]);
+    setAskModalOpen(false);
+    setNewQuestionTitle('');
+    showToast('Question posted! Advocates notified.');
+  };
+
+  // Static Data
   const practiceAreas = [
     { id: 'Corporate & Business Law', title: 'Corporate & Business', amTitle: 'የንግድና ኩባንያ ሕግ', icon: Briefcase, desc: 'Company formation, contracts, M&A, governance.' },
     { id: 'Family Law', title: 'Family Law', amTitle: 'የቤተሰብ ሕግ', icon: Heart, desc: 'Divorce, custody, adoption, inheritance disputes.' },
@@ -1005,6 +800,15 @@ export default function LegalLinkHome() {
       bio: 'Former land administration legal advisor. Expert in commercial lease defaults, eviction notices, and title verification.',
       avatarInitials: 'DT',
     }
+  ];
+
+  const legalStages = [
+    { step: 1, title: 'Case Intake & Evidence Audit', am: 'የማስረጃ ማሰባሰብ', desc: 'Advocate reviews briefs, contract clauses, and evidence records.' },
+    { step: 2, title: 'Pleadings & Statement of Claim Drafted', am: 'መክፈቻ አቤቱታ ዝግጅት', desc: 'Formal petition drafted pursuant to Civil Procedure Code.' },
+    { step: 3, title: 'Court Registry & Summons Served', am: 'የክስ መዝገብና መጥሪያ', desc: 'Case docket registered at First Instance/High Court and summons dispatched.' },
+    { step: 4, title: 'Preliminary Objections & Defense', am: 'የመጀመሪያ ደረጃ መቃወሚያ', desc: 'Bench reviews jurisdiction, limitations, and statement of defense.' },
+    { step: 5, title: 'Witness Examination & Hearing', am: 'የምስክር መስማት', desc: 'Examination and cross-examination of documentary evidence & witnesses.' },
+    { step: 6, title: 'Final Judgment & Execution Decree', am: 'የመጨረሻ ፍርድና አፈፃፀም', desc: 'Final decree rendered and formal execution writ enforced.' },
   ];
 
   const legalTalkArticles = [
@@ -1118,6 +922,13 @@ export default function LegalLinkHome() {
               >
                 LegalTalk
               </button>
+
+              <Link
+                href="/for-lawyers"
+                className="px-3 py-2 text-sm font-semibold rounded-xl text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-all"
+              >
+                For Lawyers
+              </Link>
 
               <button
                 onClick={() => setActiveTab('my-consultations')}
@@ -1285,7 +1096,7 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-1">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 reveal reveal-delay-1">
                   <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 font-black flex items-center justify-center text-lg border border-amber-200">
                     1
                   </div>
@@ -1295,7 +1106,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-2">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 reveal reveal-delay-2">
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 font-black flex items-center justify-center text-lg border border-blue-200">
                     2
                   </div>
@@ -1305,7 +1116,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 card-hover-effect reveal reveal-delay-3">
+                <div className="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4 reveal reveal-delay-3">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center text-lg border border-emerald-200">
                     3
                   </div>
@@ -1346,7 +1157,7 @@ export default function LegalLinkHome() {
                         setActiveTab('match');
                         setMatchStep(2);
                       }}
-                      className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect bg-white group reveal reveal-delay-${(idx % 4) + 1}`}
+                      className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer bg-white group reveal reveal-delay-${(idx % 4) + 1}`}
                     >
                       <div className="w-11 h-11 rounded-2xl bg-slate-100 group-hover:bg-[#0A1128] group-hover:text-amber-400 flex items-center justify-center text-[#0A1128] mb-4 transition-colors">
                         <Icon className="w-5 h-5" />
@@ -1371,17 +1182,17 @@ export default function LegalLinkHome() {
                   <p className="text-xs text-slate-500 mt-1">Senior counsel with verified Ministry of Justice practicing licenses.</p>
                 </div>
                 <Link
-                  href="/advocate"
+                  href="/for-lawyers"
                   className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Open Advocate Portal</span>
+                  <span>Are you an advocate? Join our network</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {mockMatchedLawyers.map((lawyer, idx) => (
-                  <div key={lawyer.id} className={`p-6 rounded-3xl bg-white border border-slate-200 flex flex-col justify-between card-hover-effect space-y-4 reveal reveal-delay-${idx + 1}`}>
+                  <div key={lawyer.id} className={`p-6 rounded-3xl bg-white border border-slate-200 flex flex-col justify-between space-y-4 reveal reveal-delay-${idx + 1}`}>
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
                         <div className="w-12 h-12 rounded-full bg-[#0A1128] text-amber-400 font-bold flex items-center justify-center text-sm shadow">
@@ -1460,7 +1271,7 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-1">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 reveal reveal-delay-1">
                   <ShieldCheck className="w-8 h-8 text-amber-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Ministry of Justice Vetting</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1468,7 +1279,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-2">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 reveal reveal-delay-2">
                   <Lock className="w-8 h-8 text-emerald-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Guaranteed Escrow Protection</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1476,7 +1287,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-3">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 reveal reveal-delay-3">
                   <Languages className="w-8 h-8 text-blue-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Bilingual Contract Drafting</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1484,7 +1295,7 @@ export default function LegalLinkHome() {
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 card-hover-effect reveal reveal-delay-4">
+                <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2 reveal reveal-delay-4">
                   <Smartphone className="w-8 h-8 text-purple-400 mb-2" />
                   <h4 className="font-bold text-sm text-white">Instant SMS Notifications</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -1518,7 +1329,7 @@ export default function LegalLinkHome() {
                   <div
                     key={art.id}
                     onClick={() => setActiveTab('legaltalk')}
-                    className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer card-hover-effect flex flex-col justify-between space-y-4 group reveal reveal-delay-${idx + 1}`}
+                    className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer flex flex-col justify-between space-y-4 group reveal reveal-delay-${idx + 1}`}
                   >
                     <div className="space-y-3">
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 uppercase">
@@ -1585,7 +1396,7 @@ export default function LegalLinkHome() {
                   </div>
                 </div>
 
-                <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif card-hover-effect">
+                <div className="w-full max-w-sm bg-white text-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-200 text-[11px] space-y-3 font-serif">
                   <div className="text-center border-b pb-2">
                     <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
                       Federal Democratic Republic of Ethiopia
@@ -1630,35 +1441,80 @@ export default function LegalLinkHome() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {reviewsList.map((rev, idx) => (
-                  <div key={rev.id} className={`p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 card-hover-effect reveal reveal-delay-${(idx % 3) + 1}`}>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center text-amber-400">
-                          {Array.from({ length: rev.rating || 5 }).map((_, i) => (
-                            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                          ))}
-                        </div>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          ✓ Verified Retainer
-                        </span>
+                <div className="p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-amber-400">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        ))}
                       </div>
-                      <p className="text-xs text-slate-700 leading-relaxed italic">
-                        "{rev.review_comment}"
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
-                      <div>
-                        <strong className="text-[#0A1128] block">{rev.client_name}</strong>
-                        <span className="text-[10px] text-slate-400">Advocate: {rev.advocate_name}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-400">
-                        {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : 'Recent'}
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        ✓ Verified Retainer
                       </span>
                     </div>
+                    <p className="text-xs text-slate-700 leading-relaxed italic">
+                      "Advocate Mulu helped restructure our PLC share agreement efficiently. Clear communication throughout."
+                    </p>
                   </div>
-                ))}
+                  <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                    <div>
+                      <strong className="text-[#0A1128] block">Dawit Alemu</strong>
+                      <span className="text-[10px] text-slate-400">Advocate: Advocate Mulu Haile</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Recent</span>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-amber-400">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        ✓ Verified Retainer
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed italic">
+                      "Handled our commercial lease compliance dispute in Bole with speed and thoroughness."
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                    <div>
+                      <strong className="text-[#0A1128] block">Bethlehem Tadesse</strong>
+                      <span className="text-[10px] text-slate-400">Advocate: Advocate Mulu Haile</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Recent</span>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-slate-50/70 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-amber-400">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        ✓ Verified Retainer
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed italic">
+                      "Fast response and very helpful guidance on the labor severance calculation under Proc. 1156."
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                    <div>
+                      <strong className="text-[#0A1128] block">Abebe K.</strong>
+                      <span className="text-[10px] text-slate-400">Advocate: Advocate Tigist Bekele</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Recent</span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -1956,7 +1812,7 @@ export default function LegalLinkHome() {
           </div>
 
           <div className="space-y-4">
-            {filteredQuestions.map((q) => (
+            {communityQuestions.map((q) => (
               <div key={q.id} className="p-6 bg-white border border-slate-200 rounded-3xl space-y-3 shadow-sm">
                 <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">{q.category}</span>
                 <h3 className="text-base font-black text-[#0A1128]">{q.title}</h3>
