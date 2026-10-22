@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { 
   ShieldCheck, ArrowRight, CheckCircle2, Star, Clock, DollarSign, 
-  Users, Globe, ChevronDown, ChevronUp, Loader2, Sparkles, Check, Briefcase, Scale
+  Users, Globe, ChevronDown, ChevronUp, Loader2, Sparkles, Check, 
+  Briefcase, Scale, Upload, FileText, X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -18,6 +19,12 @@ export default function ForLawyersPage() {
   const [experienceYears, setExperienceYears] = useState('4–7 years');
   const [hourlyRate, setHourlyRate] = useState(1500);
   const [bio, setBio] = useState('');
+
+  // Verification Documents State
+  const [barLicenseFile, setBarLicenseFile] = useState<File | null>(null);
+  const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
+  const barLicenseInputRef = useRef<HTMLInputElement>(null);
+  const nationalIdInputRef = useRef<HTMLInputElement>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationSuccess, setApplicationSuccess] = useState(false);
@@ -57,9 +64,53 @@ export default function ForLawyersPage() {
       return;
     }
 
+    if (!barLicenseFile) {
+      setErrorMessage('Please upload a copy of your Ethiopian Bar License.');
+      return;
+    }
+
+    if (!nationalIdFile) {
+      setErrorMessage('Please upload a copy of your Ethiopian National ID or Passport.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const supabase = createClient();
+
+      // Upload Bar License Document
+      const cleanBarName = barLicenseFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const barPath = `advocate-verification/${Date.now()}_bar_${cleanBarName}`;
+      let barLicenseUrl = '';
+
+      const { error: barUploadError } = await supabase.storage
+        .from('case-documents')
+        .upload(barPath, barLicenseFile, { cacheControl: '3600', upsert: true });
+
+      if (!barUploadError) {
+        const { data: barUrlData } = supabase.storage
+          .from('case-documents')
+          .getPublicUrl(barPath);
+        barLicenseUrl = barUrlData.publicUrl;
+      }
+
+      // Upload National ID Document
+      const cleanIdName = nationalIdFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const idPath = `advocate-verification/${Date.now()}_id_${cleanIdName}`;
+      let nationalIdUrl = '';
+
+      const { error: idUploadError } = await supabase.storage
+        .from('case-documents')
+        .upload(idPath, nationalIdFile, { cacheControl: '3600', upsert: true });
+
+      if (!idUploadError) {
+        const { data: idUrlData } = supabase.storage
+          .from('case-documents')
+          .getPublicUrl(idPath);
+        nationalIdUrl = idUrlData.publicUrl;
+      }
+
+      // Insert Application Record
       const { error } = await supabase.from('advocate_applications').insert([
         {
           full_name: fullName.trim(),
@@ -70,6 +121,8 @@ export default function ForLawyersPage() {
           experience_years: experienceYears,
           hourly_rate: Number(hourlyRate),
           bio: bio.trim(),
+          bar_license_url: barLicenseUrl,
+          national_id_url: nationalIdUrl,
           status: 'pending'
         }
       ]);
@@ -360,7 +413,7 @@ export default function ForLawyersPage() {
               </div>
               <h3 className="font-black text-lg text-emerald-900">Application Submitted!</h3>
               <p className="text-xs text-emerald-800 max-w-md mx-auto leading-relaxed">
-                Thank you, Counsel. Our compliance desk is reviewing your bar license credentials. You will receive an SMS and email notification once approved.
+                Thank you, Counsel. Our compliance desk is reviewing your bar license credentials and verification documents. You will receive an SMS and email notification once approved.
               </p>
               <Link
                 href="/advocate"
@@ -517,20 +570,151 @@ export default function ForLawyersPage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                    <span>Submitting Application...</span>
-                  </>
-                ) : (
-                  <span>Submit Application</span>
-                )}
-              </button>
+              {/* VERIFICATION DOCUMENTS (AS SHOWN IN PROTOTYPE) */}
+              <div className="space-y-4 pt-2">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">
+                    Verification Documents
+                  </span>
+                  <p className="text-slate-400 text-[11px] mt-0.5">
+                    Accepted formats: PDF, JPG, PNG. Maximum file size: 5 MB per document. Documents are encrypted and stored securely.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {/* Bar License Upload Box */}
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">Bar license document *</label>
+                    <input
+                      type="file"
+                      ref={barLicenseInputRef}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            alert('File size exceeds 5 MB');
+                            return;
+                          }
+                          setBarLicenseFile(file);
+                        }
+                      }}
+                    />
+
+                    {barLicenseFile ? (
+                      <div className="p-5 border-2 border-emerald-300 bg-emerald-50/50 rounded-2xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+                          <div className="truncate">
+                            <strong className="block text-xs text-emerald-900 truncate max-w-[180px]">{barLicenseFile.name}</strong>
+                            <span className="text-[10px] text-emerald-600">{(barLicenseFile.size / 1024).toFixed(0)} KB • Ready to upload</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setBarLicenseFile(null)}
+                          className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => barLicenseInputRef.current?.click()}
+                        className="p-6 border-2 border-dashed border-slate-200 hover:border-[#0A1128] rounded-2xl text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-white"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
+                          <Upload className="w-4 h-4" />
+                        </div>
+                        <strong className="block text-xs text-[#0A1128]">Click or drag to upload</strong>
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">
+                          PDF or image of your Ethiopian bar license
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* National ID Upload Box */}
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">National ID *</label>
+                    <input
+                      type="file"
+                      ref={nationalIdInputRef}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            alert('File size exceeds 5 MB');
+                            return;
+                          }
+                          setNationalIdFile(file);
+                        }
+                      }}
+                    />
+
+                    {nationalIdFile ? (
+                      <div className="p-5 border-2 border-emerald-300 bg-emerald-50/50 rounded-2xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+                          <div className="truncate">
+                            <strong className="block text-xs text-emerald-900 truncate max-w-[180px]">{nationalIdFile.name}</strong>
+                            <span className="text-[10px] text-emerald-600">{(nationalIdFile.size / 1024).toFixed(0)} KB • Ready to upload</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNationalIdFile(null)}
+                          className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-800"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => nationalIdInputRef.current?.click()}
+                        className="p-6 border-2 border-dashed border-slate-200 hover:border-[#0A1128] rounded-2xl text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-white"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto mb-2">
+                          <Upload className="w-4 h-4" />
+                        </div>
+                        <strong className="block text-xs text-[#0A1128]">Click or drag to upload</strong>
+                        <span className="text-[11px] text-slate-400 mt-0.5 block">
+                          Ethiopian national ID or passport
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Legal Disclaimer & Submit Button */}
+              <div className="pt-2 space-y-4">
+                <p className="text-[11px] text-slate-400">
+                  By submitting this application you agree to LegalLink's{' '}
+                  <span className="text-slate-700 underline cursor-pointer">Terms of Service</span> and{' '}
+                  <span className="text-slate-700 underline cursor-pointer">Privacy Policy</span>.
+                </p>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                      <span>Uploading Documents & Submitting...</span>
+                    </>
+                  ) : (
+                    <span>Submit Application</span>
+                  )}
+                </button>
+              </div>
 
             </form>
           )}
