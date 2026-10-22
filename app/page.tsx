@@ -16,7 +16,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function LegalLinkHome() {
   const [lang, setLang] = useState<'en' | 'am'>('en');
-  const [activeTab, setActiveTab] = useState<'home' | 'match' | 'calculator' | 'dara' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'calculator' | 'dara' | 'lexdraft' | 'legaltalk' | 'my-consultations'>('home');
   const [clientSubTab, setClientSubTab] = useState<'consultations' | 'contracts'>('consultations');
 
   // In-app Toast Feedback State
@@ -96,85 +96,6 @@ export default function LegalLinkHome() {
       subscription.unsubscribe();
     };
   }, []);
-
-  // Client Matching & Voice Note Intake State
-  const [matchStep, setMatchStep] = useState<1 | 2 | 3 | 4>(1);
-  const [clientName, setClientName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Corporate & Business Law');
-  const [location, setLocation] = useState('Addis Ababa');
-  const [consultLanguage, setConsultLanguage] = useState('Amharic');
-  const [situationText, setSituationText] = useState('');
-  const [selectedLawyer, setSelectedLawyer] = useState<any | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
-
-  // Voice Recording Engine
-  const [intakeMode, setIntakeMode] = useState<'text' | 'voice'>('voice');
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startVoiceRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        const previewUrl = URL.createObjectURL(blob);
-        setAudioPreviewUrl(previewUrl);
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingSeconds(0);
-
-      timerIntervalRef.current = setInterval(() => {
-        setRecordingSeconds((prev) => {
-          if (prev >= 60) {
-            stopVoiceRecording();
-            return 60;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-      showToast('Recording started... Speak clearly into your mic.');
-    } catch (err: any) {
-      alert('Microphone access denied or not supported in this browser. You can type your brief below.');
-      setIntakeMode('text');
-    }
-  };
-
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      showToast('Voice note recorded! You can listen below.');
-    }
-  };
-
-  const clearVoiceRecording = () => {
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setIsRecording(false);
-    setAudioBlob(null);
-    setAudioPreviewUrl(null);
-    setRecordingSeconds(0);
-  };
 
   // Client Dashboard & Realtime State
   const [myConsultations, setMyConsultations] = useState<any[]>([]);
@@ -328,63 +249,8 @@ export default function LegalLinkHome() {
       } else {
         setNewMessageText('');
       }
-    } catch (err: any) {
+    } catch (err) {
       alert('Error transmitting message');
-    }
-  };
-
-  // Submit Consultation Intake
-  const handleBookingSubmit = async () => {
-    if (!situationText.trim() && !audioBlob) {
-      alert('Please describe your legal situation or record a voice note.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const supabase = createClient();
-      let uploadedVoiceUrl: string | null = null;
-
-      if (audioBlob) {
-        const audioPath = `voice-notes/${Date.now()}_voice_brief.webm`;
-        const { error: audioUploadError } = await supabase.storage
-          .from('case-documents')
-          .upload(audioPath, audioBlob, { contentType: 'audio/webm', upsert: true });
-
-        if (!audioUploadError) {
-          const { data: urlData } = supabase.storage
-            .from('case-documents')
-            .getPublicUrl(audioPath);
-          uploadedVoiceUrl = urlData.publicUrl;
-        }
-      }
-
-      const briefDescription = situationText.trim() || (audioBlob ? '🎙️ [Client Voice Note Brief Attached]' : 'Legal Consultation Request');
-
-      const { error } = await supabase.from('consultations').insert([
-        {
-          client_name: userProfile?.full_name || clientName.trim() || 'Client',
-          practice_area: selectedCategory,
-          location: location,
-          situation_description: briefDescription,
-          budget_range: 'Free Consultation',
-          urgency: 'within_24h',
-          status: 'pending',
-          payment_status: 'free_promotional',
-          escrow_amount: 0,
-          case_stage: 1,
-          voice_note_url: uploadedVoiceUrl
-        },
-      ]);
-
-      if (error) throw error;
-      setBookingConfirmed(true);
-      clearVoiceRecording();
-      showToast('Case successfully registered! Proceeding to advocate confirmation.');
-    } catch (err: any) {
-      alert('Unexpected error saving your consultation: ' + err.message);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -875,14 +741,12 @@ export default function LegalLinkHome() {
             </div>
 
             <nav className="hidden md:flex items-center gap-1">
-              <button
-                onClick={() => { setActiveTab('match'); setMatchStep(1); }}
-                className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${
-                  activeTab === 'match' ? 'text-[#0A1128] bg-slate-100 font-bold shadow-xs' : 'text-slate-600 hover:text-[#0A1128] hover:bg-slate-50'
-                }`}
+              <Link
+                href="/find-a-lawyer"
+                className="px-3 py-2 text-sm font-semibold rounded-xl text-slate-600 hover:text-[#0A1128] hover:bg-slate-50 transition-all"
               >
                 {lang === 'am' ? 'ጠበቃ ፈልግ' : 'Find a Lawyer'}
-              </button>
+              </Link>
 
               <button
                 onClick={() => setActiveTab('calculator')}
@@ -987,13 +851,13 @@ export default function LegalLinkHome() {
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                    <button
-                      onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                    <Link
+                      href="/find-a-lawyer"
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer hover:shadow-xl hover:-translate-y-0.5"
                     >
                       <span>Find a Lawyer</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
-                    </button>
+                    </Link>
                     <button
                       onClick={() => setActiveTab('dara')}
                       className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
@@ -1064,17 +928,13 @@ export default function LegalLinkHome() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        setSelectedLawyer(mockMatchedLawyers[0]);
-                        setActiveTab('match');
-                        setMatchStep(4);
-                      }}
+                    <Link
+                      href="/find-a-lawyer"
                       className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-all shadow cursor-pointer flex items-center justify-center gap-2"
                     >
                       <span>Book Consultation</span>
                       <ArrowRight className="w-4 h-4 text-amber-400" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
 
@@ -1137,26 +997,22 @@ export default function LegalLinkHome() {
                   <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">PRACTICE AREAS</span>
                   <h2 className="text-3xl font-black text-[#0A1128] mt-1">Specialized Legal Domains</h2>
                 </div>
-                <button
-                  onClick={() => { setActiveTab('match'); setMatchStep(1); }}
+                <Link
+                  href="/find-a-lawyer"
                   className="mt-3 sm:mt-0 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
                 >
                   <span>Explore All 8 Practice Areas</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {practiceAreas.map((cat, idx) => {
                   const Icon = cat.icon;
                   return (
-                    <div
+                    <Link
                       key={cat.id}
-                      onClick={() => {
-                        setSelectedCategory(cat.id);
-                        setActiveTab('match');
-                        setMatchStep(2);
-                      }}
+                      href="/find-a-lawyer"
                       className={`p-6 rounded-3xl border border-slate-200 hover:border-[#0A1128] transition-all cursor-pointer bg-white group reveal reveal-delay-${(idx % 4) + 1}`}
                     >
                       <div className="w-11 h-11 rounded-2xl bg-slate-100 group-hover:bg-[#0A1128] group-hover:text-amber-400 flex items-center justify-center text-[#0A1128] mb-4 transition-colors">
@@ -1165,7 +1021,7 @@ export default function LegalLinkHome() {
                       <h3 className="font-bold text-[#0A1128] text-base">{cat.title}</h3>
                       <span className="text-[11px] font-bold text-slate-400 block mt-0.5">{cat.amTitle}</span>
                       <p className="text-xs text-slate-500 mt-2 leading-relaxed">{cat.desc}</p>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -1222,16 +1078,12 @@ export default function LegalLinkHome() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        setSelectedLawyer(lawyer);
-                        setActiveTab('match');
-                        setMatchStep(4);
-                      }}
-                      className="w-full py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-sm"
+                    <Link
+                      href="/find-a-lawyer"
+                      className="w-full py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shadow-sm text-center"
                     >
                       Book Session
-                    </button>
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -1715,89 +1567,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW E: FIND A LAWYER WITH VOICE INTAKE */}
-      {activeTab === 'match' && (
-        <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full space-y-8">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-            <h3 className="font-black text-lg text-[#0A1128] mb-4">Connect with Counsel (Step {matchStep} of 4)</h3>
-            
-            {matchStep === 1 && (
-              <div className="grid grid-cols-2 gap-3">
-                {practiceAreas.map((p) => (
-                  <button key={p.id} onClick={() => setSelectedCategory(p.id)} className={`p-4 rounded-2xl border text-left font-bold text-xs ${selectedCategory === p.id ? 'border-[#0A1128] bg-slate-100' : 'border-slate-200'}`}>
-                    {p.title}
-                  </button>
-                ))}
-                <button onClick={() => setMatchStep(2)} className="col-span-2 py-3 bg-[#0A1128] text-white rounded-xl font-bold mt-4">Continue</button>
-              </div>
-            )}
-
-            {matchStep === 2 && (
-              <div className="space-y-4 text-xs">
-                <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City / Jurisdiction" className="w-full p-3 border rounded-xl" />
-                <button onClick={() => setMatchStep(3)} className="w-full py-3 bg-[#0A1128] text-white rounded-xl font-bold">Continue</button>
-              </div>
-            )}
-
-            {matchStep === 3 && (
-              <div className="space-y-5 text-xs">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold uppercase text-slate-700">Choose Intake Format:</span>
-                  <div className="flex bg-slate-100 p-1 rounded-xl">
-                    <button type="button" onClick={() => setIntakeMode('voice')} className={`px-3 py-1 rounded-lg font-bold ${intakeMode === 'voice' ? 'bg-[#0A1128] text-amber-400' : 'text-slate-600'}`}>
-                      🎙️ Voice Brief
-                    </button>
-                    <button type="button" onClick={() => setIntakeMode('text')} className={`px-3 py-1 rounded-lg font-bold ${intakeMode === 'text' ? 'bg-[#0A1128] text-white' : 'text-slate-600'}`}>
-                      Type Text
-                    </button>
-                  </div>
-                </div>
-
-                <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Your Full Legal Name" className="w-full p-3 border rounded-xl" />
-
-                {intakeMode === 'voice' ? (
-                  <div className="p-6 bg-slate-50 border-2 border-dashed rounded-2xl text-center space-y-3">
-                    {isRecording ? (
-                      <div className="space-y-2">
-                        <span className="text-red-600 font-bold animate-pulse block">Recording... {recordingSeconds}s / 60s</span>
-                        <button type="button" onClick={stopVoiceRecording} className="px-6 py-2 bg-red-600 text-white font-bold rounded-xl text-xs">
-                          Stop Recording
-                        </button>
-                      </div>
-                    ) : audioPreviewUrl ? (
-                      <div className="space-y-2">
-                        <span className="text-emerald-700 font-bold block">✓ Voice Note Ready ({recordingSeconds}s)</span>
-                        <audio controls src={audioPreviewUrl} className="w-full h-8" />
-                        <button type="button" onClick={clearVoiceRecording} className="text-xs text-red-600 underline">Re-record</button>
-                      </div>
-                    ) : (
-                      <button type="button" onClick={startVoiceRecording} className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 mx-auto">
-                        <Mic className="w-4 h-4 text-amber-400" />
-                        <span>Tap to Record Voice Brief (ድምፅ ይቅረጹ)</span>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <textarea rows={4} value={situationText} onChange={(e) => setSituationText(e.target.value)} placeholder="Describe matter..." className="w-full p-3 border rounded-xl" />
-                )}
-
-                <button onClick={() => { setSelectedLawyer(mockMatchedLawyers[0]); setMatchStep(4); }} className="w-full py-3 bg-[#0A1128] text-white font-bold rounded-xl">Continue to Review</button>
-              </div>
-            )}
-
-            {matchStep === 4 && (
-              <div className="space-y-4 text-xs">
-                <p>Advocate: <strong>{selectedLawyer?.name}</strong></p>
-                <button onClick={handleBookingSubmit} disabled={isSubmitting} className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl">
-                  {isSubmitting ? 'Registering...' : 'Confirm Free Consultation'}
-                </button>
-              </div>
-            )}
-          </div>
-        </main>
-      )}
-
-      {/* VIEW F: LEGALTALK FORUM */}
+      {/* VIEW E: LEGALTALK FORUM */}
       {activeTab === 'legaltalk' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full space-y-8">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] rounded-3xl p-8 text-white flex justify-between items-center shadow-xl">
@@ -1828,7 +1598,7 @@ export default function LegalLinkHome() {
         </main>
       )}
 
-      {/* VIEW G: CLIENT PORTAL */}
+      {/* VIEW F: CLIENT PORTAL */}
       {activeTab === 'my-consultations' && (
         <main className="flex-1 max-w-6xl mx-auto px-4 py-10 w-full space-y-6">
           <div className="bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white p-8 rounded-3xl shadow-lg flex justify-between items-center">
@@ -1837,9 +1607,9 @@ export default function LegalLinkHome() {
               <h1 className="text-3xl font-black mt-1">Your Legal Workspace</h1>
               <p className="text-xs text-slate-300">Track court hearings (ቀጠሮ), case litigation stages, and voice briefs in real time.</p>
             </div>
-            <button onClick={() => { setActiveTab('match'); setMatchStep(1); }} className="px-5 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs shadow">
+            <Link href="/find-a-lawyer" className="px-5 py-3 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs shadow">
               + New Case
-            </button>
+            </Link>
           </div>
 
           <div className="flex border-b border-slate-200 gap-8 text-xs font-bold">
