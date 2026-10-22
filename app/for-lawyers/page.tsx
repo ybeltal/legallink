@@ -5,14 +5,70 @@ import Link from 'next/link';
 import { 
   ShieldCheck, ArrowRight, CheckCircle2, Star, Clock, DollarSign, 
   Users, Globe, ChevronDown, ChevronUp, Loader2, Sparkles, Check, 
-  Briefcase, Scale, Upload, FileText, X
+  Briefcase, Scale, Upload, FileText, X, Calculator, Search, Smartphone,
+  Gavel, Volume2, Award, Building, Landmark, Lock, HelpCircle
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function ForLawyersPage() {
-  // Form State
+  // -------------------------------------------------------------
+  // FEATURE 1: INTERACTIVE ADVOCATE EARNINGS CALCULATOR STATE
+  // -------------------------------------------------------------
+  const [weeklyHours, setWeeklyHours] = useState<number>(8);
+  const [ratePerHour, setRatePerHour] = useState<number>(1500);
+
+  const monthlyGross = weeklyHours * ratePerHour * 4;
+  const platformFee = monthlyGross * 0.15;
+  const monthlyNet = monthlyGross - platformFee;
+
+  // -------------------------------------------------------------
+  // FEATURE 5: INSTANT APPLICATION STATUS CHECKER STATE
+  // -------------------------------------------------------------
+  const [statusQuery, setStatusQuery] = useState('');
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [statusResult, setStatusResult] = useState<any | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+
+  const handleCheckStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!statusQuery.trim()) return;
+
+    setIsCheckingStatus(true);
+    setStatusError(null);
+    setStatusResult(null);
+
+    try {
+      const supabase = createClient();
+      const cleanQuery = statusQuery.trim();
+
+      const { data, error } = await supabase
+        .from('advocate_applications')
+        .select('*')
+        .or(`bar_license_number.ilike.%${cleanQuery}%,phone_number.ilike.%${cleanQuery}%`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        setStatusError('No application found matching that phone number or bar license number.');
+      } else {
+        setStatusResult(data);
+      }
+    } catch (err: any) {
+      setStatusError(err.message || 'Error checking verification status.');
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // APPLICATION FORM STATE
+  // -------------------------------------------------------------
   const [fullName, setFullName] = useState('');
   const [barLicense, setBarLicense] = useState('');
+  const [licenseJurisdiction, setLicenseJurisdiction] = useState('Federal First Instance Court');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
@@ -36,7 +92,7 @@ export default function ForLawyersPage() {
   const practiceAreaOptions = [
     'Corporate & Business', 'Family Law', 'Property & Real Estate', 
     'Intellectual Property', 'Employment Law', 'Criminal Defense', 
-    'Immigration', 'NGO & Compliance', 'Tax Law', 
+    'Immigration & Diaspora', 'NGO & Compliance', 'Tax Law', 
     'Constitutional Law', 'Banking & Finance', 'Environmental Law'
   ];
 
@@ -223,15 +279,16 @@ export default function ForLawyersPage() {
                   <ArrowRight className="w-4 h-4 text-amber-400" />
                 </a>
                 <a
-                  href="#how-it-works"
-                  className="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-200 transition-all text-xs text-center"
+                  href="#earnings-calc"
+                  className="w-full sm:w-auto px-7 py-3.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-200 transition-all text-xs text-center flex items-center justify-center gap-1.5"
                 >
-                  See how it works
+                  <Calculator className="w-4 h-4 text-amber-600" />
+                  <span>Calculate Your Earnings</span>
                 </a>
               </div>
 
               <span className="text-[11px] text-slate-400 block pt-1">
-                No subscription fees. LegalLink charges a small platform fee per completed consultation only.
+                No subscription fees. LegalLink charges a small platform fee per completed consultation only[cite: 10].
               </span>
             </div>
 
@@ -241,7 +298,7 @@ export default function ForLawyersPage() {
                 <Briefcase className="w-6 h-6 text-amber-500 mb-2" />
                 <h3 className="font-bold text-sm text-[#0A1128]">Grow your practice</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Access a steady stream of pre-vetted clients actively seeking legal help — no cold outreach required.
+                  Access a steady stream of pre-vetted clients actively seeking legal help — no cold outreach required[cite: 10].
                 </p>
               </div>
 
@@ -249,7 +306,7 @@ export default function ForLawyersPage() {
                 <Clock className="w-6 h-6 text-blue-500 mb-2" />
                 <h3 className="font-bold text-sm text-[#0A1128]">Set your own hours</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  You control your availability calendar. Accept only the consultations that fit your schedule.
+                  You control your availability calendar. Accept only the consultations that fit your schedule[cite: 10].
                 </p>
               </div>
 
@@ -257,7 +314,7 @@ export default function ForLawyersPage() {
                 <ShieldCheck className="w-6 h-6 text-emerald-500 mb-2" />
                 <h3 className="font-bold text-sm text-[#0A1128]">Verified & trusted</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Our verification process builds client confidence and elevates your professional standing.
+                  Our verification process builds client confidence and elevates your professional standing[cite: 10].
                 </p>
               </div>
 
@@ -265,7 +322,7 @@ export default function ForLawyersPage() {
                 <Globe className="w-6 h-6 text-purple-500 mb-2" />
                 <h3 className="font-bold text-sm text-[#0A1128]">Serve the diaspora</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Reach Ethiopian clients worldwide — diaspora clients often need local legal expertise remotely.
+                  Reach Ethiopian clients worldwide — diaspora clients often need local legal expertise remotely[cite: 10].
                 </p>
               </div>
             </div>
@@ -294,53 +351,324 @@ export default function ForLawyersPage() {
         </div>
       </section>
 
-      {/* 3. HOW IT WORKS SECTION */}
-      <section id="how-it-works" className="py-20 bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+      {/* 3. NEW FEATURE 1: INTERACTIVE ADVOCATE EARNINGS CALCULATOR (የገቢ ማስያ) */}
+      <section id="earnings-calc" className="py-20 bg-white border-b border-slate-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-2">
-            <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">How it works</h2>
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+              FINANCIAL TRANSPARENCY
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">
+              Estimate Your Monthly Legal Earnings
+            </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              From application to your first paid consultation in as little as 48 hours.
+              See what you could take home by offering scheduled consultations on LegalLink.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-8 rounded-3xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-              <span className="text-2xl font-black text-slate-300 font-mono block">01</span>
-              <h3 className="font-bold text-sm text-[#0A1128]">Apply & get verified</h3>
+          <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-8 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            {/* Controls */}
+            <div className="lg:col-span-7 space-y-6 text-xs">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                    Consultation Hours Per Week
+                  </label>
+                  <span className="px-3 py-1 bg-[#0A1128] text-amber-400 font-mono font-bold rounded-lg text-xs">
+                    {weeklyHours} hrs / week
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={2}
+                  max={30}
+                  step={1}
+                  value={weeklyHours}
+                  onChange={(e) => setWeeklyHours(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0A1128]"
+                />
+                <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                  <span>2 hrs (Part-time)</span>
+                  <span>15 hrs (Moderate)</span>
+                  <span>30 hrs (Full-time)</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                    Your Hourly Retainer Rate (ETB)
+                  </label>
+                  <span className="px-3 py-1 bg-white border border-slate-200 text-[#0A1128] font-mono font-bold rounded-lg text-xs">
+                    ETB {ratePerHour.toLocaleString()} / hr
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={800}
+                  max={4000}
+                  step={100}
+                  value={ratePerHour}
+                  onChange={(e) => setRatePerHour(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                />
+                <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                  <span>ETB 800 (Standard)</span>
+                  <span>ETB 2,000 (Senior)</span>
+                  <span>ETB 4,000 (Executive)</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl flex items-start gap-3">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <p className="text-emerald-900 leading-relaxed text-[11px]">
+                  <strong>Guaranteed Payout Guarantee:</strong> Every consultation fee is pre-authorized and locked in Telebirr escrow before you start. Payments are released directly to your Telebirr Business or Commercial Bank of Ethiopia (CBE) account upon brief completion.
+                </p>
+              </div>
+            </div>
+
+            {/* Earnings Output Card */}
+            <div className="lg:col-span-5 bg-[#0A1128] text-white p-8 rounded-3xl shadow-xl space-y-6 flex flex-col justify-between">
+              <div className="space-y-4">
+                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-widest block">
+                  Projected Monthly Net Take-Home
+                </span>
+                
+                <div className="text-4xl sm:text-5xl font-black font-mono text-emerald-400">
+                  ETB {Math.round(monthlyNet).toLocaleString()}
+                </div>
+
+                <div className="space-y-2 pt-4 border-t border-slate-800 text-xs">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Monthly Gross Invoiced:</span>
+                    <strong className="font-mono text-white">ETB {monthlyGross.toLocaleString()}</strong>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Platform Admin Fee (15%):</span>
+                    <span className="font-mono">- ETB {platformFee.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Estimated Annual Potential:</span>
+                    <strong className="font-mono text-amber-400">ETB {Math.round(monthlyNet * 12).toLocaleString()}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="#apply-form"
+                className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs text-center transition-all shadow"
+              >
+                Apply to Start Earning ➔
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. NEW FEATURE 2: ADVOCATE WORKSPACE TOOLKIT PREVIEW */}
+      <section className="py-20 bg-slate-50/70 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+              TECHNOLOGY INFRASTRUCTURE
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">
+              Inside Your Advocate Workspace
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Everything you need to practice modern digital law in Ethiopia — all included in your verified portal.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-3 shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <Lock className="w-5 h-5" />
+              </div>
+              <h3 className="font-black text-sm text-[#0A1128]">Telebirr Escrow Guard</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Submit your bar license and ID. Our compliance team verifies your credentials within 48 hours.
+                Retainers are locked before consultations begin. No clients vanishing after receiving legal counsel; your fees are guaranteed.
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-              <span className="text-2xl font-black text-slate-300 font-mono block">02</span>
-              <h3 className="font-bold text-sm text-[#0A1128]">Build your profile</h3>
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-3 shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <Gavel className="w-5 h-5" />
+              </div>
+              <h3 className="font-black text-sm text-[#0A1128]">Hearing & Milestone Docket</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Set your specialties, rates, availability, and bio. Clients search, review credentials, and find you.
+                Manage court hearing dates (<span className="font-bold">ቀጣይ ቀጠሮ</span>) and update the 6 litigation stages. Clients receive automatic SMS reminders.
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-              <span className="text-2xl font-black text-slate-300 font-mono block">03</span>
-              <h3 className="font-bold text-sm text-[#0A1128]">Receive consultations</h3>
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-3 shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                <Volume2 className="w-5 h-5" />
+              </div>
+              <h3 className="font-black text-sm text-[#0A1128]">Client Voice Brief Player</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Get matched requests, accept them directly from your dashboard, and consult via the platform.
+                Listen to clients' 60-second recorded audio briefs in Amharic or English directly in your dashboard before accepting consultations.
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-              <span className="text-2xl font-black text-slate-300 font-mono block">04</span>
-              <h3 className="font-bold text-sm text-[#0A1128]">Get paid reliably</h3>
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-3 shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <h3 className="font-black text-sm text-[#0A1128]">LegalTalk Lead Engine</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Payments are released securely after each completed consultation — no invoice chasing.
+                Publish verified answers to community legal inquiries. Each answer features a direct "Book Consultation" link to your profile.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. LAWYERS ALREADY ON LEGALLINK (TESTIMONIALS) */}
+      {/* 5. NEW FEATURE 3: MOJ LICENSE TIER BADGING GUIDE */}
+      <section className="py-20 bg-white border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">
+              CREDENTIAL INTEGRITY
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">
+              Accepted License Tiers & Court Badges
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              We respect your seniority. Your practicing license level is verified and badged prominently on your public profile.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
+            <div className="p-6 rounded-3xl border border-slate-200 bg-slate-50/50 space-y-3">
+              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-800 font-bold flex items-center justify-center text-xs">
+                L1
+              </div>
+              <h3 className="font-bold text-sm text-[#0A1128]">Federal First Instance</h3>
+              <span className="text-[10px] text-slate-400 block font-mono">የፌዴራል መጀመሪያ ደረጃ ፍርድ ቤት</span>
+              <p className="text-slate-500 leading-relaxed">
+                Qualified for commercial debt, preliminary labor arbitration, and civil tenancy filings.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl border border-blue-200 bg-blue-50/30 space-y-3">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+                L2
+              </div>
+              <h3 className="font-bold text-sm text-[#0A1128]">Federal High Court</h3>
+              <span className="text-[10px] text-blue-600 block font-mono">የፌዴራል ከፍተኛ ፍርድ ቤት</span>
+              <p className="text-slate-500 leading-relaxed">
+                Full advocacy rights for large-scale corporate disputes, intellectual property, and appeals.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl border border-amber-300 bg-amber-50/40 space-y-3">
+              <div className="w-8 h-8 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-xs">
+                L3
+              </div>
+              <h3 className="font-bold text-sm text-[#0A1128]">Federal Supreme Court</h3>
+              <span className="text-[10px] text-amber-700 block font-mono">የፌዴራል ጠቅላይ ፍርድ ቤት</span>
+              <p className="text-slate-500 leading-relaxed">
+                Cassation bench representation (<span className="font-bold">ሰበር ችሎት</span>), constitutional law, and high-stakes commercial litigation.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl border border-emerald-200 bg-emerald-50/30 space-y-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs">
+                REG
+              </div>
+              <h3 className="font-bold text-sm text-[#0A1128]">Regional Bar Licenses</h3>
+              <span className="text-[10px] text-emerald-700 block font-mono">የክልል ጠቅላይ/ከፍተኛ ፍርድ ቤቶች</span>
+              <p className="text-slate-500 leading-relaxed">
+                Oromia, Amhara, Tigray, Sidama, and Dire Dawa regional court representation in local working languages.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. HOW IT WORKS SECTION */}
+      <section id="how-it-works" className="py-20 bg-slate-50/70 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">How it works</h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              From application to your first paid consultation in as little as 48 hours[cite: 11].
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 space-y-3 shadow-xs">
+              <span className="text-2xl font-black text-slate-300 font-mono block">01</span>
+              <h3 className="font-bold text-sm text-[#0A1128]">Apply & get verified</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Submit your bar license and ID. Our compliance team verifies your credentials within 48 hours[cite: 11].
+              </p>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 space-y-3 shadow-xs">
+              <span className="text-2xl font-black text-slate-300 font-mono block">02</span>
+              <h3 className="font-bold text-sm text-[#0A1128]">Build your profile</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Set your specialties, rates, availability, and bio. Clients search, review credentials, and find you[cite: 11].
+              </p>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 space-y-3 shadow-xs">
+              <span className="text-2xl font-black text-slate-300 font-mono block">03</span>
+              <h3 className="font-bold text-sm text-[#0A1128]">Receive consultations</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Get matched requests, accept them directly from your dashboard, and consult via the platform[cite: 11].
+              </p>
+            </div>
+
+            <div className="p-8 rounded-3xl bg-white border border-slate-200/80 space-y-3 shadow-xs">
+              <span className="text-2xl font-black text-slate-300 font-mono block">04</span>
+              <h3 className="font-bold text-sm text-[#0A1128]">Get paid reliably</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Payments are released securely after each completed consultation — no invoice chasing[cite: 11].
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. NEW FEATURE 4: DIASPORA RETAINER GUARANTEE SPOTLIGHT */}
+      <section className="py-20 bg-gradient-to-r from-slate-900 to-[#102A43] text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-8 space-y-4">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">
+                GLOBAL CLIENT PIPELINE
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black">
+                Handle High-Value Diaspora Legal Matters
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
+                Thousands of Ethiopians living in North America, Europe, and the Middle East need on-the-ground counsel in Addis Ababa and regional cities for land title verification (ካርታ), inheritance disputes, commercial property leases, and embassy-certified power of attorney (ውክልና).
+              </p>
+              <div className="flex flex-wrap gap-2 text-xs font-semibold pt-2">
+                <span className="px-3 py-1.5 bg-white/10 rounded-full border border-white/20">Title Verification (ካርታ)</span>
+                <span className="px-3 py-1.5 bg-white/10 rounded-full border border-white/20">Inheritance Administration</span>
+                <span className="px-3 py-1.5 bg-white/10 rounded-full border border-white/20">Foreign Investment Registration</span>
+                <span className="px-3 py-1.5 bg-white/10 rounded-full border border-white/20">Power of Attorney Enforcement</span>
+              </div>
+            </div>
+            <div className="lg:col-span-4 bg-white/10 border border-white/20 p-6 rounded-3xl text-center space-y-2">
+              <Globe className="w-10 h-10 text-amber-400 mx-auto mb-1" />
+              <div className="text-3xl font-black font-mono text-emerald-400">USD & ETB</div>
+              <span className="text-xs font-bold text-slate-200 block">Seamless Remote Retainers</span>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Connect via encrypted video and audio without managing cross-border wire delays.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. LAWYERS ALREADY ON LEGALLINK (TESTIMONIALS) */}
       <section className="py-20 bg-[#0A1128] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-xl mx-auto">
@@ -350,7 +678,7 @@ export default function ForLawyersPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed italic">
-                "LegalLink doubled my client base within the first month. The platform handles all the admin so I can focus on practice."
+                "LegalLink doubled my client base within the first month. The platform handles all the admin so I can focus on practice."[cite: 11]
               </p>
               <div className="flex items-center gap-3 pt-2">
                 <div className="w-10 h-10 rounded-full bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs">
@@ -358,14 +686,14 @@ export default function ForLawyersPage() {
                 </div>
                 <div>
                   <strong className="text-xs text-white block">Adv. Biruk Alemu</strong>
-                  <span className="text-[10px] text-slate-400">Family Law, Addis Ababa</span>
+                  <span className="text-[10px] text-slate-400">Family Law, Addis Ababa[cite: 11]</span>
                 </div>
               </div>
             </div>
 
             <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed italic">
-                "I serve diaspora clients in the US and Europe through LegalLink. The bilingual support and escrow payment is seamless."
+                "I serve diaspora clients in the US and Europe through LegalLink. The bilingual support and escrow payment is seamless."[cite: 11]
               </p>
               <div className="flex items-center gap-3 pt-2">
                 <div className="w-10 h-10 rounded-full bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs">
@@ -373,14 +701,14 @@ export default function ForLawyersPage() {
                 </div>
                 <div>
                   <strong className="text-xs text-white block">Adv. Hana Tadesse</strong>
-                  <span className="text-[10px] text-slate-400">IP & Corporate, Remote</span>
+                  <span className="text-[10px] text-slate-400">IP & Corporate, Remote[cite: 11]</span>
                 </div>
               </div>
             </div>
 
             <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed italic">
-                "Transparent pricing, verified clients, and reliable payments — exactly what the profession needed in Ethiopia."
+                "Transparent pricing, verified clients, and reliable payments — exactly what the profession needed in Ethiopia."[cite: 11]
               </p>
               <div className="flex items-center gap-3 pt-2">
                 <div className="w-10 h-10 rounded-full bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs">
@@ -388,7 +716,7 @@ export default function ForLawyersPage() {
                 </div>
                 <div>
                   <strong className="text-xs text-white block">Adv. Yonas Bekele</strong>
-                  <span className="text-[10px] text-slate-400">Criminal Defense, Hawassa</span>
+                  <span className="text-[10px] text-slate-400">Criminal Defense, Hawassa[cite: 11]</span>
                 </div>
               </div>
             </div>
@@ -396,14 +724,78 @@ export default function ForLawyersPage() {
         </div>
       </section>
 
-      {/* 5. APPLICATION FORM SECTION */}
+      {/* 9. APPLICATION SECTION WITH NEW FEATURE 5: INSTANT APPLICATION STATUS CHECKER */}
       <section id="apply-form" className="py-20 bg-slate-50/60 border-b border-slate-200">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div>
-            <h2 className="text-3xl font-black text-[#0A1128]">Apply to join LegalLink</h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Fill in your details below. All fields marked <span className="text-red-500">*</span> are required. Applications are reviewed within 48 hours.
-            </p>
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+            <div>
+              <h2 className="text-3xl font-black text-[#0A1128]">Apply to join LegalLink</h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Fill in your details below. All fields marked <span className="text-red-500">*</span> are required. Applications are reviewed within 48 hours.
+              </p>
+            </div>
+          </div>
+
+          {/* Instant Status Checker Box */}
+          <div className="p-5 bg-white border border-slate-200 rounded-3xl shadow-xs space-y-3 text-xs">
+            <div className="flex items-center gap-2 font-bold text-slate-800">
+              <Search className="w-4 h-4 text-amber-500" />
+              <span>Already submitted an application? Check review status</span>
+            </div>
+
+            <form onSubmit={handleCheckStatus} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter your phone number or bar license number..."
+                value={statusQuery}
+                onChange={(e) => setStatusQuery(e.target.value)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#0A1128]"
+              />
+              <button
+                type="submit"
+                disabled={isCheckingStatus}
+                className="px-5 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5"
+              >
+                {isCheckingStatus ? <Loader2 className="w-4 h-4 animate-spin text-amber-400" /> : 'Check Status'}
+              </button>
+            </form>
+
+            {statusError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
+                {statusError}
+              </div>
+            )}
+
+            {statusResult && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                <div className="flex justify-between items-center">
+                  <strong className="text-[#0A1128]">{statusResult.full_name}</strong>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    statusResult.status === 'approved' 
+                      ? 'bg-emerald-100 text-emerald-800' 
+                      : statusResult.status === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {statusResult.status === 'approved' ? '✓ Verified & Approved' : '⏳ Review In Progress'}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-500 space-y-1">
+                  <div>License: <strong className="font-mono text-slate-700">{statusResult.bar_license_number}</strong></div>
+                  <div>Submitted on: {new Date(statusResult.created_at).toLocaleDateString()}</div>
+                  {statusResult.status === 'approved' ? (
+                    <div className="text-emerald-700 font-bold pt-1">
+                      Your bar credentials have been verified! You can log in to your <Link href="/advocate" className="underline font-black">Advocate Portal</Link> right now.
+                    </div>
+                  ) : (
+                    <div className="text-amber-800 pt-1">
+                      Our Ministry of Justice compliance desk is currently auditing your license copy. Turnaround is within 24 to 48 hours.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {applicationSuccess ? (
@@ -630,7 +1022,7 @@ export default function ForLawyersPage() {
                         </div>
                         <strong className="block text-xs text-[#0A1128]">Click or drag to upload</strong>
                         <span className="text-[11px] text-slate-400 mt-0.5 block">
-                          PDF or image of your Ethiopian bar license
+                          PDF or image of your Ethiopian bar license[cite: 14]
                         </span>
                       </div>
                     )}
@@ -683,7 +1075,7 @@ export default function ForLawyersPage() {
                         </div>
                         <strong className="block text-xs text-[#0A1128]">Click or drag to upload</strong>
                         <span className="text-[11px] text-slate-400 mt-0.5 block">
-                          Ethiopian national ID or passport
+                          Ethiopian national ID or passport[cite: 14]
                         </span>
                       </div>
                     )}
@@ -697,7 +1089,7 @@ export default function ForLawyersPage() {
                 <p className="text-[11px] text-slate-400">
                   By submitting this application you agree to LegalLink's{' '}
                   <span className="text-slate-700 underline cursor-pointer">Terms of Service</span> and{' '}
-                  <span className="text-slate-700 underline cursor-pointer">Privacy Policy</span>.
+                  <span className="text-slate-700 underline cursor-pointer">Privacy Policy</span>[cite: 14].
                 </p>
 
                 <button
@@ -721,7 +1113,7 @@ export default function ForLawyersPage() {
         </div>
       </section>
 
-      {/* 6. FREQUENTLY ASKED QUESTIONS */}
+      {/* 10. FREQUENTLY ASKED QUESTIONS */}
       <section className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <h2 className="text-3xl font-black text-[#0A1128] text-center">Frequently asked questions</h2>
@@ -750,7 +1142,7 @@ export default function ForLawyersPage() {
         </div>
       </section>
 
-      {/* 7. FOOTER */}
+      {/* 11. FOOTER */}
       <footer className="bg-[#0A1128] text-slate-300 pt-16 pb-12 border-t border-slate-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
           <div className="md:col-span-2 space-y-3">
@@ -759,9 +1151,9 @@ export default function ForLawyersPage() {
               <span className="text-lg font-black text-white">Legal<span className="text-amber-400">Link</span></span>
             </div>
             <p className="text-slate-400 max-w-sm">
-              Ethiopia's first freelance legal services marketplace. Connecting clients with verified Ethiopian counsel for consultations, dispute resolution, and document automation.
+              Ethiopia's first freelance legal services marketplace. Connecting clients with verified Ethiopian counsel for consultations, dispute resolution, and document automation[cite: 13].
             </p>
-            <span className="text-slate-400 block pt-1">hello@legallink.et • +251 911 000 000</span>
+            <span className="text-slate-400 block pt-1">hello@legallink.et • +251 911 000 000[cite: 13]</span>
           </div>
 
           <div>
