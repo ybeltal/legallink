@@ -5,13 +5,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
-      { protocol: 'https', hostname: '*.supabase.co' }
-    ]
+      { protocol: 'https', hostname: '*.supabase.co' },
+    ],
   },
   async headers() {
     return [
       {
-        source: '/(.*)',
+        // Strictly target HTML document routes only; NEVER intercept _next/static, css, or js
+        source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:css|js|png|jpg|jpeg|gif|webp|svg|ico)).*)',
         headers: [
           {
             key: 'X-Frame-Options',
@@ -28,14 +29,6 @@ const nextConfig: NextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(self), geolocation=()',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
           },
         ],
       },
