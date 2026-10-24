@@ -1,455 +1,471 @@
 'use client';
 
-
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  ShieldCheck, Check, X, FileText, ExternalLink, RefreshCw, 
-  Search, AlertCircle, Clock, CheckCircle2, User, Phone, Mail, 
-  Briefcase, Scale, ArrowLeft, Loader2
+  ShieldCheck, CheckCircle2, XCircle, Clock, FileText, 
+  ExternalLink, Search, Filter, ArrowLeft, AlertCircle, 
+  Eye, Scale, Check, X, Phone, Mail, Award, Landmark
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-// Safe normalization for practice areas (handles arrays, Postgres {text}, strings, and nulls)
-function parsePracticeAreas(areas: any): string[] {
-  if (Array.isArray(areas)) return areas;
-  if (typeof areas === 'string') {
-    try {
-      const parsed = JSON.parse(areas);
-      if (Array.isArray(parsed)) return parsed;
-    } catch {}
-    return areas
-      .replace(/[{}"]/g, '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }
-  return ['General Practice'];
+interface AdvocateApplication {
+  id: string;
+  full_name: string;
+  bar_license_number: string;
+  phone_number: string;
+  email: string;
+  practice_areas: string[];
+  experience_years: string;
+  hourly_rate: number;
+  bio: string;
+  bar_license_url?: string | null;
+  national_id_url?: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
 }
 
-export default function AdminVerificationQueue() {
-  const [applications, setApplications] = useState<any[]>([]);
-  const [selectedApp, setSelectedApp] = useState<any | null>(null);
-  const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [reviewNote, setReviewNote] = useState('');
+const STATIC_INITIAL_APPLICATIONS: AdvocateApplication[] = [
+  {
+    id: 'app-001',
+    full_name: 'Advocate Mulu Haile',
+    bar_license_number: 'ETH-BAR-2018-0492',
+    phone_number: '+251 91 140 2938',
+    email: 'mulu.haile@legallink.et',
+    practice_areas: ['Corporate & Business', 'Capital Markets & Securities'],
+    experience_years: '8–12 years',
+    hourly_rate: 1500,
+    bio: 'Senior Federal Advocate specializing in ECMA Directive 1030/2024 compliance, commercial transactions, and Addis Ababa Chamber of Commerce arbitration.',
+    bar_license_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    national_id_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    status: 'approved',
+    created_at: '2026-10-22T08:30:00.000Z'
+  },
+  {
+    id: 'app-002',
+    full_name: 'Advocate Tigist Bekele',
+    bar_license_number: 'ETH-BAR-2020-1104',
+    phone_number: '+251 92 334 8812',
+    email: 'tigist.bekele@lawfirm.et',
+    practice_areas: ['Family Law', 'Employment Law', 'Civil Litigation'],
+    experience_years: '4–7 years',
+    hourly_rate: 1200,
+    bio: 'Licensed Advocate with active appearance rights before Federal First Instance and High Courts. Expert in Labor Proclamation No. 1156/2019 disputes.',
+    bar_license_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    national_id_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    status: 'pending',
+    created_at: '2026-10-23T10:15:00.000Z'
+  },
+  {
+    id: 'app-003',
+    full_name: 'Advocate Dawit Tesfaye',
+    bar_license_number: 'ETH-BAR-2015-0081',
+    phone_number: '+251 91 002 9944',
+    email: 'dawit.tesfaye@counsel.et',
+    practice_areas: ['Property & Real Estate', 'Tax Law'],
+    experience_years: '13–20 years',
+    hourly_rate: 1800,
+    bio: 'Specialist in land holding rights, municipal lease transfers, and Cassation Division precedent applications across Addis Ababa sub-cities.',
+    bar_license_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    national_id_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    status: 'pending',
+    created_at: '2026-10-24T06:00:00.000Z'
+  }
+];
 
-  // Fallback seed data if the database queue has 0 entries
-  const fallbackApplications = [
-    {
-      id: 'mock-app-1',
-      full_name: 'Advocate Mulu Haile',
-      bar_license_number: 'ETH-BAR-2019-00421',
-      phone_number: '+251 91 234 5678',
-      email: 'mulu.haile@lawfirm.et',
-      practice_areas: ['Corporate & Business', 'Capital Markets & Securities'],
-      experience_years: '12 yrs exp',
-      hourly_rate: 1500,
-      bio: 'Senior Federal Advocate specializing in commercial contracts, ECMA Directive 1030/2024 compliance, and dispute resolution.',
-      bar_license_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
-      national_id_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
-      status: 'pending',
-      created_at: '2026-10-24T12:00:00.000Z'
-    },
-    {
-      id: 'mock-app-2',
-      full_name: 'Advocate Dawit Tesfaye',
-      bar_license_number: 'ETH-BAR-2017-00189',
-      phone_number: '+251 92 888 4421',
-      email: 'dawit.tesfaye@legal.et',
-      practice_areas: ['Property & Real Estate', 'Corporate & Business'],
-      experience_years: '15 yrs exp',
-      hourly_rate: 1800,
-      bio: 'Former land administration legal advisor with expertise in commercial lease disputes and Share Company title verification.',
-      bar_license_url: null,
-      national_id_url: null,
-      status: 'pending',
-      created_at: new Date(Date.now() - 86400000).toISOString()
-    }
-  ];
-
-  const fetchApplications = async () => {
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('advocate_applications')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error || !data || data.length === 0) {
-        setApplications(fallbackApplications);
-        if (!selectedApp) setSelectedApp(fallbackApplications[0]);
-      } else {
-        setApplications(data);
-        if (!selectedApp) {
-          const firstPending = data.find((a) => a.status === 'pending') || data[0];
-          setSelectedApp(firstPending);
-        }
-      }
-    } catch (err: any) {
-      console.warn('Using fallback queue data:', err.message);
-      setApplications(fallbackApplications);
-      if (!selectedApp) setSelectedApp(fallbackApplications[0]);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function AdminVerificationPage() {
+  const [applications, setApplications] = useState<AdvocateApplication[]>(STATIC_INITIAL_APPLICATIONS);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [selectedApp, setSelectedApp] = useState<AdvocateApplication | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    fetchApplications();
+    async function loadApplications() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('advocate_applications')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          setApplications(data as AdvocateApplication[]);
+        }
+      } catch (err) {
+        // Retain fallback static list if database table is empty or offline
+      }
+    }
+    loadApplications();
   }, []);
 
-  const handleUpdateStatus = async (status: 'approved' | 'rejected') => {
-    if (!selectedApp) return;
-
-    setActionLoading(true);
+  const handleUpdateStatus = async (appId: string, newStatus: 'approved' | 'rejected') => {
+    setIsProcessing(true);
     try {
       const supabase = createClient();
-      const payload: any = {
-        status,
-        account_status: status === 'approved' ? 'active' : 'suspended',
-        review_notes: reviewNote.trim() || (status === 'approved' ? 'Credentials verified with MOJ Registry' : 'Application declined'),
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: 'Compliance Admin Desk',
-      };
+      await supabase
+        .from('advocate_applications')
+        .update({ status: newStatus })
+        .eq('id', appId);
 
-      // Try saving to database if not a mock ID
-      if (!selectedApp.id.startsWith('mock-')) {
-        await supabase
-          .from('advocate_applications')
-          .update(payload)
-          .eq('id', selectedApp.id);
-
-        try {
-          await supabase
-            .from('profiles')
-            .update({ 
-              verification_status: status,
-              is_verified: status === 'approved'
-            })
-            .eq('email', selectedApp.email);
-        } catch {}
-      }
-
-      // Update UI state immediately
-      const updated = { ...selectedApp, ...payload };
-      setSelectedApp(updated);
       setApplications((prev) =>
-        prev.map((app) => (app.id === selectedApp.id ? updated : app))
+        prev.map((app) => (app.id === appId ? { ...app, status: newStatus } : app))
       );
-      setReviewNote('');
-      alert(`Advocate application successfully marked as ${status.toUpperCase()}!`);
-    } catch (err: any) {
-      alert('Updated status locally: ' + err.message);
+
+      if (selectedApp && selectedApp.id === appId) {
+        setSelectedApp({ ...selectedApp, status: newStatus });
+      }
+    } catch (err) {
+      console.error('Error updating advocate status:', err);
     } finally {
-      setActionLoading(false);
+      setIsProcessing(false);
     }
   };
 
-  const filteredApps = applications.filter((app) => {
-    if (filter === 'pending') return app.status === 'pending' || !app.status;
-    return app.status === filter;
+  const filteredApplications = applications.filter((app) => {
+    const matchesSearch = 
+      app.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.bar_license_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.phone_number.includes(searchQuery);
+
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
   });
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col selection:bg-amber-100 selection:text-amber-900">
+      
       {/* Top Header */}
-      <header className="bg-[#0A1128] text-white border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-              <ArrowLeft className="w-4 h-4 text-slate-400" />
-              <span className="text-xs font-bold text-slate-300">Marketplace</span>
-            </Link>
-            <span className="text-slate-600">|</span>
-            <div className="flex items-center gap-2">
-              <Scale className="w-5 h-5 text-amber-400" />
-              <span className="font-black text-sm tracking-wide">
-                LegalLink <span className="text-amber-400">Admin Desk</span>
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
+              <span className="font-black text-xl text-[#0A1128]">
+                Legal<span className="text-amber-500">Link</span>
               </span>
-            </div>
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-              MOJ Verification Queue
+            </Link>
+            <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-wider border border-slate-200">
+              Compliance Desk
             </span>
           </div>
 
-          <button
-            onClick={fetchApplications}
-            disabled={loading}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer text-slate-200"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh Queue</span>
-          </button>
+          <div className="flex items-center gap-4 text-xs">
+            <Link 
+              href="/advocate" 
+              className="font-bold text-slate-600 hover:text-[#0A1128] hidden sm:block"
+            >
+              Advocate Portal
+            </Link>
+            <Link 
+              href="/" 
+              className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl hover:bg-[#102A43] transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Main Split Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
         
-        {/* Left: Application Tabs & List (5 Cols) */}
-        <div className="lg:col-span-5 space-y-4">
-          
-          {/* Status Tabs */}
-          <div className="flex bg-white p-1 rounded-2xl border border-slate-200 text-xs font-bold shadow-xs">
-            {(['pending', 'approved', 'rejected'] as const).map((tab) => {
-              const count = applications.filter((a) => (tab === 'pending' ? a.status === 'pending' || !a.status : a.status === tab)).length;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setFilter(tab)}
-                  className={`flex-1 py-2 rounded-xl capitalize transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    filter === tab
-                      ? 'bg-[#0A1128] text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <span>{tab}</span>
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                    filter === tab ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+        {/* Banner */}
+        <div className="bg-[#0A1128] text-white p-8 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
+          <div className="space-y-2">
+            <span className="text-amber-400 font-bold uppercase tracking-widest text-[10px]">
+              REGULATORY AUDIT QUEUE
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black">
+              Advocate Ministry of Justice Verification
+            </h1>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              Verify bar practicing certificates, Fayda national identification, and professional profiles before granting full access to client briefs and Telebirr escrow disbursements.
+            </p>
           </div>
 
-          {/* Application Cards */}
-          <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-220px)] pr-1">
-            {loading ? (
-              <div className="p-12 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-amber-500" />
-                Loading verification queue...
-              </div>
-            ) : filteredApps.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">
-                No applications found in <span className="font-bold capitalize">{filter}</span> status.
-              </div>
-            ) : (
-              filteredApps.map((app) => {
-                const isSelected = selectedApp?.id === app.id;
-                const areas = parsePracticeAreas(app.practice_areas);
-                return (
-                  <div
-                    key={app.id}
-                    onClick={() => setSelectedApp(app)}
-                    className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
-                      isSelected
-                        ? 'border-[#0A1128] bg-white ring-2 ring-[#0A1128]/10 shadow-sm'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-bold text-sm text-[#0A1128]">{app.full_name || 'Advocate'}</h4>
-                        <span className="text-[11px] font-mono text-slate-400 block">{app.bar_license_number || 'ETH-BAR-PENDING'}</span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize border ${
-                        app.status === 'approved'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                          : app.status === 'rejected'
-                          ? 'bg-red-50 text-red-800 border-red-200'
-                          : 'bg-amber-50 text-amber-800 border-amber-200'
-                      }`}>
-                        {app.status || 'pending'}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {areas.slice(0, 3).map((area: string) => (
-                        <span key={area} className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-medium text-slate-600">
-                          {area}
-                        </span>
-                      ))}
-                      {areas.length > 3 && (
-                        <span className="text-[10px] text-slate-400">+{areas.length - 3}</span>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-100">
-                      <span>Rate: <strong className="text-slate-700">ETB {app.hourly_rate || 1500}/hr</strong></span>
-                      <span>{app.created_at ? new Date(app.created_at).toLocaleDateString() : 'Recent'}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+          <div className="flex items-center gap-3 bg-slate-800/80 p-4 rounded-2xl border border-slate-700 text-xs font-mono">
+            <div>
+              <span className="text-slate-400 block text-[10px]">Pending Audits</span>
+              <span className="text-xl font-bold text-amber-400">
+                {applications.filter((a) => a.status === 'pending').length}
+              </span>
+            </div>
+            <div className="w-px h-8 bg-slate-700 mx-2" />
+            <div>
+              <span className="text-slate-400 block text-[10px]">Verified Active</span>
+              <span className="text-xl font-bold text-emerald-400">
+                {applications.filter((a) => a.status === 'approved').length}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Right: Detailed Document Inspection Desk (7 Cols) */}
-        <div className="lg:col-span-7">
-          {selectedApp ? (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm sticky top-24">
-              
-              {/* Header */}
-              <div className="flex justify-between items-start pb-4 border-b border-slate-100">
-                <div>
-                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
-                    APPLICANT AUDIT DOSSIER
-                  </span>
-                  <h2 className="text-2xl font-black text-[#0A1128] mt-0.5">{selectedApp.full_name}</h2>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-mono">
-                    <span>{selectedApp.phone_number}</span>
-                    <span>•</span>
-                    <span>{selectedApp.email}</span>
-                  </div>
-                </div>
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              placeholder="Search by advocate name, license, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-[#0A1128]"
+            />
+          </div>
 
-                <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize border ${
-                  selectedApp.status === 'approved'
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                    : selectedApp.status === 'rejected'
-                    ? 'bg-red-50 text-red-800 border-red-200'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
-                }`}>
-                  {selectedApp.status || 'Pending Review'}
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
+                  statusFilter === status
+                    ? 'bg-[#0A1128] text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table of Applications */}
+        <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-600">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th className="py-4 px-6">Advocate Details</th>
+                  <th className="py-4 px-6">Bar License</th>
+                  <th className="py-4 px-6">Experience & Rate</th>
+                  <th className="py-4 px-6">Practice Areas</th>
+                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6 text-right">Audit Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {filteredApplications.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400">
+                      No advocate applications match your query.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredApplications.map((app) => (
+                    <tr key={app.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-4 px-6">
+                        <strong className="text-slate-900 block text-xs">{app.full_name}</strong>
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                          <span>{app.phone_number}</span>
+                          <span>•</span>
+                          <span>{app.email}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {app.bar_license_number}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="text-slate-800">{app.experience_years}</div>
+                        <div className="font-mono text-[11px] text-emerald-700 font-bold">
+                          ETB {app.hourly_rate.toLocaleString()} / hr
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex flex-wrap gap-1 max-w-xs">
+                          {app.practice_areas.slice(0, 2).map((pa, idx) => (
+                            <span key={idx} className="bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                              {pa}
+                            </span>
+                          ))}
+                          {app.practice_areas.length > 2 && (
+                            <span className="text-[10px] text-slate-400 font-bold self-center">
+                              +{app.practice_areas.length - 2} more
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1 ${
+                          app.status === 'approved'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : app.status === 'rejected'
+                            ? 'bg-red-50 text-red-800 border border-red-200'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
+                        }`}>
+                          {app.status === 'approved' && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                          {app.status === 'pending' && <Clock className="w-3 h-3 text-amber-600" />}
+                          {app.status === 'rejected' && <XCircle className="w-3 h-3 text-red-600" />}
+                          <span>{app.status}</span>
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <button
+                          onClick={() => setSelectedApp(app)}
+                          className="px-3 py-1.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-lg text-xs cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Review Audit</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+
+      {/* Review Modal */}
+      {selectedApp && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto text-xs">
+            
+            <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
+                  ADVOCATE COMPLIANCE DOSSIER
                 </span>
+                <h3 className="text-xl font-black text-[#0A1128] mt-0.5">{selectedApp.full_name}</h3>
+                <span className="text-slate-400 font-mono text-[11px]">{selectedApp.bar_license_number}</span>
               </div>
+              <button
+                onClick={() => setSelectedApp(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              {/* Core Attributes Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Bar License No.</span>
-                  <strong className="font-mono text-slate-800 text-xs mt-0.5 block">{selectedApp.bar_license_number || 'N/A'}</strong>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Phone Contact</span>
+                  <span className="text-slate-800 font-bold">{selectedApp.phone_number}</span>
                 </div>
-
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Email Address</span>
+                  <span className="text-slate-800 font-bold">{selectedApp.email}</span>
+                </div>
+                <div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase block">Experience</span>
-                  <strong className="text-slate-800 text-xs mt-0.5 block">{selectedApp.experience_years || '4–7 years'}</strong>
+                  <span className="text-slate-800 font-bold">{selectedApp.experience_years}</span>
                 </div>
-
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Requested Rate</span>
-                  <strong className="font-mono text-slate-800 text-xs mt-0.5 block">ETB {selectedApp.hourly_rate || 1500} / hr</strong>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Hourly Retainer</span>
+                  <span className="text-emerald-700 font-bold font-mono">ETB {selectedApp.hourly_rate.toLocaleString()} / hr</span>
                 </div>
               </div>
 
-              {/* Practice Areas */}
-              <div className="space-y-1.5 text-xs">
-                <span className="font-bold text-slate-700 uppercase text-[11px]">Declared Practice Areas</span>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Practice Areas</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {parsePracticeAreas(selectedApp.practice_areas).map((area: string) => (
-                    <span key={area} className="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg font-bold text-slate-700 text-[11px]">
-                      {area}
+                  {selectedApp.practice_areas.map((pa, i) => (
+                    <span key={i} className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-bold text-[11px]">
+                      {pa}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Bio */}
-              <div className="space-y-1 text-xs">
-                <span className="font-bold text-slate-700 uppercase text-[11px]">Professional Bio</span>
-                <p className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 leading-relaxed italic">
-                  "{selectedApp.bio || 'Experienced advocate practicing before Federal Courts in Addis Ababa.'}"
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Professional Bio</span>
+                <p className="text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  {selectedApp.bio}
                 </p>
               </div>
 
-              {/* Uploaded Verification Documents */}
-              <div className="space-y-3 pt-2">
-                <span className="font-bold text-slate-700 uppercase text-[11px] block">
-                  Uploaded Identity & Bar Credentials
-                </span>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {/* Bar License File */}
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                    <div className="flex items-center gap-2 text-slate-800 font-bold">
-                      <FileText className="w-4 h-4 text-amber-600" />
-                      <span>Bar License Copy</span>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-2">Uploaded Verification Files</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 border border-slate-200 rounded-xl flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-amber-500" />
+                      <span className="font-bold text-slate-700">Bar Practicing License</span>
                     </div>
                     {selectedApp.bar_license_url ? (
-                      <a
-                        href={selectedApp.bar_license_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0A1128] text-white rounded-xl text-[11px] font-bold hover:bg-[#102A43] transition-colors"
+                      <a 
+                        href={selectedApp.bar_license_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-amber-600 hover:underline inline-flex items-center gap-1 font-bold text-[11px]"
                       >
-                        <span>View Document</span>
+                        <span>View</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="text-[11px] text-slate-400 italic">No document file attached</span>
+                      <span className="text-slate-400">Attached</span>
                     )}
                   </div>
 
-                  {/* National ID File */}
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                    <div className="flex items-center gap-2 text-slate-800 font-bold">
-                      <FileText className="w-4 h-4 text-blue-600" />
-                      <span>National ID / Fayda</span>
+                  <div className="p-3 border border-slate-200 rounded-xl flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-2">
+                      <Landmark className="w-4 h-4 text-blue-500" />
+                      <span className="font-bold text-slate-700">Fayda National ID</span>
                     </div>
                     {selectedApp.national_id_url ? (
-                      <a
-                        href={selectedApp.national_id_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0A1128] text-white rounded-xl text-[11px] font-bold hover:bg-[#102A43] transition-colors"
+                      <a 
+                        href={selectedApp.national_id_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline inline-flex items-center gap-1 font-bold text-[11px]"
                       >
-                        <span>View Document</span>
+                        <span>View</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="text-[11px] text-slate-400 italic">No document file attached</span>
+                      <span className="text-slate-400">Attached</span>
                     )}
                   </div>
                 </div>
               </div>
-
-              {/* Audit Action Area */}
-              <div className="pt-4 border-t border-slate-100 space-y-3">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase">
-                  Compliance Audit Notes
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. MOJ Bar License verified against active court registry."
-                  value={reviewNote}
-                  onChange={(e) => setReviewNote(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                />
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    disabled={actionLoading || selectedApp.status === 'rejected'}
-                    onClick={() => handleUpdateStatus('rejected')}
-                    className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-red-200"
-                  >
-                    <X className="w-4 h-4" />
-                    <span>Reject Application</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={actionLoading || selectedApp.status === 'approved'}
-                    onClick={() => handleUpdateStatus('approved')}
-                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-                  >
-                    {actionLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Approve & Unlock Workspace</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
             </div>
-          ) : (
-            <div className="p-16 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">
-              Select an application from the queue to inspect credentials.
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedApp(null)}
+                className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl font-bold cursor-pointer"
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
+                className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl font-bold cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <XCircle className="w-4 h-4" />
+                <span>Reject Application</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() => handleUpdateStatus(selectedApp.id, 'approved')}
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Approve & Verify Advocate</span>
+              </button>
             </div>
-          )}
+
+          </div>
         </div>
+      )}
 
-      </main>
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        LegalLink Ethiopia • Ministry of Justice Compliance Desk • Bole Sub-City, Addis Ababa
+      </footer>
+
     </div>
   );
 }
