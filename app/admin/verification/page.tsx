@@ -50,7 +50,7 @@ export default function AdminVerificationQueue() {
       bar_license_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
       national_id_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
       status: 'pending',
-      created_at: new Date().toISOString()
+      created_at: '2026-10-24T12:00:00.000Z'
     },
     {
       id: 'mock-app-2',
