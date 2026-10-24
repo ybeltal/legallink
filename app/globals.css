@@ -1,71 +1,33 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --font-century-gothic: "Century Gothic", CenturyGothic, AppleGothic, "Segoe UI", sans-serif;
+@layer base {
+  * {
+    border-color: #e2e8f0;
+  }
+  body {
+    background-color: #f8fafc;
+    color: #0A1128;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-html, body {
-  font-family: var(--font-century-gothic);
-  background-color: #f8fafc;
-  color: #0f172a;
-  overflow-x: hidden;
-}
-
-* {
-  font-family: inherit;
-}
-
-input, button, select, textarea {
-  font-family: inherit;
-}
-
-/* Fluid Scroll Reveal Animations */
-.reveal {
-  opacity: 0;
-  transform: translateY(32px) scale(0.98);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
-}
-
-.reveal.active {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.reveal-delay-1 { transition-delay: 100ms; }
-.reveal-delay-2 { transition-delay: 200ms; }
-.reveal-delay-3 { transition-delay: 300ms; }
-.reveal-delay-4 { transition-delay: 400ms; }
-
-/* Subtle Floating & Sheen Animations */
 @keyframes softFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.05); }
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .animate-soft-float {
-  animation: softFloat 4.5s ease-in-out infinite;
+  animation: softFloat 4s ease-in-out infinite;
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 5s ease-in-out infinite;
-}
-
-/* Interactive Card Elevation */
-.card-hover-effect {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
-}
-
-.card-hover-effect:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 30px -10px rgba(10, 17, 40, 0.08);
+.reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
