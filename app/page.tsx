@@ -3,24 +3,42 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
-  FileText, Calculator, Star, Menu, X, Building2, Briefcase, 
-  Home as HomeIcon, Users, BookOpen, ChevronRight, Sparkles, 
-  MessageSquare, HelpCircle, LogOut, User
+  ShieldCheck, 
+  Search, 
+  ArrowRight, 
+  CheckCircle2, 
+  Lock, 
+  Scale, 
+  FileText, 
+  Calculator, 
+  Star, 
+  Menu, 
+  X, 
+  Building2, 
+  Briefcase, 
+  Home as HomeIcon, 
+  Users, 
+  BookOpen, 
+  ChevronRight, 
+  Sparkles, 
+  MessageSquare, 
+  HelpCircle, 
+  LogOut, 
+  User 
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedPracticeArea, setSelectedPracticeArea] = useState('Corporate & Commercial');
-  const [userSession, setUserSession] = useState<{ email?: string; role?: string } | null>(null);
+  const [userSession, setUserSession] = useState<{ email?: string } | null>(null);
 
-  // Monitor Supabase Auth Session
+  // Monitor Supabase Auth Session for Dynamic Sign In / Sign Out
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUserSession({ email: session.user.email, role: 'authenticated' });
+        setUserSession({ email: session.user.email });
       } else {
         setUserSession(null);
       }
@@ -28,7 +46,7 @@ export default function HomePage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setUserSession({ email: session.user.email, role: 'authenticated' });
+        setUserSession({ email: session.user.email });
       } else {
         setUserSession(null);
       }
@@ -168,9 +186,9 @@ export default function HomePage() {
             <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">
               Find a Lawyer
             </Link>
-            <a href="#practice-areas" className="hover:text-[#0A1128] transition-colors">
+            <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors">
               Practice Areas
-            </a>
+            </Link>
             <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-600">
               <MessageSquare className="w-3.5 h-3.5" />
               <span>LegalTalk Q&A</span>
@@ -183,7 +201,7 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          {/* Right Header CTAs & Auth Switcher */}
+          {/* Right Header CTAs & Dynamic Auth State */}
           <div className="hidden md:flex items-center gap-3">
             <Link 
               href="/for-lawyers" 
@@ -192,9 +210,8 @@ export default function HomePage() {
               For Advocates
             </Link>
 
-            {/* Dynamic Auth State: Sign Out vs Sign In */}
             {userSession ? (
-              <div className="flex items-center gap-2 bg-slate-100 py-1 px-2 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2 bg-slate-100 py-1.5 px-3 rounded-xl border border-slate-200">
                 <div className="w-6 h-6 rounded-lg bg-[#0A1128] text-white flex items-center justify-center text-[10px] font-bold">
                   <User className="w-3.5 h-3.5" />
                 </div>
@@ -258,6 +275,13 @@ export default function HomePage() {
               Find a Lawyer
             </Link>
             <Link 
+              href="/practice-areas" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-800 py-1"
+            >
+              Practice Areas
+            </Link>
+            <Link 
               href="/legaltalk" 
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-bold text-amber-600 py-1 flex items-center gap-2"
@@ -286,7 +310,7 @@ export default function HomePage() {
                   setMobileMenuOpen(false);
                   handleSignOut();
                 }}
-                className="w-full py-2.5 bg-red-50 text-red-600 text-center font-bold text-xs rounded-xl flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-red-50 text-red-600 text-center font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out ({userSession.email?.split('@')[0]})</span>
@@ -398,7 +422,7 @@ export default function HomePage() {
                 01
               </span>
               <h3 className="text-base font-bold text-[#0A1128]">1. Describe Your Need</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
                 Choose your legal domain and submit a brief description in Amharic or English. You can also record a secure voice brief right from your device.
               </p>
             </div>
@@ -408,7 +432,7 @@ export default function HomePage() {
                 02
               </span>
               <h3 className="text-base font-bold text-[#0A1128]">2. Choose Verified Counsel</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
                 Review verified profiles with authentic Ministry of Justice bar licenses, transparent hourly rates, client ratings, and litigation experience.
               </p>
             </div>
@@ -418,7 +442,7 @@ export default function HomePage() {
                 03
               </span>
               <h3 className="text-base font-bold text-[#0A1128]">3. Consult via Telebirr Escrow</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
                 Authorize your retainer securely via Telebirr USSD. Funds remain protected in escrow until your legal consultation is fulfilled.
               </p>
             </div>
@@ -427,8 +451,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Practice Areas */}
-      <section id="practice-areas" className="py-16 md:py-24">
+      {/* 4. Practice Areas (Direct link to /practice-areas page) */}
+      <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -441,10 +465,10 @@ export default function HomePage() {
               </h2>
             </div>
             <Link 
-              href="/find-a-lawyer" 
+              href="/practice-areas" 
               className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
             >
-              <span>Explore all practicing advocates</span>
+              <span>View full practice area directory</span>
               <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -570,7 +594,7 @@ export default function HomePage() {
               <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
                 LegalTalk Knowledge Hub
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500">
+              <p className="text-xs sm:text-sm text-slate-500 font-normal">
                 Direct statutory answers and commentary provided exclusively by verified Ethiopian advocates.
               </p>
             </div>
@@ -656,7 +680,7 @@ export default function HomePage() {
                 <Lock className="w-6 h-6 text-amber-400" />
                 <h3 className="font-bold text-sm text-white">Ethio Telecom USSD Direct Push</h3>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed font-normal">
                 Approve retainers seamlessly on your phone. You will receive an instant Telebirr USSD prompt and an official Ethio Telecom SMS confirmation once your case is booked.
               </p>
               <div className="pt-2">
@@ -686,7 +710,7 @@ export default function HomePage() {
                   Legal<span className="text-amber-500">Link</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed font-normal">
                 Ethiopia&apos;s verified legal services marketplace and digital compliance intermediary.
               </p>
               <span className="text-[11px] text-slate-400 block font-mono">Bole Sub-City, Addis Ababa</span>
@@ -699,6 +723,7 @@ export default function HomePage() {
               <ul className="space-y-2">
                 <li><Link href="/" className="hover:text-[#0A1128]">Home</Link></li>
                 <li><Link href="/find-a-lawyer" className="hover:text-[#0A1128]">Find an Advocate</Link></li>
+                <li><Link href="/practice-areas" className="hover:text-[#0A1128]">Practice Areas</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">LegalTalk Answers</Link></li>
                 <li><Link href="/tools" className="hover:text-[#0A1128]">LexDraft & Tools</Link></li>
               </ul>
