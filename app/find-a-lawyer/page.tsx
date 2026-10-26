@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   ShieldCheck, Search, Star, Phone, CheckCircle2, Lock, 
   ArrowRight, ArrowLeft, Mic, Square, Play, Pause, RotateCcw, 
-  Scale, FileText, Calculator, Building2, Briefcase, Home as HomeIcon,
+  Scale, FileText, Building2, Briefcase, Home as HomeIcon,
   Users, Check, AlertCircle, Sparkles, Smartphone, Landmark, Clock
 } from 'lucide-react';
 
@@ -78,16 +78,16 @@ export default function FindALawyerPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
 
-  // Booking Flow Steps: 1: Lawyer Selection | 2: Case Intake | 3: Telebirr Escrow Payment | 4: Booking Confirmed
+  // 1: Lawyer Selection | 2: Case Intake & Audio | 3: Telebirr Escrow | 4: Confirmed
   const [bookingStep, setBookingStep] = useState<1 | 2 | 3 | 4>(1);
 
-  // Intake Form State
+  // Intake State
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [caseDescription, setCaseDescription] = useState('');
   const [intakeMode, setIntakeMode] = useState<'text' | 'voice'>('text');
 
-  // Audio Recording (MediaRecorder API)
+  // MediaRecorder Voice Brief Engine
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -97,32 +97,10 @@ export default function FindALawyerPage() {
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Telebirr Payment Simulation State
+  // Telebirr Checkout State
   const [telebirrStatus, setTelebirrStatus] = useState<'idle' | 'pushing' | 'pin_pending' | 'success'>('idle');
   const [telebirrPin, setTelebirrPin] = useState('');
 
-  // Severance Calculator State
-  const [calcYears, setCalcYears] = useState<number>(3);
-  const [calcSalary, setCalcSalary] = useState<number>(25000);
-  const [severanceResult, setSeveranceResult] = useState<number>(0);
-
-  // DARA Checklist State
-  const [daraChecked, setDaraChecked] = useState<Record<string, boolean>>({
-    cbe_stamp: false,
-    fayda_id: true,
-    tin_reg: true,
-    bylaws_signed: false
-  });
-
-  // Calculate Severance according to Proc. 1156/2019
-  useEffect(() => {
-    // 30 days wages for 1st year + 1/3 of month salary for every additional year
-    const firstYear = calcSalary;
-    const additionalYears = Math.max(0, calcYears - 1) * (calcSalary / 3);
-    setSeveranceResult(Math.round(firstYear + additionalYears));
-  }, [calcYears, calcSalary]);
-
-  // Audio Recording Handlers
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -181,7 +159,6 @@ export default function FindALawyerPage() {
     }
   };
 
-  // Telebirr Checkout Handler
   const handleTriggerTelebirrEscrow = () => {
     setTelebirrStatus('pushing');
     setTimeout(() => {
@@ -217,25 +194,28 @@ export default function FindALawyerPage() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-4 text-xs font-bold">
+          <div className="flex items-center gap-6 text-xs font-bold">
             <Link href="/" className="text-slate-500 hover:text-[#0A1128] transition-colors hidden sm:block">
               Home
             </Link>
-            <a href="#tools" className="text-slate-500 hover:text-[#0A1128] transition-colors hidden sm:block">
-              LexDraft & Tools
-            </a>
+            <Link href="/tools" className="text-slate-500 hover:text-[#0A1128] transition-colors flex items-center gap-1.5">
+              <span>Self-Service Legal Tools</span>
+              <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                FREE
+              </span>
+            </Link>
             <Link 
               href="/login" 
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all"
             >
-              Client Sign In
+              Sign In
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Main Matching & Consultation Experience */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-12">
+      {/* Main Booking Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-10">
         
         {/* Banner with Escrow Safeguard */}
         <div className="bg-[#0A1128] text-white p-8 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
@@ -246,7 +226,7 @@ export default function FindALawyerPage() {
             <h1 className="text-2xl sm:text-3xl font-black">
               Find Verified Legal Counsel
             </h1>
-            <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+            <p className="text-xs text-slate-300 max-w-xl leading-relaxed font-normal">
               Select an accredited advocate, describe your legal matter, and lock your consultation retainer in <strong>Telebirr Escrow</strong>. Retainers are released only after your consultation is complete.
             </p>
           </div>
@@ -264,7 +244,6 @@ export default function FindALawyerPage() {
         {bookingStep === 1 && (
           <div className="space-y-6">
             
-            {/* Search and Category Filter */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="relative w-full sm:w-80">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -299,7 +278,6 @@ export default function FindALawyerPage() {
               </div>
             </div>
 
-            {/* Simplified 3-Tier Advocate Selection Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {filteredAdvocates.map((adv) => (
                 <div
@@ -376,7 +354,7 @@ export default function FindALawyerPage() {
               </button>
 
               <div className="text-right">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Consultation With</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Selected Advocate</span>
                 <span className="text-xs font-black text-[#0A1128]">{selectedAdvocate.name}</span>
               </div>
             </div>
@@ -386,7 +364,6 @@ export default function FindALawyerPage() {
               <p className="text-xs text-slate-500">Provide details in English or Amharic so counsel can prepare statutory authorities before your session.</p>
             </div>
 
-            {/* Intake Input Toggle (Text vs Voice Brief) */}
             <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
               <button
                 type="button"
@@ -409,7 +386,6 @@ export default function FindALawyerPage() {
               </button>
             </div>
 
-            {/* Client Contact Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Your Full Name *</label>
@@ -435,7 +411,6 @@ export default function FindALawyerPage() {
               </div>
             </div>
 
-            {/* Written Brief Area */}
             {intakeMode === 'text' && (
               <div className="text-xs space-y-1">
                 <label className="block font-bold text-slate-700">Case Summary / Specific Dispute *</label>
@@ -450,7 +425,6 @@ export default function FindALawyerPage() {
               </div>
             )}
 
-            {/* Voice Brief Recorder (MediaRecorder Integration) */}
             {intakeMode === 'voice' && (
               <div className="p-6 bg-amber-50/60 border border-amber-200 rounded-2xl text-xs space-y-4 text-center">
                 <span className="font-bold text-amber-950 block">Voice Brief Engine</span>
@@ -458,7 +432,6 @@ export default function FindALawyerPage() {
                   Speak comfortably in Amharic or English. Explain what happened and what resolution you seek. Your advocate will listen directly in their workspace.
                 </p>
 
-                {/* Recorder Controls */}
                 <div className="flex flex-col items-center justify-center gap-3">
                   {!audioUrl ? (
                     isRecording ? (
@@ -529,7 +502,7 @@ export default function FindALawyerPage() {
           </div>
         )}
 
-        {/* STEP 3: TELEBIRR ESCROW PAYMENT CHECKOUT */}
+        {/* STEP 3: TELEBIRR ESCROW PAYMENT */}
         {bookingStep === 3 && selectedAdvocate && (
           <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
             
@@ -556,7 +529,6 @@ export default function FindALawyerPage() {
               </p>
             </div>
 
-            {/* Fee Breakdown */}
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Advocate Initial Retainer:</span>
@@ -572,7 +544,6 @@ export default function FindALawyerPage() {
               </div>
             </div>
 
-            {/* Telebirr USSD Simulation States */}
             {telebirrStatus === 'idle' && (
               <button
                 type="button"
@@ -643,7 +614,7 @@ export default function FindALawyerPage() {
                 ESCROW LOCKED & BRIEF DISPATCHED
               </span>
               <h2 className="text-2xl font-black text-[#0A1128]">Consultation Confirmed!</h2>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-normal">
                 Your consultation request and case brief have been placed directly into <strong>{selectedAdvocate.name}&apos;s docket</strong>.
               </p>
             </div>
@@ -658,7 +629,7 @@ export default function FindALawyerPage() {
                 <span className="font-mono font-bold text-slate-800">ETH-ESCROW-2026-9041</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Telebirr Amount:</span>
+                <span className="text-slate-400">Telebirr Retainer:</span>
                 <span className="font-mono font-bold text-emerald-700">ETB {selectedAdvocate.hourlyRate.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
@@ -670,13 +641,13 @@ export default function FindALawyerPage() {
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/advocate"
-                className="flex-1 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all"
+                className="flex-1 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all text-center"
               >
                 View in Advocate Docket
               </Link>
               <Link
                 href="/"
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all text-center"
               >
                 Return Home
               </Link>
@@ -684,132 +655,6 @@ export default function FindALawyerPage() {
 
           </div>
         )}
-
-        {/* ------------------------------------------------------------- */}
-        {/* COMPLIANCE & LEGAL TOOLS (ANCHORED FOR HOMEPAGE NAVIGATION) */}
-        {/* ------------------------------------------------------------- */}
-        <section id="tools" className="pt-12 border-t border-slate-200 space-y-10">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-1">
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
-              STATUTORY SELF-SERVICE UTILITIES
-            </span>
-            <h2 className="text-2xl font-black text-[#0A1128]">
-              Ethiopian Legal Compliance Engines
-            </h2>
-            <p className="text-xs text-slate-500">
-              Instant contract drafting, severance calculations, and DARA authentication audits.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
-            
-            {/* 1. LexDraft Engine (#lexdraft) */}
-            <div id="lexdraft" className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4 flex flex-col justify-between shadow-xs">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-amber-600" />
-                  <h3 className="font-black text-sm text-[#0A1128]">LexDraft Contract Studio</h3>
-                </div>
-                <p className="text-slate-500 leading-relaxed font-normal">
-                  Standardized bilingual template compliant with Commercial Code Art. 1240.
-                </p>
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px] font-mono text-slate-700 space-y-1">
-                  <div>1. Employment Agreement (የቅጥር ውል)</div>
-                  <div>2. Commercial Tenancy (የንግድ ቤት ኪራይ)</div>
-                  <div>3. Non-Disclosure Agreement (ምስጢር መጠበቂያ)</div>
-                </div>
-              </div>
-              <button 
-                onClick={() => alert('LexDraft bilingual draft exported to PDF with DARA authentication stamps.')}
-                className="w-full py-2.5 bg-[#0A1128] text-white font-bold rounded-xl hover:bg-[#102A43] cursor-pointer"
-              >
-                Generate Standardized PDF
-              </button>
-            </div>
-
-            {/* 2. Severance Calculator (#severance) */}
-            <div id="severance" className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4 flex flex-col justify-between shadow-xs">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-black text-sm text-[#0A1128]">Severance Calculator</h3>
-                </div>
-                <p className="text-slate-500 leading-relaxed font-normal">
-                  Statutory severance under Labor Proclamation No. 1156/2019.
-                </p>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Tenure (Years)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={calcYears}
-                      onChange={(e) => setCalcYears(Number(e.target.value))}
-                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Monthly Pay (ETB)</label>
-                    <input
-                      type="number"
-                      step={1000}
-                      value={calcSalary}
-                      onChange={(e) => setCalcSalary(Number(e.target.value))}
-                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex justify-between items-center font-bold">
-                  <span className="text-blue-900">Statutory Payout:</span>
-                  <span className="text-blue-950 font-mono text-sm">ETB {severanceResult.toLocaleString()}</span>
-                </div>
-              </div>
-
-              <span className="text-[10px] text-slate-400 text-center block">Calculated via Proc. 1156/2019 Art. 39–40</span>
-            </div>
-
-            {/* 3. DARA Pre-Flight Checklist (#dara) */}
-            <div id="dara" className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4 flex flex-col justify-between shadow-xs">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                  <h3 className="font-black text-sm text-[#0A1128]">DARA Document Pre-Flight</h3>
-                </div>
-                <p className="text-slate-500 leading-relaxed font-normal">
-                  Pre-screen your legal dossier before visiting Document Authentication Agency.
-                </p>
-
-                <div className="space-y-2 pt-1">
-                  {[
-                    { key: 'cbe_stamp', label: 'CBE Authentication Fee Receipt' },
-                    { key: 'fayda_id', label: 'Valid Fayda National ID / Passport' },
-                    { key: 'tin_reg', label: 'Commercial TIN Registration Certificate' },
-                    { key: 'bylaws_signed', label: 'Articles of Association Signed by Founders' }
-                  ].map((item) => (
-                    <label key={item.key} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={daraChecked[item.key]}
-                        onChange={(e) => setDaraChecked({ ...daraChecked, [item.key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[#0A1128] focus:ring-0"
-                      />
-                      <span className="text-slate-700">{item.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-center font-bold text-emerald-900 text-[11px]">
-                {Object.values(daraChecked).filter(Boolean).length} of 4 Documents Verified Ready
-              </div>
-            </div>
-
-          </div>
-
-        </section>
 
       </main>
 
