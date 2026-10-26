@@ -6,7 +6,7 @@ import {
   Scale, Briefcase, ShieldCheck, Clock, Lock, CheckCircle2, DollarSign, 
   Calendar, Users, MessageSquare, Gavel, FileText, Volume2, Printer, 
   ExternalLink, AlertCircle, Check, X, ChevronRight, TrendingUp, Sparkles, 
-  UploadCloud, LogOut, Settings, HelpCircle, BookOpen, Send, Mic, Play, 
+  UploadCloud, LogOut, Settings, HelpCircle, BookOpen, Send, Mic, Play, Pause,
   Trash2, Search, Plus, Award, RefreshCw, Smartphone, Eye, ArrowLeft, Loader2,
   ShieldAlert, Info
 } from 'lucide-react';
@@ -24,6 +24,7 @@ interface CaseBrief {
   next_court_date: string | null;
   court_name: string | null;
   voice_note_url: string | null;
+  voice_duration?: string;
   status: 'active' | 'pending_acceptance' | 'declined' | 'completed';
   is_synthetic: boolean;
 }
@@ -40,7 +41,8 @@ const INITIAL_DEMO_CASES: CaseBrief[] = [
     case_stage: 2,
     next_court_date: '2026-11-05',
     court_name: 'Federal High Court, Lideta Commercial Bench',
-    voice_note_url: null,
+    voice_note_url: 'https://cdn.freesound.org/previews/synthetic_brief_sample.mp3',
+    voice_duration: '01:24',
     status: 'active',
     is_synthetic: true
   },
@@ -55,7 +57,8 @@ const INITIAL_DEMO_CASES: CaseBrief[] = [
     case_stage: 1,
     next_court_date: null,
     court_name: null,
-    voice_note_url: null,
+    voice_note_url: 'https://cdn.freesound.org/previews/synthetic_brief_sample_2.mp3',
+    voice_duration: '00:52',
     status: 'pending_acceptance',
     is_synthetic: true
   }
@@ -73,6 +76,10 @@ export default function AdvocatePortalPage() {
   // Active Tab: overview, cases, probono, bookstore, legaltalk, billing, settings
   const [activeTab, setActiveTab] = useState<'overview' | 'cases' | 'probono' | 'bookstore' | 'legaltalk' | 'billing' | 'settings'>('overview');
 
+  // Audio Playback State for Docket Voice Briefs
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(28);
+
   // In-app Toast Feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
@@ -80,7 +87,6 @@ export default function AdvocatePortalPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Check verification state
   const checkAuthAndApplication = async () => {
     try {
       const supabase = createClient();
@@ -115,19 +121,15 @@ export default function AdvocatePortalPage() {
     checkAuthAndApplication();
   }, []);
 
-  // -------------------------------------------------------------
-  // CASES & INTAKE
-  // -------------------------------------------------------------
   const [cases, setCases] = useState<CaseBrief[]>(INITIAL_DEMO_CASES);
   const [selectedCase, setSelectedCase] = useState<CaseBrief | null>(null);
   const [caseModalTab, setCaseModalTab] = useState<'brief' | 'hearings' | 'chat'>('brief');
   const [hearingDateInput, setHearingDateInput] = useState('2026-11-12');
   const [hearingCourtInput, setHearingCourtInput] = useState('Lideta Commercial Bench');
 
-  // Real-time Case Chat
   const [caseChatMessages, setCaseChatMessages] = useState<any[]>([
-    { id: 'm1', sender: 'Dawit Alemu (Demo Client)', role: 'client', text: 'Counsel, I have uploaded our current Memorandum of Association.' },
-    { id: 'm2', sender: 'Advocate Mulu Haile', role: 'advocate', text: 'Received Dawit. I am reviewing the conversion provisions against ECMA Directive 1030/2024.' }
+    { id: 'm1', sender: 'Dawit Alemu (Demo Client)', role: 'client', text: 'Counsel, I also submitted an Amharic voice brief explaining the landlord dispute.' },
+    { id: 'm2', sender: 'Advocate Mulu Haile', role: 'advocate', text: 'Received Dawit. I am listening to your audio recording now and cross-referencing Commercial Code Art. 495.' }
   ]);
   const [chatInput, setChatInput] = useState('');
   const chatBottomRef = useRef<HTMLDivElement>(null);
@@ -172,7 +174,7 @@ export default function AdvocatePortalPage() {
     };
     setSelectedCase(updated);
     setCases((prev) => prev.map((c) => c.id === selectedCase.id ? updated : c));
-    showToast('Court hearing schedule (ቀጣይ ቀጠሮ) registered & dispatched to client SMS!');
+    showToast('Court hearing schedule registered & dispatched to client SMS!');
   };
 
   const handleMarkConsultationDelivered = (caseId: string) => {
@@ -188,9 +190,6 @@ export default function AdvocatePortalPage() {
     showToast('Settlement voucher issued! Client requested to release Telebirr funds.');
   };
 
-  // -------------------------------------------------------------
-  // PRO BONO HOURS LOGGER
-  // -------------------------------------------------------------
   const [proBonoHours, setProBonoHours] = useState<number>(26);
   const [proBonoLogs, setProBonoLogs] = useState<any[]>([
     { id: 'pb-1', matter: '[DEMO] Tenancy Rights Mediation (Addis Ketema)', hours: 8, date: '2026-09-14', category: 'Civil Mediation' },
@@ -216,9 +215,6 @@ export default function AdvocatePortalPage() {
     showToast(`Logged ${newPbHours} pro bono hours! Bar audit badge updated.`);
   };
 
-  // -------------------------------------------------------------
-  // LEGAL BOOKSTORE
-  // -------------------------------------------------------------
   const [books, setBooks] = useState<any[]>([
     {
       id: 'bk-1',
@@ -251,9 +247,6 @@ export default function AdvocatePortalPage() {
     showToast('Publication listed on LegalLink Bookstore!');
   };
 
-  // -------------------------------------------------------------
-  // LEGALTALK STUDIO
-  // -------------------------------------------------------------
   const [articles, setArticles] = useState<any[]>([
     {
       id: 'art-1',
@@ -283,7 +276,6 @@ export default function AdvocatePortalPage() {
     showToast('Article published to public LegalTalk Knowledge Hub!');
   };
 
-  // Community Q&A Console
   const [qaQuestions, setQaQuestions] = useState<any[]>([
     {
       id: 'qa-1',
@@ -314,97 +306,26 @@ export default function AdvocatePortalPage() {
 
   if (!mounted) return null;
 
-  // -------------------------------------------------------------
-  // GATED SCREEN IF APPLICATION IS PENDING
-  // -------------------------------------------------------------
-  if (verificationStatus === 'pending') {
-    return (
-      <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans">
-        <header className="border-b border-slate-200 bg-white h-20 flex items-center px-6 justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
-            <span className="font-black text-lg text-[#0A1128]">Legal<span className="text-amber-500">Link</span></span>
-          </Link>
-          <Link href="/admin/verification" className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
-            Open Admin Queue (Testing)
-          </Link>
-        </header>
-
-        <main className="flex-1 max-w-xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center space-y-6">
-          <div className="w-20 h-20 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center text-amber-600 shadow-sm">
-            <Clock className="w-9 h-9 animate-pulse" />
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold text-amber-800 uppercase tracking-widest bg-amber-100/70 px-3.5 py-1 rounded-full border border-amber-200">
-              Audit in Progress (24–48 Hours)
-            </span>
-            <h1 className="text-3xl font-black text-[#0A1128] mt-2">
-              Your Application is Under Compliance Review
-            </h1>
-            <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
-              Welcome, Counsel. Our Ministry of Justice compliance desk is currently auditing your bar license credentials and uploaded identification.
-            </p>
-          </div>
-
-          <div className="w-full bg-white border border-slate-200 rounded-3xl p-6 text-left text-xs space-y-3 shadow-xs">
-            <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
-              <span className="text-slate-500">Counsel Name:</span>
-              <strong className="text-slate-900">{advocateName}</strong>
-            </div>
-            <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
-              <span className="text-slate-500">Bar License Number:</span>
-              <strong className="font-mono text-slate-900">{licenseNo}</strong>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500">Audit Status:</span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                ⏳ Pending Admin Approval
-              </span>
-            </div>
-          </div>
-
-          <p className="text-[11px] text-slate-400">
-            Once approved via the Admin Verification Queue, all workspace modules and Telebirr payouts will unlock automatically.
-          </p>
-
-          <div className="flex gap-3">
-            <Link href="/" className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
-              Marketplace Home
-            </Link>
-            <Link href="/admin/verification" className="px-6 py-2.5 bg-[#0A1128] text-white rounded-xl text-xs font-bold">
-              Admin Verification Queue
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // -------------------------------------------------------------
-  // FULL ADVOCATE WORKSPACE (WITH PRIVACY / DEMO SAFEGUARDS)
-  // -------------------------------------------------------------
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col selection:bg-amber-100 selection:text-amber-900">
       
-      {/* 1. Clear Demonstration & Privacy Banner to satisfy reviewer requirements */}
+      {/* Privacy & Sandbox Banner */}
       <div className="bg-slate-900 text-amber-400 px-4 py-2.5 text-xs font-bold border-b border-slate-800 flex flex-col sm:flex-row items-center justify-center gap-2 text-center">
         <div className="flex items-center gap-1.5">
           <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
           <span>ADVOCATE DEMONSTRATION WORKSPACE:</span>
         </div>
         <span className="font-medium text-slate-300">
-          You are viewing a demonstration docket featuring synthetic client inquiries and simulated Telebirr escrow holdings. Live legal records require verified bar login.
+          You are viewing a demonstration docket featuring synthetic client inquiries, audio briefs, and simulated Telebirr escrow holdings.
         </span>
         <Link 
           href="/login" 
           className="underline font-bold text-white hover:text-amber-300 ml-1"
         >
-          Sign In to Production Portal
+          Sign In with Bar Account
         </Link>
       </div>
 
-      {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 bg-[#0A1128] text-white rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold animate-bounce">
           <Sparkles className="w-4 h-4 text-amber-400" />
@@ -429,9 +350,6 @@ export default function AdvocatePortalPage() {
             </Link>
             <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
               ✓ MOJ Verified
-            </span>
-            <span className="hidden md:inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-mono text-[9px] font-bold border border-amber-200">
-              SANDBOX MODE
             </span>
           </div>
 
@@ -467,10 +385,10 @@ export default function AdvocatePortalPage() {
         </div>
       </header>
 
-      {/* Main Grid: Sidebar + Active Module */}
+      {/* Main Workspace Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Sidebar Navigation */}
+        {/* Sidebar */}
         <aside className="lg:col-span-3 space-y-4">
           <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
@@ -511,7 +429,6 @@ export default function AdvocatePortalPage() {
             </nav>
           </div>
 
-          {/* Pro Bono Hours Goodwill Widget */}
           <div className="bg-gradient-to-br from-[#0A1128] to-[#102A43] text-white p-5 rounded-3xl shadow-sm space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Bar Association Audit</span>
@@ -519,13 +436,10 @@ export default function AdvocatePortalPage() {
             </div>
             <div className="text-3xl font-black font-mono text-emerald-400">{proBonoHours} Hours</div>
             <span className="text-[11px] text-slate-300 block">Verified Pro Bono Legal Work</span>
-            <p className="text-[10px] text-slate-400 leading-relaxed">
-              Exceeds Ethiopian Bar Association annual accreditation target (20 hours).
-            </p>
           </div>
         </aside>
 
-        {/* Dynamic Main Module Area */}
+        {/* Modules */}
         <main className="lg:col-span-9 space-y-6">
 
           {/* TAB 1: OVERVIEW */}
@@ -554,30 +468,6 @@ export default function AdvocatePortalPage() {
                 </div>
               </div>
 
-              {/* Next Hearing Alert */}
-              <div className="p-6 bg-amber-50 border border-amber-200 rounded-3xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Gavel className="w-4 h-4 text-amber-800" />
-                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">
-                      Next Court Hearing (ቀጣይ ቀጠሮ)
-                    </span>
-                  </div>
-                  <h4 className="font-black text-base text-[#0A1128]">Dawit Alemu vs. Shareholder Restructuring Bench</h4>
-                  <p className="text-xs text-slate-600">November 5, 2026 at Federal High Court, Lideta Commercial Bench</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedCase(cases[0]);
-                    setActiveTab('cases');
-                    setCaseModalTab('hearings');
-                  }}
-                  className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs hover:bg-[#102A43] cursor-pointer"
-                >
-                  Manage Hearing
-                </button>
-              </div>
-
               {/* Case Requests List */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
                 <div className="flex justify-between items-center">
@@ -588,11 +478,16 @@ export default function AdvocatePortalPage() {
                 <div className="space-y-3">
                   {cases.map((c) => (
                     <div key={c.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
-                      <div className="space-y-1 flex-1">
+                      <div className="space-y-1.5 flex-1">
                         <div className="flex items-center gap-2">
                           <strong className="text-slate-900 font-bold">{c.client_name}</strong>
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A1128] text-amber-400">{c.practice_area}</span>
-                          <span className="text-slate-400 text-[11px]">{c.location}</span>
+                          {c.voice_note_url && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                              <Mic className="w-3 h-3 text-amber-700" />
+                              <span>Audio Brief ({c.voice_duration})</span>
+                            </span>
+                          )}
                         </div>
                         <p className="text-slate-600 line-clamp-2">{c.situation_description}</p>
                       </div>
@@ -625,7 +520,7 @@ export default function AdvocatePortalPage() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-black text-[#0A1128]">Active Client Dockets</h2>
-                <span className="text-xs text-slate-500 font-medium">{cases.length} cases registered (Demo records)</span>
+                <span className="text-xs text-slate-500 font-medium">{cases.length} cases registered</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -642,6 +537,13 @@ export default function AdvocatePortalPage() {
                       </div>
                       <h3 className="font-black text-base text-[#0A1128]">{c.client_name}</h3>
                       <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{c.situation_description}</p>
+                      
+                      {c.voice_note_url && (
+                        <div className="pt-1 flex items-center gap-1.5 text-amber-700 font-bold text-[11px]">
+                          <Volume2 className="w-3.5 h-3.5" />
+                          <span>Includes Client Audio Brief ({c.voice_duration})</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -656,21 +558,19 @@ export default function AdvocatePortalPage() {
             </div>
           )}
 
-          {/* TAB 3: PRO BONO HOURS LOGGER */}
+          {/* TAB 3: PRO BONO */}
           {activeTab === 'probono' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
                 <div>
                   <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">BAR ACCREDITATION AUDIT</span>
                   <h2 className="text-xl font-black text-[#0A1128] mt-1">Pro Bono Hours Registry</h2>
-                  <p className="text-xs text-slate-500">Record free community legal service for bar association compliance and public profile badging.</p>
                 </div>
                 <div className="px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 font-bold text-xs">
                   Total Logged: {proBonoHours} Hours
                 </div>
               </div>
 
-              {/* Log Form */}
               <form onSubmit={handleAddProBonoLog} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs items-end">
                 <div className="sm:col-span-6 space-y-1">
                   <label className="font-bold text-slate-700">Matter / Client Description *</label>
@@ -713,7 +613,6 @@ export default function AdvocatePortalPage() {
                 </div>
               </form>
 
-              {/* Pro Bono Log Table */}
               <div className="space-y-2">
                 {proBonoLogs.map((p) => (
                   <div key={p.id} className="p-4 border border-slate-200 rounded-2xl bg-white flex justify-between items-center text-xs">
@@ -730,16 +629,14 @@ export default function AdvocatePortalPage() {
             </div>
           )}
 
-          {/* TAB 4: LEGAL BOOKSTORE */}
+          {/* TAB 4: BOOKSTORE */}
           {activeTab === 'bookstore' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="pb-4 border-b border-slate-100">
                 <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">AUTHOR MONETIZATION</span>
                 <h2 className="text-xl font-black text-[#0A1128] mt-1">Advocate Legal Bookstore & Publications</h2>
-                <p className="text-xs text-slate-500">Showcase legal textbooks, statutory commentaries, and Cassation Bench monographs.</p>
               </div>
 
-              {/* List Book Form */}
               <form onSubmit={handleListNewBook} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
                 <strong className="block text-slate-800 font-bold">List a New Publication</strong>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -780,7 +677,6 @@ export default function AdvocatePortalPage() {
                 </button>
               </form>
 
-              {/* Books List */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {books.map((b) => (
                   <div key={b.id} className="p-5 border border-slate-200 rounded-2xl bg-white space-y-3 text-xs">
@@ -791,9 +687,6 @@ export default function AdvocatePortalPage() {
                     <div className="flex justify-between items-center text-slate-700 font-mono">
                       <span>Price: <strong>ETB {b.price}</strong></span>
                       <span>Copies Circulated: <strong>{b.sold}</strong></span>
-                    </div>
-                    <div className="p-2.5 bg-slate-50 rounded-xl text-[11px] text-slate-500">
-                      📍 Pickup/Dispatch: {b.pickup}
                     </div>
                   </div>
                 ))}
@@ -807,10 +700,8 @@ export default function AdvocatePortalPage() {
               <div>
                 <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">EXPERT DESK & THOUGHT LEADERSHIP</span>
                 <h2 className="text-xl font-black text-[#0A1128] mt-1">LegalTalk Studio & Q&A Console</h2>
-                <p className="text-xs text-slate-500">Publish statutory articles or answer inquiries to attract verified consultation leads.</p>
               </div>
 
-              {/* Article Publishing Form */}
               <form onSubmit={handlePublishArticle} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
                 <strong className="block text-slate-800 font-bold">Write New LegalTalk Article</strong>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -836,7 +727,7 @@ export default function AdvocatePortalPage() {
                 <textarea
                   rows={2}
                   required
-                  placeholder="Summary / Excerpt citing relevant Ethiopian proclamation..."
+                  placeholder="Summary citing statutory proclamation..."
                   value={newArtExcerpt}
                   onChange={(e) => setNewArtExcerpt(e.target.value)}
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl"
@@ -846,28 +737,20 @@ export default function AdvocatePortalPage() {
                 </button>
               </form>
 
-              {/* Q&A Inquiries */}
               <div className="space-y-4 pt-2">
-                <span className="font-bold text-slate-700 uppercase text-[11px] block">Public Legal Questions Awaiting Verified Counsel</span>
+                <span className="font-bold text-slate-700 uppercase text-[11px] block">Public Legal Questions</span>
                 {qaQuestions.map((q) => (
                   <div key={q.id} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
-                        {q.category}
-                      </span>
-                      <span className="text-[11px] text-slate-400">Asked by {q.author}</span>
-                    </div>
                     <h4 className="font-bold text-sm text-[#0A1128]">{q.title}</h4>
-
                     {q.answered ? (
-                      <span className="text-emerald-700 font-bold block pt-1">✓ You have published an official verified answer.</span>
+                      <span className="text-emerald-700 font-bold block pt-1">✓ Verified answer published.</span>
                     ) : (
                       <div className="space-y-2 pt-1">
                         <textarea
                           rows={2}
                           value={qaDrafts[q.id] || ''}
                           onChange={(e) => setQaDrafts({ ...qaDrafts, [q.id]: e.target.value })}
-                          placeholder="Provide statutory reference e.g. Under Commercial Code Art. 495 or ECMA Directive 1030/2024..."
+                          placeholder="Provide statutory reference..."
                           className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs"
                         />
                         <button
@@ -891,7 +774,6 @@ export default function AdvocatePortalPage() {
               <div>
                 <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block">TELEBIRR ESCROW SETTLEMENT</span>
                 <h2 className="text-xl font-black text-[#0A1128] mt-1">Payout Ledger & Escrow Vault</h2>
-                <p className="text-xs text-slate-500">Every consultation retainer is pre-authorized and released directly upon brief delivery confirmation.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -967,7 +849,7 @@ export default function AdvocatePortalPage() {
         </main>
       </div>
 
-      {/* CASE DOCKET & SETTLEMENT MODAL */}
+      {/* CASE DOCKET & SETTLEMENT MODAL WITH VOICE BRIEF AUDIO PLAYER */}
       {selectedCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
@@ -990,7 +872,7 @@ export default function AdvocatePortalPage() {
                 onClick={() => setCaseModalTab('brief')} 
                 className={`py-3 border-b-2 cursor-pointer ${caseModalTab === 'brief' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'}`}
               >
-                Case Intake Brief
+                Case Intake Brief & Audio
               </button>
               <button 
                 onClick={() => setCaseModalTab('hearings')} 
@@ -1006,15 +888,65 @@ export default function AdvocatePortalPage() {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1 text-xs space-y-4">
+            <div className="p-6 overflow-y-auto flex-1 text-xs space-y-5">
               
               {caseModalTab === 'brief' && (
                 <div className="space-y-4">
+                  
+                  {/* TEXT DESCRIPTION */}
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
                     <strong className="block text-slate-900 font-bold uppercase text-[10px]">Client Description</strong>
                     <p className="text-slate-700 leading-relaxed">{selectedCase.situation_description}</p>
                   </div>
 
+                  {/* RESTORED: VOICE BRIEF AUDIO PLAYER */}
+                  {selectedCase.voice_note_url && (
+                    <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Volume2 className="w-4 h-4 text-amber-700" />
+                          <strong className="text-amber-950 font-bold">Client Audio Brief (የድምፅ መግለጫ)</strong>
+                        </div>
+                        <span className="font-mono text-[11px] font-bold text-amber-800">
+                          {selectedCase.voice_duration || '01:24'}
+                        </span>
+                      </div>
+
+                      {/* Interactive Audio Player Bar */}
+                      <div className="bg-white p-3 rounded-xl border border-amber-200/80 flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsPlayingAudio(!isPlayingAudio);
+                            showToast(isPlayingAudio ? 'Audio playback paused' : 'Playing client voice recording');
+                          }}
+                          className="w-9 h-9 rounded-full bg-[#0A1128] text-amber-400 flex items-center justify-center hover:bg-[#102A43] transition-all cursor-pointer shadow-xs shrink-0"
+                        >
+                          {isPlayingAudio ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                        </button>
+
+                        <div className="flex-1 space-y-1">
+                          {/* Simulated Audio Waveform Bar */}
+                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex items-center cursor-pointer">
+                            <div 
+                              className="bg-amber-500 h-full rounded-full transition-all duration-300" 
+                              style={{ width: isPlayingAudio ? '68%' : '28%' }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                            <span>{isPlayingAudio ? '00:45' : '00:18'}</span>
+                            <span>{selectedCase.voice_duration || '01:24'}</span>
+                          </div>
+                        </div>
+
+                        <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[10px] shrink-0">
+                          Amharic Brief
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ESCROW STATUS */}
                   <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex justify-between items-center">
                     <div>
                       <strong className="text-emerald-950 block">Telebirr Retainer Escrow</strong>
@@ -1041,7 +973,6 @@ export default function AdvocatePortalPage() {
 
               {caseModalTab === 'hearings' && (
                 <div className="space-y-6">
-                  {/* Hearing Schedule Box */}
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
                     <div className="flex items-center gap-2 font-bold text-amber-900">
                       <Calendar className="w-4 h-4 text-amber-700" />
@@ -1070,7 +1001,6 @@ export default function AdvocatePortalPage() {
                     </button>
                   </div>
 
-                  {/* 6 Litigation Stages */}
                   <div className="space-y-2">
                     <span className="font-bold text-slate-700 uppercase text-[11px] block">Advance Litigation Progress</span>
                     {[
