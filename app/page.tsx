@@ -1,33 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  ShieldCheck, 
-  Search, 
-  ArrowRight, 
-  CheckCircle2, 
-  Lock, 
-  Scale, 
-  FileText, 
-  Calculator, 
-  Star, 
-  Menu, 
-  X, 
-  Building2, 
-  Briefcase, 
-  Home as HomeIcon, 
-  Users, 
-  BookOpen, 
-  ChevronRight,
-  Sparkles,
-  MessageSquare,
-  HelpCircle
+  ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
+  FileText, Calculator, Star, Menu, X, Building2, Briefcase, 
+  Home as HomeIcon, Users, BookOpen, ChevronRight, Sparkles, 
+  MessageSquare, HelpCircle, LogOut, User
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedPracticeArea, setSelectedPracticeArea] = useState('Corporate & Commercial');
+  const [userSession, setUserSession] = useState<{ email?: string; role?: string } | null>(null);
+
+  // Monitor Supabase Auth Session
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUserSession({ email: session.user.email, role: 'authenticated' });
+      } else {
+        setUserSession(null);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUserSession({ email: session.user.email, role: 'authenticated' });
+      } else {
+        setUserSession(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUserSession(null);
+    window.location.reload();
+  };
 
   const practiceAreas = [
     {
@@ -146,7 +161,10 @@ export default function HomePage() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-slate-600">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-slate-600">
+            <Link href="/" className="text-[#0A1128] font-black border-b-2 border-amber-500 pb-0.5">
+              Home
+            </Link>
             <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">
               Find a Lawyer
             </Link>
@@ -165,14 +183,41 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          {/* Right Header CTAs */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Right Header CTAs & Auth Switcher */}
+          <div className="hidden md:flex items-center gap-3">
             <Link 
               href="/for-lawyers" 
               className="text-xs font-bold text-slate-500 hover:text-[#0A1128] px-3 py-2 rounded-xl transition-colors"
             >
               For Advocates
             </Link>
+
+            {/* Dynamic Auth State: Sign Out vs Sign In */}
+            {userSession ? (
+              <div className="flex items-center gap-2 bg-slate-100 py-1 px-2 rounded-xl border border-slate-200">
+                <div className="w-6 h-6 rounded-lg bg-[#0A1128] text-white flex items-center justify-center text-[10px] font-bold">
+                  <User className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[11px] font-bold text-slate-700 max-w-[110px] truncate">
+                  {userSession.email?.split('@')[0]}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  title="Sign Out"
+                  className="p-1 hover:text-red-600 text-slate-400 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <Link 
+                href="/login" 
+                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
+
             <Link 
               href="/find-a-lawyer" 
               className="px-5 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow flex items-center gap-2 group"
@@ -199,41 +244,63 @@ export default function HomePage() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4">
             <Link 
+              href="/" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-[#0A1128] py-1"
+            >
+              Home
+            </Link>
+            <Link 
               href="/find-a-lawyer" 
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-2"
+              className="block text-sm font-bold text-slate-800 py-1"
             >
               Find a Lawyer
             </Link>
-            <a 
-              href="#practice-areas" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-2"
-            >
-              Practice Areas
-            </a>
             <Link 
               href="/legaltalk" 
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-amber-600 py-2 flex items-center gap-2"
+              className="block text-sm font-bold text-amber-600 py-1 flex items-center gap-2"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>LegalTalk Q&A & Insights</span>
+              <span>LegalTalk Q&A</span>
             </Link>
             <Link 
               href="/tools" 
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-2"
+              className="block text-sm font-bold text-slate-800 py-1"
             >
-              Self-Service Legal Tools (LexDraft)
+              Self-Service Legal Tools
             </Link>
             <Link 
               href="/for-lawyers" 
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-500 py-2 border-t border-slate-100"
+              className="block text-sm font-bold text-slate-500 py-1 border-t border-slate-100 pt-3"
             >
               Advocate Network & Portal
             </Link>
+
+            {userSession ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="w-full py-2.5 bg-red-50 text-red-600 text-center font-bold text-xs rounded-xl flex items-center justify-center gap-1.5"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out ({userSession.email?.split('@')[0]})</span>
+              </button>
+            ) : (
+              <Link 
+                href="/login" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-2.5 bg-slate-100 text-slate-700 text-center font-bold text-xs rounded-xl block"
+              >
+                Sign In
+              </Link>
+            )}
+
             <Link 
               href="/find-a-lawyer" 
               onClick={() => setMobileMenuOpen(false)}
@@ -264,7 +331,6 @@ export default function HomePage() {
               Book certified legal consultations, resolve business and property matters, and draft contracts. Every fee is held securely in <strong>Telebirr escrow</strong> until your consultation is delivered.
             </p>
 
-            {/* Direct Intake Selector */}
             <div className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
               <div className="relative w-full sm:flex-1">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -290,7 +356,6 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Core Trust Metrics */}
             <div className="pt-6 grid grid-cols-3 gap-4 border-t border-slate-200/80 max-w-xl mx-auto text-center">
               <div>
                 <strong className="block text-base sm:text-lg font-black text-[#0A1128]">100%</strong>
@@ -492,7 +557,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. LegalTalk Community Showcase (THE GROWTH ENGINE) */}
+      {/* 6. LegalTalk Community Showcase */}
       <section className="py-16 md:py-24 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
@@ -632,10 +697,10 @@ export default function HomePage() {
                 For Clients
               </strong>
               <ul className="space-y-2">
+                <li><Link href="/" className="hover:text-[#0A1128]">Home</Link></li>
                 <li><Link href="/find-a-lawyer" className="hover:text-[#0A1128]">Find an Advocate</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">LegalTalk Answers</Link></li>
                 <li><Link href="/tools" className="hover:text-[#0A1128]">LexDraft & Tools</Link></li>
-                <li><a href="#how-it-works" className="hover:text-[#0A1128]">Escrow Protection</a></li>
               </ul>
             </div>
 

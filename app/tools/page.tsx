@@ -8,12 +8,10 @@ import {
 } from 'lucide-react';
 
 export default function LegalToolsPage() {
-  // Severance Calculator State
   const [calcYears, setCalcYears] = useState<number>(3);
   const [calcSalary, setCalcSalary] = useState<number>(25000);
   const [severanceResult, setSeveranceResult] = useState<number>(0);
 
-  // DARA Checklist State
   const [daraChecked, setDaraChecked] = useState<Record<string, boolean>>({
     cbe_stamp: false,
     fayda_id: true,
@@ -21,13 +19,11 @@ export default function LegalToolsPage() {
     bylaws_signed: false
   });
 
-  // LexDraft Template Selector
   const [selectedTemplate, setSelectedTemplate] = useState<'employment' | 'tenancy' | 'nda'>('employment');
   const [employerName, setEmployerName] = useState('Abyssinia Ventures PLC');
   const [employeeName, setEmployeeName] = useState('Abebe Balcha');
   const [monthlyWage, setMonthlyWage] = useState('25,000 ETB');
 
-  // Compute Severance under Ethiopian Labor Proclamation No. 1156/2019 Art. 39-40
   useEffect(() => {
     const firstYear = calcSalary;
     const additionalYears = Math.max(0, calcYears - 1) * (calcSalary / 3);
@@ -40,12 +36,21 @@ export default function LegalToolsPage() {
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
-            <span className="font-black text-xl text-[#0A1128]">
-              Legal<span className="text-amber-500">Link</span>
-            </span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Home</span>
+            </Link>
+            <Link href="/" className="flex items-center gap-2.5">
+              <img src="/logo.png" alt="LegalLink" className="w-8 h-8 object-contain" />
+              <span className="font-black text-lg text-[#0A1128]">
+                Legal<span className="text-amber-500">Link</span>
+              </span>
+            </Link>
+          </div>
 
           <div className="flex items-center gap-6 text-xs font-bold">
             <Link href="/" className="text-slate-500 hover:text-[#0A1128] transition-colors hidden sm:block">
@@ -65,8 +70,17 @@ export default function LegalToolsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-10">
         
+        {/* Breadcrumb Return Link */}
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Return to Homepage</span>
+        </Link>
+
         {/* Banner */}
         <div className="bg-[#0A1128] text-white p-8 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
           <div className="space-y-2">
@@ -110,7 +124,6 @@ export default function LegalToolsPage() {
                 Generate dual-column Amharic/English legal contracts ready for DARA authentication stamps.
               </p>
 
-              {/* Template Select */}
               <div className="space-y-2">
                 <label className="font-bold text-slate-700 block">Select Contract Template</label>
                 <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl font-bold text-[10px]">
@@ -141,7 +154,6 @@ export default function LegalToolsPage() {
                 </div>
               </div>
 
-              {/* Form Fields */}
               <div className="space-y-2 pt-1">
                 <div>
                   <label className="text-[10px] text-slate-500 font-bold block mb-1">Party A (Employer / Landlord)</label>
