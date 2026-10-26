@@ -21,7 +21,8 @@ import {
   BookOpen, 
   ChevronRight,
   Sparkles,
-  PhoneCall
+  MessageSquare,
+  HelpCircle
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -82,7 +83,7 @@ export default function HomePage() {
       rating: '4.95',
       reviews: '442',
       rate: '1,500',
-      badge: 'Top Rated',
+      badge: 'Top Match',
     },
     {
       name: 'Advocate Tigist Bekele',
@@ -102,8 +103,27 @@ export default function HomePage() {
       rating: '4.92',
       reviews: '521',
       rate: '1,800',
-      badge: 'Senior Advocate',
+      badge: 'Senior Specialist',
     },
+  ];
+
+  const legalTalkTeasers = [
+    {
+      id: 'qa-1',
+      title: 'Can a PLC issue shares or raise equity under ECMA Directive 1030/2024?',
+      category: 'Capital Markets & ESX',
+      lawyer: 'Advocate Mulu Haile',
+      excerpt: 'Under Commercial Code Art. 495, private limited companies cannot issue public shares directly without first converting to a Share Company (S.C.) and satisfying capital verification rules...',
+      views: '1.4k reads'
+    },
+    {
+      id: 'qa-2',
+      title: 'What are the statutory grounds for commercial lease eviction under Civil Code Art. 2896?',
+      category: 'Real Estate & Land',
+      lawyer: 'Advocate Dawit Tesfaye',
+      excerpt: 'A lessor cannot unilaterally terminate a commercial tenancy mid-term without documented lease violations or non-payment substantiated through municipal notices...',
+      views: '2.1k reads'
+    }
   ];
 
   return (
@@ -113,7 +133,6 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
-          {/* Logo & Platform Tag */}
           <Link href="/" className="flex items-center gap-3">
             <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
             <div className="flex flex-col">
@@ -126,7 +145,7 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* Desktop Client-Centric Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-slate-600">
             <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">
               Find a Lawyer
@@ -134,15 +153,16 @@ export default function HomePage() {
             <a href="#practice-areas" className="hover:text-[#0A1128] transition-colors">
               Practice Areas
             </a>
-            <a href="#how-it-works" className="hover:text-[#0A1128] transition-colors">
-              How It Works
-            </a>
-            <a href="#legal-tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
+            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-600">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>LegalTalk Q&A</span>
+            </Link>
+            <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
               <span>Legal Tools</span>
               <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
                 FREE
               </span>
-            </a>
+            </Link>
           </nav>
 
           {/* Right Header CTAs */}
@@ -192,20 +212,21 @@ export default function HomePage() {
             >
               Practice Areas
             </a>
-            <a 
-              href="#how-it-works" 
+            <Link 
+              href="/legaltalk" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-amber-600 py-2 flex items-center gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>LegalTalk Q&A & Insights</span>
+            </Link>
+            <Link 
+              href="/tools" 
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-bold text-slate-800 py-2"
             >
-              How It Works
-            </a>
-            <a 
-              href="#legal-tools" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-2"
-            >
-              Self-Service Legal Tools
-            </a>
+              Self-Service Legal Tools (LexDraft)
+            </Link>
             <Link 
               href="/for-lawyers" 
               onClick={() => setMobileMenuOpen(false)}
@@ -224,29 +245,26 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* 2. Hero Section: Focused on Client Matching */}
+      {/* 2. Hero Section */}
       <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-white to-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="max-w-3xl mx-auto text-center space-y-6">
             
-            {/* Trust Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-[#0A1128] text-xs font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Federal Ministry of Justice Verified Advocates</span>
             </div>
 
-            {/* Main Headline */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0A1128] tracking-tight leading-tight">
               Connect with Verified Ethiopian Lawyers, <span className="text-amber-500">Safely.</span>
             </h1>
 
-            {/* Clear Value Proposition */}
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
               Book certified legal consultations, resolve business and property matters, and draft contracts. Every fee is held securely in <strong>Telebirr escrow</strong> until your consultation is delivered.
             </p>
 
-            {/* Direct Intake Matching Card */}
+            {/* Direct Intake Selector */}
             <div className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
               <div className="relative w-full sm:flex-1">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -293,7 +311,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. How It Works: 3 Transparent Steps */}
+      {/* 3. How It Works */}
       <section id="how-it-works" className="py-16 md:py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -310,20 +328,17 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Step 1 */}
-            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 relative space-y-4">
+            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
               <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-[#0A1128] font-black text-sm flex items-center justify-center shadow-xs">
                 01
               </span>
               <h3 className="text-base font-bold text-[#0A1128]">1. Describe Your Need</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Choose your legal domain and submit a brief description in Amharic or English. You can also record a secure voice brief right from your phone.
+                Choose your legal domain and submit a brief description in Amharic or English. You can also record a secure voice brief right from your device.
               </p>
             </div>
 
-            {/* Step 2 */}
-            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 relative space-y-4">
+            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
               <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-amber-600 font-black text-sm flex items-center justify-center shadow-xs">
                 02
               </span>
@@ -333,8 +348,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Step 3 */}
-            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 relative space-y-4">
+            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
               <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-emerald-600 font-black text-sm flex items-center justify-center shadow-xs">
                 03
               </span>
@@ -343,13 +357,12 @@ export default function HomePage() {
                 Authorize your retainer securely via Telebirr USSD. Funds remain protected in escrow until your legal consultation is fulfilled.
               </p>
             </div>
-
           </div>
 
         </div>
       </section>
 
-      {/* 4. Specialized Legal Categories */}
+      {/* 4. Practice Areas */}
       <section id="practice-areas" className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -405,7 +418,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Featured Verified Advocates */}
+      {/* 5. Featured Advocates */}
       <section className="py-16 md:py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -479,84 +492,68 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. Self-Service Legal Tools (Clean Secondary Section) */}
-      <section id="legal-tools" className="py-16 md:py-24">
+      {/* 6. LegalTalk Community Showcase (THE GROWTH ENGINE) */}
+      <section className="py-16 md:py-24 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
-              INSTANT COMPLIANCE TOOLS
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
-              Automate Ethiopian Legal Workflows
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Access standardized tools compliant with the Ethiopian Labor Proclamation and Commercial Code.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>EXPERT LEGAL ANSWERS & INSIGHTS</span>
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
+                LegalTalk Knowledge Hub
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500">
+                Direct statutory answers and commentary provided exclusively by verified Ethiopian advocates.
+              </p>
+            </div>
+            <Link 
+              href="/legaltalk" 
+              className="px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-[#0A1128] text-xs font-bold rounded-xl inline-flex items-center gap-1.5 shadow-xs"
+            >
+              <span>Explore All Legal Answers</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Tool 1: LexDraft */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <h3 className="text-sm font-bold text-[#0A1128]">LexDraft Contract Generator</h3>
-                <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                  Generate dual-column Amharic/English employment agreements, non-disclosure agreements, and commercial leases ready for authentication.
-                </p>
-              </div>
-              <Link 
-                href="/find-a-lawyer#lexdraft"
-                className="text-xs font-bold text-[#0A1128] hover:text-amber-600 inline-flex items-center gap-1"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {legalTalkTeasers.map((t) => (
+              <div 
+                key={t.id}
+                className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition-all"
               >
-                <span>Launch LexDraft</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Tool 2: Severance Calculator */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-                  <Calculator className="w-5 h-5" />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase">
+                      {t.category}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-medium">{t.views}</span>
+                  </div>
+                  <h3 className="font-black text-base text-[#0A1128] hover:text-amber-600 transition-colors">
+                    <Link href="/legaltalk">{t.title}</Link>
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                    {t.excerpt}
+                  </p>
                 </div>
-                <h3 className="text-sm font-bold text-[#0A1128]">Statutory Severance Calculator</h3>
-                <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                  Accurately compute compensation and severance payouts according to Ethiopian Labor Proclamation No. 1156/2019 parameters.
-                </p>
-              </div>
-              <Link 
-                href="/find-a-lawyer#severance"
-                className="text-xs font-bold text-[#0A1128] hover:text-amber-600 inline-flex items-center gap-1"
-              >
-                <span>Calculate Severance</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
 
-            {/* Tool 3: DARA Checklist */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-bold text-slate-800 text-[11px]">{t.lawyer}</span>
+                  </div>
+                  <Link 
+                    href="/find-a-lawyer" 
+                    className="font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 text-[11px]"
+                  >
+                    <span>Consult Counsel</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
-                <h3 className="text-sm font-bold text-[#0A1128]">DARA Document Pre-Flight</h3>
-                <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                  Audit your corporate resolutions, power of attorney, and bylaws against Document Authentication and Registration Agency requirements.
-                </p>
               </div>
-              <Link 
-                href="/find-a-lawyer#dara"
-                className="text-xs font-bold text-[#0A1128] hover:text-amber-600 inline-flex items-center gap-1"
-              >
-                <span>Check DARA Readiness</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
+            ))}
           </div>
 
         </div>
@@ -612,12 +609,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. Modern Footer */}
+      {/* 8. Footer */}
       <footer className="bg-white border-t border-slate-200 text-slate-600 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             
-            {/* Col 1 */}
             <div className="space-y-3 col-span-2 md:col-span-1">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
@@ -631,20 +627,18 @@ export default function HomePage() {
               <span className="text-[11px] text-slate-400 block font-mono">Bole Sub-City, Addis Ababa</span>
             </div>
 
-            {/* Col 2 */}
             <div className="space-y-3">
               <strong className="text-xs font-bold text-[#0A1128] uppercase tracking-wider block">
                 For Clients
               </strong>
               <ul className="space-y-2">
                 <li><Link href="/find-a-lawyer" className="hover:text-[#0A1128]">Find an Advocate</Link></li>
-                <li><a href="#practice-areas" className="hover:text-[#0A1128]">Specialized Domains</a></li>
+                <li><Link href="/legaltalk" className="hover:text-[#0A1128]">LegalTalk Answers</Link></li>
+                <li><Link href="/tools" className="hover:text-[#0A1128]">LexDraft & Tools</Link></li>
                 <li><a href="#how-it-works" className="hover:text-[#0A1128]">Escrow Protection</a></li>
-                <li><a href="#legal-tools" className="hover:text-[#0A1128]">LexDraft & Tools</a></li>
               </ul>
             </div>
 
-            {/* Col 3 */}
             <div className="space-y-3">
               <strong className="text-xs font-bold text-[#0A1128] uppercase tracking-wider block">
                 For Advocates
@@ -656,7 +650,6 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Col 4 */}
             <div className="space-y-3">
               <strong className="text-xs font-bold text-[#0A1128] uppercase tracking-wider block">
                 Legal & Intermediary
