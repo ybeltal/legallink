@@ -19,6 +19,7 @@ export const DICTIONARY: Translations = {
   nav_diaspora: { en: 'Diaspora Desk', am: 'የዲያስፖራ አገልግሎት' },
   nav_legaltalk: { en: 'LegalTalk Q&A', am: 'የህግ ውይይት' },
   nav_tools: { en: 'Legal Tools', am: 'የህግ መሳሪያዎች' },
+  nav_about: { en: 'About Us', am: 'ስለ እኛ' },
   nav_for_advocates: { en: 'For Advocates', am: 'ለጠበቆች' },
   nav_sign_in: { en: 'Sign In', am: 'ግባ' },
   nav_sign_out: { en: 'Sign Out', am: 'ውጣ' },
@@ -86,15 +87,28 @@ export const DICTIONARY: Translations = {
   fa_book_session: { en: 'Book Session', am: 'ቀጠሮ ይያዙ' },
   fa_retainer_label: { en: 'Initial Retainer', am: 'የማማከር ዋጋ' },
 
-  // LegalTalk Knowledge Hub
-  lt_tag: { en: 'EXPERT LEGAL ANSWERS & INSIGHTS', am: 'የባለሙያ ህጋዊ ምላሾችና ትንታኔዎች' },
-  lt_title: { en: 'LegalTalk Knowledge Hub', am: 'የሊጋልቶክ የህግ እውቀት ማዕከል' },
-  lt_sub: { 
-    en: 'Direct statutory answers and commentary provided exclusively by verified Ethiopian advocates.', 
-    am: 'በተረጋገጡ የኢትዮጵያ ጠበቆች ብቻ የተዘጋጁ ህጋዊ ምላሾችና ማብራሪያዎች።' 
+  // About Us Section
+  about_tag: { en: 'INSTITUTIONAL INTEGRITY & VISION', am: 'ተቋማዊ እምነትና ራዕይ' },
+  about_title: { en: 'Bridging Clients & Counsel Through Trust', am: 'ህዝቡን ከተረጋገጡ የህግ ባለሙያዎች ጋር በታማኝነት ማገናኘት' },
+  about_sub: {
+    en: 'LegalLink was founded to eliminate legal intimidation, eradicate predatory broker (ደላላ) exploitation, and provide a secure, digitized standard for Ethiopian legal access.',
+    am: 'ሊጋልሊንክ የተመሰረተው የህግ ፍርሃትንና ውዥንብርን ለማስቀረት፣ የደላላ ብዝበዛን ለማስወገድ እና በኢትዮጵያ ውስጥ አስተማማኝና ዲጂታል የህግ አገልግሎት ተደራሽነትን ለመፍጠር ነው።'
   },
-  lt_explore: { en: 'Explore All Legal Answers', am: 'ሁሉንም የህግ ምላሾች ይመልከቱ' },
-  lt_consult: { en: 'Consult Counsel', am: 'ጠበቃውን ያማክሩ' },
+  about_card1_title: { en: '100% Ministry of Justice Vetted', am: '100% በፍትህ ሚኒስቴር የተረጋገጠ' },
+  about_card1_desc: {
+    en: 'We do not operate an open gig board. Every participating advocate must hold an active Federal Ministry of Justice bar license verified across High Court, Supreme Court, or Cassation division levels.',
+    am: 'ማንኛውም ሰው የሚገባበት ክፍት መድረክ አይደለም። እያንዳንዱ ጠበቃ በፌዴራል ፍትህ ሚኒስቴር የታደሰ የጥብቅና ፍቃድ ያለው እና የከፍተኛ፣ ጠቅላይ ወይም ሰበር ችሎት ብቃቱ የተረጋገጠ ነው።'
+  },
+  about_card2_title: { en: 'Protected Telebirr Escrow Protocol', am: 'በቴሌብር የዋስትና ሂሳብ የተጠበቀ' },
+  about_card2_desc: {
+    en: 'Pursuant to Ethiopian Commercial Code Proclamation 1240/2021, client retainer fees are never sent directly to advocates in advance. Funds remain locked in corporate trust until your session is satisfactorily completed.',
+    am: 'በኢትዮጵያ የንግድ ህግ አዋጅ 1240/2021 መሰረት ክፍያዎ አስቀድሞ ለጠበቃ አይሰጥም። ምክክሩ በተሟላ ሁኔታ ተከናውኖ እርስዎ ክፍያ መልቀቂያ ቫውቸር እስኪያረጋግጡ ድረስ በዋስትና ሂሳብ ውስጥ ይቆያል።'
+  },
+  about_card3_title: { en: 'Direct Diaspora Protection', am: 'ለዲያስፖራው ማህበረሰብ ቀጥተኛ ዋስትና' },
+  about_card3_desc: {
+    en: 'Empowering Ethiopians abroad to remotely audit property deeds (ካርታ), validate embassy powers of attorney (ውክልና), and settle succession matters without unauthorized third-party interference.',
+    am: 'በውጭ ሀገር የሚኖሩ ኢትዮጵያውያን የመሬት ካርታ ትክክለኛነትን እንዲያጣሩ፣ የኤምባሲ ውክልናቸውን እንዲያስፈጽሙ እና የውርስ ጉዳዮችን በህጋዊ ጥበቃ ከሩቅ ሆነው እንዲያስተዳድሩ ያስችላል።'
+  },
 
   // Escrow Notice
   escrow_tag: { en: 'GUARANTEED CLIENT INTEGRITY', am: 'የተሟላ የደንበኛ ደህንነት' },
@@ -143,7 +157,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         setLanguageState(saved);
       }
     } catch {
-      // Ignore local storage errors in private/restricted browsing
+      // Ignore local storage errors
     }
   }, []);
 
@@ -152,7 +166,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem('legallink_lang', lang);
     } catch {
-      // Ignore local storage errors
+      // Ignore
     }
   };
 
@@ -175,7 +189,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  // Safe fallback to prevent Next.js prerender / _not-found worker crash
   if (!context) {
     return {
       language: 'en' as Language,

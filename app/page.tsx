@@ -6,7 +6,7 @@ import {
   ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
   Star, Menu, X, Building2, Briefcase, Home as HomeIcon, 
   Users, ChevronRight, Sparkles, MessageSquare, LogOut, 
-  User, Globe, Languages, FileText 
+  User, Globe, Languages, FileText, Award, Landmark, HelpCircle
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
@@ -139,12 +139,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       
-      {/* 1. Global Navigation Bar - Clean Single-Row Layout */}
+      {/* 1. Global Navigation Bar - Restored Dedicated "Home" Link */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           
           {/* Logo & Brand Identity */}
-          <Link href="/" className="flex items-center gap-3 shrink-0">
+          <Link href="/" className="flex items-center gap-3 shrink-0 mr-2">
             <img 
               src="/logo.png" 
               alt="LegalLink" 
@@ -160,33 +160,43 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-7 text-xs font-bold text-slate-600">
+          {/* Desktop Navigation Links with RESTORED Home Link */}
+          <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-slate-600">
+            <Link 
+              href="/" 
+              className="text-[#0A1128] font-black border-b-2 border-amber-500 pb-1 flex items-center gap-1"
+            >
+              <HomeIcon className="w-3.5 h-3.5 text-amber-600" />
+              <span>{t('nav_home')}</span>
+            </Link>
+
             <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
               {t('nav_find_lawyer')}
             </Link>
+
             <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
               {t('nav_practice_areas')}
             </Link>
+
             <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold whitespace-nowrap">
               <Globe className="w-3.5 h-3.5" />
               <span>{t('nav_diaspora')}</span>
             </Link>
-            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-700 font-bold whitespace-nowrap">
-              <FileText className="w-3.5 h-3.5" />
+
+            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1 text-amber-700 font-bold whitespace-nowrap">
+              <FileText className="w-3.5 h-3.5 text-amber-600" />
               <span>{language === 'am' ? 'የህግ አስተያየት' : 'Legal Memo'}</span>
               <span className="bg-amber-100 text-amber-900 text-[9px] px-1.5 py-0.5 rounded-full font-black">
                 A4
               </span>
             </Link>
+
+            <Link href="#about" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
+              {t('nav_about')}
+            </Link>
+
             <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
               {t('nav_legaltalk')}
-            </Link>
-            <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1 whitespace-nowrap">
-              <span>{t('nav_tools')}</span>
-              <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
-                FREE
-              </span>
             </Link>
           </nav>
 
@@ -232,12 +242,13 @@ export default function HomePage() {
               </Link>
             )}
 
+            {/* RESTORED: Tactile Animated Action Arrow */}
             <Link 
               href="/find-a-lawyer" 
-              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap"
+              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 group whitespace-nowrap"
             >
               <span>{t('nav_book_consultation')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
@@ -260,11 +271,16 @@ export default function HomePage() {
 
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown Menu with Home Link */}
         {mobileMenuOpen && (
           <div className="xl:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4">
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-[#0A1128] py-1">
-              {t('nav_home')}
+            <Link 
+              href="/" 
+              onClick={() => setMobileMenuOpen(false)} 
+              className="block text-sm font-bold text-[#0A1128] py-1 flex items-center gap-2"
+            >
+              <HomeIcon className="w-4 h-4 text-amber-600" />
+              <span>{t('nav_home')}</span>
             </Link>
             <Link href="/find-a-lawyer" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
               {t('nav_find_lawyer')}
@@ -279,6 +295,9 @@ export default function HomePage() {
             <Link href="/memo/MEMO-2026-9041" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-amber-700 py-1 flex items-center gap-2">
               <FileText className="w-4 h-4" />
               <span>{language === 'am' ? 'የህግ አስተያየት ሰነድ (A4 PDF)' : 'Legal Opinion Memo (A4)'}</span>
+            </Link>
+            <Link href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
+              {t('nav_about')}
             </Link>
             <Link href="/legaltalk" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
               {t('nav_legaltalk')}
@@ -307,8 +326,9 @@ export default function HomePage() {
               </Link>
             )}
 
-            <Link href="/find-a-lawyer" onClick={() => setMobileMenuOpen(false)} className="w-full py-3 bg-[#0A1128] text-white text-center font-bold text-xs rounded-xl block shadow-sm">
-              {t('nav_book_consultation')}
+            <Link href="/find-a-lawyer" onClick={() => setMobileMenuOpen(false)} className="w-full py-3 bg-[#0A1128] text-white text-center font-bold text-xs rounded-xl block shadow-sm flex items-center justify-center gap-1.5">
+              <span>{t('nav_book_consultation')}</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         )}
@@ -333,6 +353,7 @@ export default function HomePage() {
               {t('hero_sub')}
             </p>
 
+            {/* RESTORED: Search Bar with Animated Forward Arrow */}
             <div className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
               <div className="relative w-full sm:flex-1">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -351,10 +372,10 @@ export default function HomePage() {
 
               <Link
                 href={`/find-a-lawyer?category=${selectedPracticeArea}`}
-                className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-sm hover:shadow"
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-sm hover:shadow group"
               >
                 <span>{t('hero_cta')}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </Link>
             </div>
 
@@ -378,7 +399,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Diaspora Spotlight Callout */}
+      {/* 3. Diaspora Spotlight Callout with Animated Arrow */}
       <section className="bg-gradient-to-r from-blue-900 to-[#0A1128] text-white py-10 border-y border-blue-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-1.5 text-center md:text-left">
@@ -396,10 +417,10 @@ export default function HomePage() {
 
           <Link
             href="/diaspora"
-            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap shrink-0"
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap shrink-0 group"
           >
             <span>{t('diaspora_btn')}</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
           </Link>
         </div>
       </section>
@@ -455,7 +476,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Practice Areas */}
+      {/* 5. Practice Areas with Animated Card Arrows */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -473,7 +494,7 @@ export default function HomePage() {
               className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
             >
               <span>{t('pa_view_all')}</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
@@ -499,9 +520,10 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-amber-600 group-hover:translate-x-0.5 transition-transform">
+                  {/* RESTORED: Animated Arrow on Hover */}
+                  <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
                     <span>{t('pa_find_btn')}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform" />
                   </div>
                 </Link>
               );
@@ -511,7 +533,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. Featured Advocates */}
+      {/* 6. Featured Advocates with Booking Arrows */}
       <section className="py-16 md:py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -529,7 +551,7 @@ export default function HomePage() {
               className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
             >
               <span>{t('fa_view_all')}</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
@@ -573,9 +595,10 @@ export default function HomePage() {
                   </div>
                   <Link
                     href="/find-a-lawyer"
-                    className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all"
+                    className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 group"
                   >
-                    {t('fa_book_session')}
+                    <span>{t('fa_book_session')}</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
@@ -585,7 +608,88 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 7. Institutional Escrow Notice */}
+      {/* 7. NEW: INSTITUTIONAL ABOUT US SECTION */}
+      <section id="about" className="py-20 md:py-28 bg-[#F8FAFC] border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block flex items-center justify-center gap-1.5">
+              <Landmark className="w-4 h-4 text-amber-600" />
+              <span>{t('about_tag')}</span>
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-black text-[#0A1128]">
+              {t('about_title')}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+              {t('about_sub')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-[#0A1128]">
+                {t('about_card1_title')}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {t('about_card1_desc')}
+              </p>
+            </div>
+
+            <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                <Lock className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-[#0A1128]">
+                {t('about_card2_title')}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {t('about_card2_desc')}
+              </p>
+            </div>
+
+            <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                <Globe className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-[#0A1128]">
+                {t('about_card3_title')}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {t('about_card3_desc')}
+              </p>
+            </div>
+
+          </div>
+
+          {/* Institutional Compliance Banner */}
+          <div className="p-6 bg-[#0A1128] text-white rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center md:text-left">
+              <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block font-bold">
+                Commercial Code Proclamation No. 1240/2021 Intermediary Compliance
+              </span>
+              <p className="text-xs text-slate-300 font-normal">
+                {language === 'am'
+                  ? 'ሊጋልሊንክ ህጋዊ የጥብቅና ማህበር ሳይሆን ደንበኞችን ከተረጋገጡ የኢትዮጵያ ጠበቆች ጋር የሚያገናኝ የታመነ ዲጂታል ድልድይ ነው።'
+                  : 'LegalLink operates strictly as an intermediary technology platform. Direct representation is rendered solely by independent licensed advocates.'}
+              </p>
+            </div>
+            <Link
+              href="/find-a-lawyer"
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-[#0A1128] text-xs font-black rounded-xl whitespace-nowrap flex items-center gap-1.5 group shrink-0"
+            >
+              <span>{t('hero_cta')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 8. Institutional Escrow Notice with Animated Action Arrows */}
       <section className="py-16 bg-[#0A1128] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -623,10 +727,10 @@ export default function HomePage() {
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/find-a-lawyer"
-                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
+                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all group"
                 >
                   <span>{t('escrow_start_btn')}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1.5 transition-transform" />
                 </Link>
                 <Link
                   href="/escrow"
@@ -641,7 +745,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. Footer */}
+      {/* 9. Footer */}
       <footer className="bg-white border-t border-slate-200 text-slate-600 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -674,6 +778,7 @@ export default function HomePage() {
                     <span>{language === 'am' ? 'የህግ አስተያየት ሰነድ (A4 PDF)' : 'Sample Legal Opinion Memo'}</span>
                   </Link>
                 </li>
+                <li><Link href="#about" className="hover:text-[#0A1128]">{t('nav_about')}</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">{t('nav_legaltalk')}</Link></li>
                 <li><Link href="/tools" className="hover:text-[#0A1128]">{t('nav_tools')}</Link></li>
                 <li><Link href="/escrow" className="text-emerald-700 font-bold hover:underline">{t('nav_escrow')}</Link></li>
