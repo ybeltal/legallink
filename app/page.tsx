@@ -6,7 +6,7 @@ import {
   ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
   Star, Menu, X, Building2, Briefcase, Home as HomeIcon, 
   Users, ChevronRight, Sparkles, MessageSquare, LogOut, 
-  User, Globe, Languages, FileText
+  User, Globe, Languages, FileText 
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
@@ -139,12 +139,17 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       
-      {/* 1. Global Navigation Bar */}
+      {/* 1. Global Navigation Bar - Clean Single-Row Layout */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           
-          <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
+          {/* Logo & Brand Identity */}
+          <Link href="/" className="flex items-center gap-3 shrink-0">
+            <img 
+              src="/logo.png" 
+              alt="LegalLink" 
+              className="w-9 h-9 object-contain" 
+            />
             <div className="flex flex-col">
               <span className="font-black text-xl tracking-tight text-[#0A1128]">
                 Legal<span className="text-amber-500">Link</span>
@@ -155,33 +160,29 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-bold text-slate-600">
-            <Link href="/" className="text-[#0A1128] font-black border-b-2 border-amber-500 pb-0.5">
-              {t('nav_home')}
-            </Link>
-            <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden xl:flex items-center gap-7 text-xs font-bold text-slate-600">
+            <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
               {t('nav_find_lawyer')}
             </Link>
-            <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors">
+            <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
               {t('nav_practice_areas')}
             </Link>
-            <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold">
+            <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold whitespace-nowrap">
               <Globe className="w-3.5 h-3.5" />
               <span>{t('nav_diaspora')}</span>
             </Link>
-            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-700 font-bold">
+            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-700 font-bold whitespace-nowrap">
               <FileText className="w-3.5 h-3.5" />
               <span>{language === 'am' ? 'የህግ አስተያየት' : 'Legal Memo'}</span>
               <span className="bg-amber-100 text-amber-900 text-[9px] px-1.5 py-0.5 rounded-full font-black">
                 A4
               </span>
             </Link>
-            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-slate-600">
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>{t('nav_legaltalk')}</span>
+            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
+              {t('nav_legaltalk')}
             </Link>
-            <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
+            <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1 whitespace-nowrap">
               <span>{t('nav_tools')}</span>
               <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
                 FREE
@@ -189,12 +190,11 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          {/* Right Header CTAs & Bilingual Toggle */}
-          <div className="hidden sm:flex items-center gap-3">
+          {/* Right Header Actions */}
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
-              className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-bold text-slate-700 flex items-center gap-1.5 bg-slate-50 shadow-xs cursor-pointer"
-              title="Switch Language / ቋንቋ ይቀይሩ"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 text-xs font-bold text-slate-700 flex items-center gap-1.5 bg-slate-50 shadow-xs cursor-pointer"
             >
               <Languages className="w-3.5 h-3.5 text-amber-600" />
               <span>{language === 'en' ? 'አማርኛ' : 'English'}</span>
@@ -202,7 +202,7 @@ export default function HomePage() {
 
             <Link 
               href="/for-lawyers" 
-              className="text-xs font-bold text-slate-500 hover:text-[#0A1128] px-2 py-2 rounded-xl transition-colors hidden md:block"
+              className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-2 py-2 transition-colors whitespace-nowrap hidden lg:block"
             >
               {t('nav_for_advocates')}
             </Link>
@@ -212,7 +212,7 @@ export default function HomePage() {
                 <div className="w-6 h-6 rounded-lg bg-[#0A1128] text-white flex items-center justify-center text-[10px] font-bold">
                   <User className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[11px] font-bold text-slate-700 max-w-[100px] truncate">
+                <span className="text-[11px] font-bold text-slate-700 max-w-[90px] truncate">
                   {userSession.email?.split('@')[0]}
                 </span>
                 <button
@@ -226,7 +226,7 @@ export default function HomePage() {
             ) : (
               <Link 
                 href="/login" 
-                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors"
+                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors whitespace-nowrap"
               >
                 {t('nav_sign_in')}
               </Link>
@@ -234,24 +234,24 @@ export default function HomePage() {
 
             <Link 
               href="/find-a-lawyer" 
-              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow flex items-center gap-1.5 group whitespace-nowrap"
+              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap"
             >
               <span>{t('nav_book_consultation')}</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          {/* Mobile Hamburger Button */}
-          <div className="flex sm:hidden items-center gap-2">
+          {/* Mobile Menu Button */}
+          <div className="flex xl:hidden items-center gap-2">
             <button
               onClick={toggleLanguage}
-              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700"
+              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700 cursor-pointer sm:hidden"
             >
               {language === 'en' ? 'አማ' : 'EN'}
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100"
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -262,7 +262,7 @@ export default function HomePage() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4">
+          <div className="xl:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4">
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-[#0A1128] py-1">
               {t('nav_home')}
             </Link>
