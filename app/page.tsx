@@ -297,6 +297,13 @@ export default function HomePage() {
               Self-Service Legal Tools
             </Link>
             <Link 
+              href="/escrow" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-emerald-700 py-1"
+            >
+              Escrow Desk & Disputes
+            </Link>
+            <Link 
               href="/for-lawyers" 
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-bold text-slate-500 py-1 border-t border-slate-100 pt-3"
@@ -668,10 +675,10 @@ export default function HomePage() {
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
                   <span>Transparent Fixed Pricing</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Full Dispute Safeguards</span>
-                </div>
+                <Link href="/escrow" className="flex items-center gap-2 text-emerald-400 hover:underline">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Two-Party Escrow Resolution Desk ➔</span>
+                </Link>
               </div>
             </div>
 
@@ -683,13 +690,19 @@ export default function HomePage() {
               <p className="text-xs text-slate-400 leading-relaxed font-normal">
                 Approve retainers seamlessly on your phone. You will receive an instant Telebirr USSD prompt and an official Ethio Telecom SMS confirmation once your case is booked.
               </p>
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/find-a-lawyer"
-                  className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
+                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
                 >
                   <span>Start a Consultation</span>
                   <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  href="/escrow"
+                  className="py-3 px-5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl flex items-center justify-center transition-all"
+                >
+                  Escrow Rules
                 </Link>
               </div>
             </div>
@@ -726,6 +739,7 @@ export default function HomePage() {
                 <li><Link href="/practice-areas" className="hover:text-[#0A1128]">Practice Areas</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">LegalTalk Answers</Link></li>
                 <li><Link href="/tools" className="hover:text-[#0A1128]">LexDraft & Tools</Link></li>
+                <li><Link href="/escrow" className="text-emerald-700 font-bold hover:underline">Two-Party Escrow Desk</Link></li>
               </ul>
             </div>
 
@@ -737,6 +751,7 @@ export default function HomePage() {
                 <li><Link href="/for-lawyers" className="hover:text-[#0A1128]">Join the Network</Link></li>
                 <li><Link href="/advocate" className="hover:text-[#0A1128]">Advocate Workspace</Link></li>
                 <li><Link href="/admin/verification" className="hover:text-[#0A1128]">MOJ Verification Audit</Link></li>
+                <li><Link href="/verify/ETH-BAR-2018-0492" className="hover:text-[#0A1128]">Sample Credential Verification</Link></li>
               </ul>
             </div>
 
