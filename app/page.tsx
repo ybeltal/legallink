@@ -24,7 +24,8 @@ import {
   MessageSquare, 
   HelpCircle, 
   LogOut, 
-  User 
+  User,
+  Globe
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -33,7 +34,7 @@ export default function HomePage() {
   const [selectedPracticeArea, setSelectedPracticeArea] = useState('Corporate & Commercial');
   const [userSession, setUserSession] = useState<{ email?: string } | null>(null);
 
-  // Monitor Supabase Auth Session for Dynamic Sign In / Sign Out
+  // Monitor Supabase Auth Session
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -189,12 +190,16 @@ export default function HomePage() {
             <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors">
               Practice Areas
             </Link>
+            <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold">
+              <Globe className="w-3.5 h-3.5" />
+              <span>Diaspora Desk</span>
+            </Link>
             <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-600">
               <MessageSquare className="w-3.5 h-3.5" />
-              <span>LegalTalk Q&A</span>
+              <span>LegalTalk</span>
             </Link>
             <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
-              <span>Legal Tools</span>
+              <span>Tools</span>
               <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
                 FREE
               </span>
@@ -282,6 +287,14 @@ export default function HomePage() {
               Practice Areas
             </Link>
             <Link 
+              href="/diaspora" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-blue-600 py-1 flex items-center gap-2"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Diaspora Legal Desk</span>
+            </Link>
+            <Link 
               href="/legaltalk" 
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-bold text-amber-600 py-1 flex items-center gap-2"
@@ -302,13 +315,6 @@ export default function HomePage() {
               className="block text-sm font-bold text-emerald-700 py-1"
             >
               Escrow Desk & Disputes
-            </Link>
-            <Link 
-              href="/for-lawyers" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-500 py-1 border-t border-slate-100 pt-3"
-            >
-              Advocate Network & Portal
             </Link>
 
             {userSession ? (
@@ -407,8 +413,34 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. How It Works */}
-      <section id="how-it-works" className="py-16 md:py-24 bg-white border-y border-slate-200">
+      {/* 3. Diaspora Spotlight Callout */}
+      <section className="bg-gradient-to-r from-blue-900 to-[#0A1128] text-white py-10 border-y border-blue-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-1.5 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase">
+              <Globe className="w-3.5 h-3.5" />
+              <span>Living in the US, Europe, or the Gulf?</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black">
+              Ethiopian Diaspora Legal Services Hub
+            </h3>
+            <p className="text-xs text-slate-300 max-w-xl font-normal">
+              Execute embassy powers of attorney (ውክልና), audit land deeds (ካርታ), and liquidate estates in Ethiopia remotely with USD / EUR escrow protection.
+            </p>
+          </div>
+
+          <Link
+            href="/diaspora"
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap shrink-0"
+          >
+            <span>Explore Diaspora Desk</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* 4. How It Works */}
+      <section id="how-it-works" className="py-16 md:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
@@ -458,7 +490,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Practice Areas (Direct link to /practice-areas page) */}
+      {/* 5. Practice Areas */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -514,7 +546,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Featured Advocates */}
+      {/* 6. Featured Advocates */}
       <section className="py-16 md:py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -588,7 +620,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. LegalTalk Community Showcase */}
+      {/* 7. LegalTalk Community Showcase */}
       <section className="py-16 md:py-24 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
@@ -655,7 +687,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 7. Institutional Trust & Telebirr Escrow Notice */}
+      {/* 8. Institutional Trust & Telebirr Escrow Notice */}
       <section className="py-16 bg-[#0A1128] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -711,7 +743,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. Footer */}
+      {/* 9. Footer */}
       <footer className="bg-white border-t border-slate-200 text-slate-600 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
@@ -731,11 +763,12 @@ export default function HomePage() {
 
             <div className="space-y-3">
               <strong className="text-xs font-bold text-[#0A1128] uppercase tracking-wider block">
-                For Clients
+                For Clients & Diaspora
               </strong>
               <ul className="space-y-2">
                 <li><Link href="/" className="hover:text-[#0A1128]">Home</Link></li>
                 <li><Link href="/find-a-lawyer" className="hover:text-[#0A1128]">Find an Advocate</Link></li>
+                <li><Link href="/diaspora" className="text-blue-600 font-bold hover:underline">Diaspora Legal Desk</Link></li>
                 <li><Link href="/practice-areas" className="hover:text-[#0A1128]">Practice Areas</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">LegalTalk Answers</Link></li>
                 <li><Link href="/tools" className="hover:text-[#0A1128]">LexDraft & Tools</Link></li>
