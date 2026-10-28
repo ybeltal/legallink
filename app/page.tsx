@@ -6,9 +6,8 @@ import {
   ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
   Star, Menu, X, Building2, Briefcase, Home as HomeIcon, 
   Users, ChevronRight, Sparkles, MessageSquare, LogOut, 
-  User, Globe, Languages, FileText, Check, Award, Clock
+  User, Globe, Languages, FileText
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -53,18 +52,16 @@ export default function HomePage() {
       amharic: 'የንግድና ኩባንያ ሕግ',
       desc: language === 'am' 
         ? 'የኩባንያ ምስረታ፣ የንግድ ህግ 1240/2021 ተገዢነት፣ የባለአክሲዮኖች ስምምነት እና ውህደት።'
-        : 'Company formation, Commercial Code 1240/2021 compliance, shareholder agreements, and M&A.',
-      statute: 'Commercial Code Procl. 1240/2021',
+        : 'Company formation, Commercial Code compliance, shareholder agreements, and M&A.',
       icon: Building2,
       slug: 'corporate',
     },
     {
-      title: language === 'am' ? 'የመሬትና ይዞታ ሕግ' : 'Real Estate & Land Tenure',
+      title: language === 'am' ? 'የመሬትና ይዞታ ሕግ' : 'Real Estate & Land',
       amharic: 'የመሬትና ይዞታ ሕግ',
       desc: language === 'am'
-        ? 'የካርታ ትክክለኛነት ኦዲት፣ የማዘጋጃ ቤት ይዞታ ማረጋገጫ፣ የሊዝ ውል ዝውውር እና ክርክሮች።'
-        : 'Title deed (ካርታ) due diligence, municipal leasehold rights, property lease transfers, and disputes.',
-      statute: 'Civil Code Art. 2896 & Lease Directive',
+        ? 'የይዞታ ማረጋገጫ፣ የካርታ ትክክለኛነት ኦዲት፣ የሊዝ ውል ዝውውር እና ክርክሮች።'
+        : 'Landholding certification, title deed due diligence, property lease transfers, and disputes.',
       icon: HomeIcon,
       slug: 'property',
     },
@@ -72,9 +69,8 @@ export default function HomePage() {
       title: language === 'am' ? 'የሠራተኛና አሠሪ ሕግ' : 'Employment & Labor',
       amharic: 'የሠራተኛና አሠሪ ሕግ',
       desc: language === 'am'
-        ? 'የስራ ቅጥር ውሎች፣ በአዋጅ ቁጥር 1156/2019 መሰረት የስንብት ክፍያ ኦዲት እና የሙግት መፍትሄዎች።'
-        : 'Executive employment contracts, statutory severance audits under Proc. 1156/2019, and labor disputes.',
-      statute: 'Labor Proclamation No. 1156/2019',
+        ? 'የስራ ቅጥር ውሎች፣ በአዋጅ ቁጥር 1156/2019 መሰረት የስንብት ክፍያ ስሌት እና የሙግት መፍትሄዎች።'
+        : 'Employment contracts, statutory severance audits under Proc. 1156/2019, and labor disputes.',
       icon: Briefcase,
       slug: 'employment',
     },
@@ -82,19 +78,17 @@ export default function HomePage() {
       title: language === 'am' ? 'የካፒታል ገበያና ሰነደ-ሙዓለ-ንዋይ' : 'Capital Markets & ESX',
       amharic: 'የካፒታል ገበያና ሰነደ-ሙዓለ-ንዋይ',
       desc: language === 'am'
-        ? 'የኢትዮጵያ ካፒታል ገበያ ባለስልጣን መመሪያ 1030/2024 ተገዢነት፣ የፕሮስፔክተስ ኦዲት እና የአክሲዮን ሽያጭ።'
+        ? 'የኢትዮጵያ ካፒታል ገበያ ባለስልጣን መመሪያ 1030/2024 ተገዢነት እና የአክሲዮን ሽያጭ።'
         : 'Prospectus compliance, ECMA Directive 1030/2024 guidance, and public share offerings.',
-      statute: 'ECMA Directive 1030/2024',
       icon: Scale,
       slug: 'capital-markets',
     },
     {
-      title: language === 'am' ? 'የቤተሰብና ፍትሐብሔር ሕግ' : 'Family & Succession',
+      title: language === 'am' ? 'የቤተሰብና ፍትሐብሔር ሕግ' : 'Family & Civil Law',
       amharic: 'የቤተሰብና ፍትሐብሔር ሕግ',
       desc: language === 'am'
         ? 'የውርስ ሀብት ክፍፍል፣ የእርቅ ድርድር፣ የጋብቻ ውል እና የንብረት አስተዳደር።'
         : 'Succession & inheritance, civil settlement mediation, marital contracts, and estate management.',
-      statute: 'Revised Family Code & Civil Code',
       icon: Users,
       slug: 'family',
     },
@@ -103,8 +97,7 @@ export default function HomePage() {
       amharic: 'የአእምሯዊ ንብረት ሕግ',
       desc: language === 'am'
         ? 'የንግድ ምልክት ምዝገባ፣ የቅጂ መብት ጥበቃ፣ የፈጠራ ውጤት ምዝገባ እና የፈቃድ ስምምነቶች።'
-        : 'Trademark registration, copyright protection, patent filing with EIPO, and software licensing.',
-      statute: 'EIPO Proclamation No. 410/2004',
+        : 'Trademark registration, copyright protection, patent filing with EIPO, and licensing.',
       icon: Sparkles,
       slug: 'ip',
     },
@@ -113,25 +106,23 @@ export default function HomePage() {
   const featuredAdvocates = [
     {
       name: language === 'am' ? 'ጠበቃ ሙሉ ኃይሌ' : 'Advocate Mulu Haile',
-      role: language === 'am' ? 'የንግድና ካፒታል ገበያ አማካሪ' : 'Senior Corporate & Capital Markets Counsel',
+      role: language === 'am' ? 'የንግድና ካፒታል ገበያ አማካሪ' : 'Corporate & Capital Markets Counsel',
       license: language === 'am' ? 'የፍትህ ሚኒስቴር የተረጋገጠ • ፌዴራል ጠቅላይ ፍርድ ቤት' : 'MOJ Verified • Federal Supreme Court',
       experience: language === 'am' ? '12 ዓመት የስራ ልምድ' : '12 Years Experience',
       rating: '4.95',
       reviews: '442',
       rate: '1,500',
       badge: language === 'am' ? 'ከፍተኛ ተመራጭ' : 'Top Match',
-      licenseNo: 'ETH-BAR-2018-0492'
     },
     {
       name: language === 'am' ? 'ጠበቃ ትዕግሥት በቀለ' : 'Advocate Tigist Bekele',
-      role: language === 'am' ? 'የቤተሰብና ሰራተኛ ህግ ባለሙያ' : 'Family & Employment Law Specialist',
+      role: language === 'am' ? 'የቤተሰብና ሰራተኛ ህግ ባለሙያ' : 'Family & Employment Specialist',
       license: language === 'am' ? 'የፍትህ ሚኒስቴር የተረጋገጠ • ፌዴራል ከፍተኛ ፍርድ ቤት' : 'MOJ Verified • Federal High Court',
       experience: language === 'am' ? '8 ዓመት የስራ ልምድ' : '8 Years Experience',
       rating: '4.88',
       reviews: '312',
       rate: '1,200',
       badge: language === 'am' ? 'ፈጣን ምላሽ ሰጪ' : 'Fast Responder',
-      licenseNo: 'ETH-BAR-2020-1104'
     },
     {
       name: language === 'am' ? 'ጠበቃ ዳዊት ተስፋዬ' : 'Advocate Dawit Tesfaye',
@@ -142,7 +133,6 @@ export default function HomePage() {
       reviews: '521',
       rate: '1,800',
       badge: language === 'am' ? 'ከፍተኛ ባለሙያ' : 'Senior Specialist',
-      licenseNo: 'ETH-BAR-2015-0081'
     },
   ];
 
@@ -153,13 +143,8 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
-          <Link href="/" className="flex items-center gap-3 group">
-            <img 
-              src="/logo.png" 
-              alt="LegalLink" 
-              style={{ width: '38px', height: '38px' }}
-              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform" 
-            />
+          <Link href="/" className="flex items-center gap-3">
+            <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
             <div className="flex flex-col">
               <span className="font-black text-xl tracking-tight text-[#0A1128]">
                 Legal<span className="text-amber-500">Link</span>
@@ -185,16 +170,22 @@ export default function HomePage() {
               <Globe className="w-3.5 h-3.5" />
               <span>{t('nav_diaspora')}</span>
             </Link>
-            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1 text-amber-600 font-bold">
+            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-700 font-bold">
               <FileText className="w-3.5 h-3.5" />
               <span>{language === 'am' ? 'የህግ አስተያየት' : 'Legal Memo'}</span>
-              <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
+              <span className="bg-amber-100 text-amber-900 text-[9px] px-1.5 py-0.5 rounded-full font-black">
                 A4
               </span>
             </Link>
-            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-slate-700">
+            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-slate-600">
               <MessageSquare className="w-3.5 h-3.5" />
               <span>{t('nav_legaltalk')}</span>
+            </Link>
+            <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
+              <span>{t('nav_tools')}</span>
+              <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                FREE
+              </span>
             </Link>
           </nav>
 
@@ -235,7 +226,7 @@ export default function HomePage() {
             ) : (
               <Link 
                 href="/login" 
-                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors block"
+                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors"
               >
                 {t('nav_sign_in')}
               </Link>
@@ -243,10 +234,10 @@ export default function HomePage() {
 
             <Link 
               href="/find-a-lawyer" 
-              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 group whitespace-nowrap shimmer-trigger"
+              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow flex items-center gap-1.5 group whitespace-nowrap"
             >
               <span>{t('nav_book_consultation')}</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
@@ -254,13 +245,13 @@ export default function HomePage() {
           <div className="flex sm:hidden items-center gap-2">
             <button
               onClick={toggleLanguage}
-              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700"
             >
               {language === 'en' ? 'አማ' : 'EN'}
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -285,12 +276,15 @@ export default function HomePage() {
               <Globe className="w-4 h-4" />
               <span>{t('nav_diaspora')}</span>
             </Link>
-            <Link href="/memo/MEMO-2026-9041" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-amber-600 py-1 flex items-center gap-2">
+            <Link href="/memo/MEMO-2026-9041" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-amber-700 py-1 flex items-center gap-2">
               <FileText className="w-4 h-4" />
               <span>{language === 'am' ? 'የህግ አስተያየት ሰነድ (A4 PDF)' : 'Legal Opinion Memo (A4)'}</span>
             </Link>
             <Link href="/legaltalk" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
               {t('nav_legaltalk')}
+            </Link>
+            <Link href="/tools" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
+              {t('nav_tools')}
             </Link>
             <Link href="/escrow" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-emerald-700 py-1">
               {t('nav_escrow')}
@@ -320,18 +314,13 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* 2. Hero Section: Rich Ambient LegalTech Atmosphere */}
-      <section className="relative pt-14 pb-20 md:pt-24 md:pb-32 overflow-hidden bg-gradient-to-b from-white via-slate-50 to-[#F8FAFC] border-b border-slate-200">
-        
-        {/* Subtle Ambient Background Gradients */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-tr from-amber-100/40 via-blue-50/30 to-emerald-50/30 blur-3xl pointer-events-none -z-10" />
-
+      {/* 2. Hero Section */}
+      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-white to-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
           <div className="max-w-3xl mx-auto text-center space-y-6">
             
-            {/* Live Audit Status Pill */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-[#0A1128] text-xs font-bold shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-[#0A1128] text-xs font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>{t('hero_badge')}</span>
             </div>
@@ -344,14 +333,13 @@ export default function HomePage() {
               {t('hero_sub')}
             </p>
 
-            {/* Smart Search Bar */}
-            <div className="mt-8 bg-white p-3 sm:p-4 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
+            <div className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
               <div className="relative w-full sm:flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <select
                   value={selectedPracticeArea}
                   onChange={(e) => setSelectedPracticeArea(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl border-none bg-slate-50 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A1128]/20 cursor-pointer"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border-none bg-slate-50 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0A1128]/20 cursor-pointer"
                 >
                   {practiceAreas.map((area, idx) => (
                     <option key={idx} value={area.slug}>
@@ -363,67 +351,35 @@ export default function HomePage() {
 
               <Link
                 href={`/find-a-lawyer?category=${selectedPracticeArea}`}
-                className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap shadow-sm group shimmer-trigger"
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-sm hover:shadow"
               >
                 <span>{t('hero_cta')}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            {/* Platform Credibility KPIs */}
-            <div className="pt-8 grid grid-cols-3 gap-4 border-t border-slate-200 max-w-xl mx-auto text-center">
+            <div className="pt-6 grid grid-cols-3 gap-4 border-t border-slate-200/80 max-w-xl mx-auto text-center">
               <div>
-                <strong className="block text-base sm:text-xl font-black text-[#0A1128]">100%</strong>
+                <strong className="block text-base sm:text-lg font-black text-[#0A1128]">100%</strong>
                 <span className="text-[11px] text-slate-500 font-medium">{t('hero_stat_licensed')}</span>
               </div>
               <div className="border-x border-slate-200">
-                <strong className="block text-base sm:text-xl font-black text-emerald-700">Telebirr</strong>
+                <strong className="block text-base sm:text-lg font-black text-[#0A1128]">Telebirr</strong>
                 <span className="text-[11px] text-slate-500 font-medium">{t('hero_stat_escrow')}</span>
               </div>
               <div>
-                <strong className="block text-base sm:text-xl font-black text-[#0A1128]">&lt; 2 {language === 'am' ? 'ሰዓት' : 'Hours'}</strong>
+                <strong className="block text-base sm:text-lg font-black text-[#0A1128]">&lt; 2 {language === 'am' ? 'ሰዓት' : 'Hours'}</strong>
                 <span className="text-[11px] text-slate-500 font-medium">{t('hero_stat_response')}</span>
               </div>
             </div>
 
           </div>
+
         </div>
       </section>
 
-      {/* 3. Pillar 4 Highlight: The Tangible Legal Opinion Memo Showcase */}
-      <section className="bg-white py-12 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-slate-900 via-[#0A1128] to-slate-950 text-white rounded-3xl p-8 sm:p-10 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
-            <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider border border-amber-500/30">
-                <FileText className="w-3.5 h-3.5" />
-                <span>{language === 'am' ? 'ምሰሶ 4፡ ይፋዊ የህግ አስተያየት ሰነድ' : 'PILLAR 4: VERIFIABLE LEGAL OPINION MEMORANDUM'}</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl font-black">
-                {language === 'am' ? 'ከምክክሩ በኋላ የተረጋገጠ A4 ሰነድ በPDF ያግኙ' : 'Walk Away with an Official, Verifiable Legal Opinion'}
-              </h3>
-              <p className="text-xs text-slate-300 font-normal leading-relaxed">
-                {language === 'am'
-                  ? 'ከምክክርዎ በኋላ ጠበቃዎ የህግ ድንጋጌዎችንና የሰበር ውሳኔዎችን ያካተተ ይፋዊ ሰነድ ያወጣል። ለንግድ አጋሮችዎ፣ ለባንክ ወይም ለማዘጋጃ ቤት ማቅረብ የሚችሉት የታመነ ማስረጃ።'
-                  : 'Receive a standardized, MOJ bar-certified 1-page Legal Opinion Memo detailing applicable statutes, Cassation precedents, and actionable next steps.'}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
-              <Link
-                href="/memo/MEMO-2026-9041"
-                className="w-full sm:w-auto px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-2 whitespace-nowrap shimmer-trigger"
-              >
-                <span>{language === 'am' ? 'የሰነዱን ናሙና ይመልከቱ (A4 PDF)' : 'View Sample Legal Memo'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Diaspora Spotlight Callout */}
-      <section className="bg-gradient-to-r from-blue-900 to-[#0A1128] text-white py-10 border-b border-blue-950">
+      {/* 3. Diaspora Spotlight Callout */}
+      <section className="bg-gradient-to-r from-blue-900 to-[#0A1128] text-white py-10 border-y border-blue-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-1.5 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase">
@@ -440,15 +396,15 @@ export default function HomePage() {
 
           <Link
             href="/diaspora"
-            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-2 whitespace-nowrap shrink-0 group shimmer-trigger"
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap shrink-0"
           >
             <span>{t('diaspora_btn')}</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
 
-      {/* 5. How It Works */}
+      {/* 4. How It Works */}
       <section id="how-it-works" className="py-16 md:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -465,30 +421,41 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { num: '01', title: t('hiw_step1_title'), desc: t('hiw_step1_desc'), color: 'text-[#0A1128]' },
-              { num: '02', title: t('hiw_step2_title'), desc: t('hiw_step2_desc'), color: 'text-amber-600' },
-              { num: '03', title: t('hiw_step3_title'), desc: t('hiw_step3_desc'), color: 'text-emerald-600' }
-            ].map((step, idx) => (
-              <div
-                key={idx}
-                className="card-spring bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4"
-              >
-                <span className={`w-10 h-10 rounded-2xl bg-white border border-slate-200 ${step.color} font-black text-sm flex items-center justify-center shadow-xs`}>
-                  {step.num}
-                </span>
-                <h3 className="text-base font-bold text-[#0A1128]">{step.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                  {step.desc}
-                </p>
-              </div>
-            ))}
+            <div className="card-hover bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
+              <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-[#0A1128] font-black text-sm flex items-center justify-center shadow-xs">
+                01
+              </span>
+              <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step1_title')}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {t('hiw_step1_desc')}
+              </p>
+            </div>
+
+            <div className="card-hover bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
+              <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-amber-600 font-black text-sm flex items-center justify-center shadow-xs">
+                02
+              </span>
+              <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step2_title')}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {t('hiw_step2_desc')}
+              </p>
+            </div>
+
+            <div className="card-hover bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
+              <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-emerald-600 font-black text-sm flex items-center justify-center shadow-xs">
+                03
+              </span>
+              <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step3_title')}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                {t('hiw_step3_desc')}
+              </p>
+            </div>
           </div>
 
         </div>
       </section>
 
-      {/* 6. Practice Areas Grid */}
+      {/* 5. Practice Areas */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -506,7 +473,7 @@ export default function HomePage() {
               className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
             >
               <span>{t('pa_view_all')}</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
@@ -517,14 +484,14 @@ export default function HomePage() {
                 <Link
                   key={idx}
                   href={`/find-a-lawyer?category=${area.slug}`}
-                  className="card-spring bg-white p-7 rounded-3xl border border-slate-200 hover:border-slate-300 flex flex-col justify-between space-y-4 group shadow-xs"
+                  className="card-hover bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-300 flex flex-col justify-between space-y-4 group shadow-xs"
                 >
                   <div className="space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0A1128] group-hover:bg-[#0A1128] group-hover:text-white transition-colors">
-                      <IconComponent className="w-6 h-6" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0A1128] group-hover:bg-[#0A1128] group-hover:text-white transition-colors">
+                      <IconComponent className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-[#0A1128]">{area.title}</h3>
+                      <h3 className="text-sm font-bold text-[#0A1128]">{area.title}</h3>
                       <span className="text-[11px] font-medium text-slate-400 block">{area.amharic}</span>
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed font-normal">
@@ -532,9 +499,9 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono text-slate-400">
-                    <span className="text-[10px] truncate max-w-[200px]">{area.statute}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-amber-600 group-hover:translate-x-1 transition-transform shrink-0" />
+                  <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-amber-600 group-hover:translate-x-0.5 transition-transform">
+                    <span>{t('pa_find_btn')}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </Link>
               );
@@ -544,7 +511,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 7. Featured Advocates Cards */}
+      {/* 6. Featured Advocates */}
       <section className="py-16 md:py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -562,7 +529,7 @@ export default function HomePage() {
               className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
             >
               <span>{t('fa_view_all')}</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
@@ -570,7 +537,7 @@ export default function HomePage() {
             {featuredAdvocates.map((adv, idx) => (
               <div 
                 key={idx}
-                className="card-spring bg-[#F8FAFC] border border-slate-200 rounded-3xl p-6 flex flex-col justify-between space-y-6"
+                className="card-hover bg-[#F8FAFC] border border-slate-200 rounded-3xl p-6 flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
@@ -583,7 +550,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="bg-white p-3.5 rounded-2xl border border-slate-200/60 space-y-1.5 text-xs">
+                  <div className="bg-white p-3 rounded-2xl border border-slate-200/60 space-y-1.5 text-xs">
                     <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px]">
                       <ShieldCheck className="w-3.5 h-3.5" />
                       <span>{adv.license}</span>
@@ -606,7 +573,7 @@ export default function HomePage() {
                   </div>
                   <Link
                     href="/find-a-lawyer"
-                    className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl"
+                    className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all"
                   >
                     {t('fa_book_session')}
                   </Link>
@@ -618,7 +585,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. Institutional Escrow Notice */}
+      {/* 7. Institutional Escrow Notice */}
       <section className="py-16 bg-[#0A1128] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -645,7 +612,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bg-slate-800/60 p-6 sm:p-8 rounded-3xl border border-slate-700 space-y-4 card-spring">
+            <div className="bg-slate-800/60 p-6 sm:p-8 rounded-3xl border border-slate-700 space-y-4 card-hover">
               <div className="flex items-center gap-3">
                 <Lock className="w-6 h-6 text-amber-400" />
                 <h3 className="font-bold text-sm text-white">{t('escrow_ussd_title')}</h3>
@@ -656,14 +623,14 @@ export default function HomePage() {
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/find-a-lawyer"
-                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 shimmer-trigger"
+                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
                 >
                   <span>{t('escrow_start_btn')}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
                 <Link
                   href="/escrow"
-                  className="py-3 px-5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl flex items-center justify-center block"
+                  className="py-3 px-5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl flex items-center justify-center transition-all"
                 >
                   {t('escrow_rules_btn')}
                 </Link>
@@ -674,19 +641,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 9. Footer */}
+      {/* 8. Footer */}
       <footer className="bg-white border-t border-slate-200 text-slate-600 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             
             <div className="space-y-3 col-span-2 md:col-span-1">
               <div className="flex items-center gap-2">
-                <img 
-                  src="/logo.png" 
-                  alt="LegalLink" 
-                  style={{ width: '28px', height: '28px' }}
-                  className="w-7 h-7 object-contain" 
-                />
+                <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
                 <span className="font-black text-base text-[#0A1128]">
                   Legal<span className="text-amber-500">Link</span>
                 </span>
@@ -713,6 +675,7 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">{t('nav_legaltalk')}</Link></li>
+                <li><Link href="/tools" className="hover:text-[#0A1128]">{t('nav_tools')}</Link></li>
                 <li><Link href="/escrow" className="text-emerald-700 font-bold hover:underline">{t('nav_escrow')}</Link></li>
               </ul>
             </div>
