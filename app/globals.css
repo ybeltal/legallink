@@ -1,71 +1,80 @@
-@import "tailwindcss";
+/* ==========================================================
+   TACTILE MICRO-INTERACTIONS & SPRING ANIMATIONS (GLOBAL)
+   ========================================================== */
 
-:root {
-  --font-century-gothic: "Century Gothic", CenturyGothic, AppleGothic, "Segoe UI", sans-serif;
+/* 1. Universal tactile click on all buttons and actionable links */
+button, 
+a, 
+input[type="submit"], 
+input[type="button"], 
+select {
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.16s ease, 
+              background-color 0.15s ease, 
+              border-color 0.15s ease;
+  will-change: transform;
 }
 
-html {
-  scroll-behavior: smooth;
+button:active:not(:disabled), 
+a:active:not(:disabled),
+.btn-spring:active {
+  transform: scale(0.955) translateY(1px) !important;
 }
 
-html, body {
-  font-family: var(--font-century-gothic);
-  background-color: #f8fafc;
-  color: #0f172a;
-  overflow-x: hidden;
+/* 2. Interactive Card Float & Hover Physics */
+.card-spring {
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.24s ease, 
+              border-color 0.2s ease !important;
+  will-change: transform;
 }
 
-* {
-  font-family: inherit;
+.card-spring:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 0 12px 30px -10px rgba(10, 17, 40, 0.08);
 }
 
-input, button, select, textarea {
-  font-family: inherit;
+.card-spring:active {
+  transform: scale(0.985) translateY(0px) !important;
 }
 
-/* Fluid Scroll Reveal Animations */
-.reveal {
-  opacity: 0;
-  transform: translateY(32px) scale(0.98);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+/* 3. Smooth Shimmer Wave for Badges & Buttons */
+@keyframes subtle-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
 }
 
-.reveal.active {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.shimmer-trigger {
+  position: relative;
+  overflow: hidden;
 }
 
-.reveal-delay-1 { transition-delay: 100ms; }
-.reveal-delay-2 { transition-delay: 200ms; }
-.reveal-delay-3 { transition-delay: 300ms; }
-.reveal-delay-4 { transition-delay: 400ms; }
-
-/* Subtle Floating & Sheen Animations */
-@keyframes softFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+.shimmer-trigger::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-150%);
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.05); }
+.shimmer-trigger:hover::after {
+  animation: subtle-shimmer 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-soft-float {
-  animation: softFloat 4.5s ease-in-out infinite;
+/* 4. Pulse Ripple for Escrow & Live Badges */
+@keyframes escrow-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 5s ease-in-out infinite;
-}
-
-/* Interactive Card Elevation */
-.card-hover-effect {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
-}
-
-.card-hover-effect:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 30px -10px rgba(10, 17, 40, 0.08);
+.escrow-pulse {
+  animation: escrow-pulse 2.4s ease-in-out infinite;
 }
