@@ -3,38 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  ShieldCheck, 
-  Search, 
-  ArrowRight, 
-  CheckCircle2, 
-  Lock, 
-  Scale, 
-  FileText, 
-  Calculator, 
-  Star, 
-  Menu, 
-  X, 
-  Building2, 
-  Briefcase, 
-  Home as HomeIcon, 
-  Users, 
-  BookOpen, 
-  ChevronRight, 
-  Sparkles, 
-  MessageSquare, 
-  HelpCircle, 
-  LogOut, 
-  User,
-  Globe,
-  Languages
+  ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
+  Star, Menu, X, Building2, Briefcase, Home as HomeIcon, 
+  Users, ChevronRight, Sparkles, MessageSquare, LogOut, 
+  User, Globe, Languages 
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomePage() {
   const { language, toggleLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedPracticeArea, setSelectedPracticeArea] = useState('Corporate & Commercial');
+  const [selectedPracticeArea, setSelectedPracticeArea] = useState('corporate');
   const [userSession, setUserSession] = useState<{ email?: string } | null>(null);
 
   // Monitor Supabase Auth Session
@@ -133,6 +114,7 @@ export default function HomePage() {
       reviews: '442',
       rate: '1,500',
       badge: language === 'am' ? 'ከፍተኛ ተመራጭ' : 'Top Match',
+      licenseNo: 'ETH-BAR-2018-0492'
     },
     {
       name: language === 'am' ? 'ጠበቃ ትዕግሥት በቀለ' : 'Advocate Tigist Bekele',
@@ -143,6 +125,7 @@ export default function HomePage() {
       reviews: '312',
       rate: '1,200',
       badge: language === 'am' ? 'ፈጣን ምላሽ ሰጪ' : 'Fast Responder',
+      licenseNo: 'ETH-BAR-2020-1104'
     },
     {
       name: language === 'am' ? 'ጠበቃ ዳዊት ተስፋዬ' : 'Advocate Dawit Tesfaye',
@@ -153,34 +136,8 @@ export default function HomePage() {
       reviews: '521',
       rate: '1,800',
       badge: language === 'am' ? 'ከፍተኛ ባለሙያ' : 'Senior Specialist',
+      licenseNo: 'ETH-BAR-2015-0081'
     },
-  ];
-
-  const legalTalkTeasers = [
-    {
-      id: 'qa-1',
-      title: language === 'am' 
-        ? 'ኃላፊነቱ የተወሰነ የግል ማህበር (PLC) በካፒታል ገበያ መመሪያ 1030/2024 መሰረት አክሲዮን መሸጥ ይችላል?'
-        : 'Can a PLC issue shares or raise equity under ECMA Directive 1030/2024?',
-      category: language === 'am' ? 'የካፒታል ገበያና ሰነደ-ሙዓለ-ንዋይ' : 'Capital Markets & ESX',
-      lawyer: language === 'am' ? 'ጠበቃ ሙሉ ኃይሌ' : 'Advocate Mulu Haile',
-      excerpt: language === 'am'
-        ? 'በንግድ ህግ አንቀጽ 495 መሰረት ኃ.የተ.የግ.ማህበር ወደ አክሲዮን ማህበር (S.C.) ሳይቀየር በቀጥታ ለህዝብ አክሲዮን ማውጣት አይችልም...'
-        : 'Under Commercial Code Art. 495, private limited companies cannot issue public shares directly without first converting to a Share Company (S.C.) and satisfying capital verification rules...',
-      views: '1.4k reads'
-    },
-    {
-      id: 'qa-2',
-      title: language === 'am'
-        ? 'በፍትሐብሔር ህግ አንቀጽ 2896 መሰረት የንግድ ቤት ኪራይ ውልን ለማቋረጥ ህጋዊ ምክንያቶች ምንድን ናቸው?'
-        : 'What are the statutory grounds for commercial lease eviction under Civil Code Art. 2896?',
-      category: language === 'am' ? 'የመሬትና ይዞታ ሕግ' : 'Real Estate & Land',
-      lawyer: language === 'am' ? 'ጠበቃ ዳዊት ተስፋዬ' : 'Advocate Dawit Tesfaye',
-      excerpt: language === 'am'
-        ? 'አከራይ በቂ የውል ጥሰት ወይም ያልተከፈለ የኪራይ ዕዳ በማዘጋጃ ቤት ማስጠንቀቂያ ሳይረጋገጥ በራሱ ውሳኔ ተከራይን ማስወጣት አይችልም...'
-        : 'A lessor cannot unilaterally terminate a commercial tenancy mid-term without documented lease violations or non-payment substantiated through municipal notices...',
-      views: '2.1k reads'
-    }
   ];
 
   return (
@@ -190,8 +147,14 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
-          <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="LegalLink" className="w-9 h-9 object-contain" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <motion.img 
+              whileHover={{ rotate: 12, scale: 1.1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              src="/logo.png" 
+              alt="LegalLink" 
+              className="w-9 h-9 object-contain" 
+            />
             <div className="flex flex-col">
               <span className="font-black text-xl tracking-tight text-[#0A1128]">
                 Legal<span className="text-amber-500">Link</span>
@@ -207,40 +170,51 @@ export default function HomePage() {
             <Link href="/" className="text-[#0A1128] font-black border-b-2 border-amber-500 pb-0.5">
               {t('nav_home')}
             </Link>
-            <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">
-              {t('nav_find_lawyer')}
-            </Link>
-            <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors">
-              {t('nav_practice_areas')}
-            </Link>
-            <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold">
-              <Globe className="w-3.5 h-3.5" />
-              <span>{t('nav_diaspora')}</span>
-            </Link>
-            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-600">
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>{t('nav_legaltalk')}</span>
-            </Link>
-            <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
-              <span>{t('nav_tools')}</span>
-              <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
-                FREE
-              </span>
-            </Link>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">
+                {t('nav_find_lawyer')}
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors">
+                {t('nav_practice_areas')}
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold">
+                <Globe className="w-3.5 h-3.5" />
+                <span>{t('nav_diaspora')}</span>
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-amber-600">
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>{t('nav_legaltalk')}</span>
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/tools" className="hover:text-[#0A1128] transition-colors flex items-center gap-1">
+                <span>{t('nav_tools')}</span>
+                <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                  FREE
+                </span>
+              </Link>
+            </motion.div>
           </nav>
 
-          {/* Right Header CTAs & Language Switcher */}
+          {/* Right Header CTAs & Tactile Bilingual Toggle */}
           <div className="hidden sm:flex items-center gap-3">
-            
-            {/* Bilingual Toggle Button (EN | አማ) */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.92 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
               onClick={toggleLanguage}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-bold text-slate-700 flex items-center gap-1.5 bg-slate-50 transition-all cursor-pointer shadow-xs"
+              className="px-3.5 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-bold text-slate-700 flex items-center gap-1.5 bg-slate-50 shadow-xs cursor-pointer"
               title="Switch Language / ቋንቋ ይቀይሩ"
             >
               <Languages className="w-3.5 h-3.5 text-amber-600" />
               <span>{language === 'en' ? 'አማርኛ' : 'English'}</span>
-            </button>
+            </motion.button>
 
             <Link 
               href="/for-lawyers" 
@@ -257,136 +231,120 @@ export default function HomePage() {
                 <span className="text-[11px] font-bold text-slate-700 max-w-[100px] truncate">
                   {userSession.email?.split('@')[0]}
                 </span>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.15, color: '#dc2626' }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={handleSignOut}
                   title="Sign Out"
-                  className="p-1 hover:text-red-600 text-slate-400 transition-colors cursor-pointer"
+                  className="p-1 text-slate-400 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                </button>
+                </motion.button>
               </div>
             ) : (
-              <Link 
-                href="/login" 
-                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors"
-              >
-                {t('nav_sign_in')}
-              </Link>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link 
+                  href="/login" 
+                  className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors block"
+                >
+                  {t('nav_sign_in')}
+                </Link>
+              </motion.div>
             )}
 
-            <Link 
-              href="/find-a-lawyer" 
-              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow flex items-center gap-1.5 group whitespace-nowrap"
+            <motion.div
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 450, damping: 18 }}
             >
-              <span>{t('nav_book_consultation')}</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+              <Link 
+                href="/find-a-lawyer" 
+                className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl shadow-sm hover:shadow flex items-center gap-1.5 group whitespace-nowrap"
+              >
+                <span>{t('nav_book_consultation')}</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
           </div>
 
-          {/* Mobile Hamburger & Language Switcher */}
+          {/* Mobile Hamburger Button */}
           <div className="flex sm:hidden items-center gap-2">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={toggleLanguage}
-              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700"
+              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700 cursor-pointer"
             >
               {language === 'en' ? 'አማ' : 'EN'}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100"
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            </motion.button>
           </div>
 
         </div>
 
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4">
-            <Link 
-              href="/" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-[#0A1128] py-1"
+        {/* Mobile Dropdown Menu with Spring Slide */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="md:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 overflow-hidden"
             >
-              {t('nav_home')}
-            </Link>
-            <Link 
-              href="/find-a-lawyer" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-1"
-            >
-              {t('nav_find_lawyer')}
-            </Link>
-            <Link 
-              href="/practice-areas" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-1"
-            >
-              {t('nav_practice_areas')}
-            </Link>
-            <Link 
-              href="/diaspora" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-blue-600 py-1 flex items-center gap-2"
-            >
-              <Globe className="w-4 h-4" />
-              <span>{t('nav_diaspora')}</span>
-            </Link>
-            <Link 
-              href="/legaltalk" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-amber-600 py-1 flex items-center gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>{t('nav_legaltalk')}</span>
-            </Link>
-            <Link 
-              href="/tools" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-800 py-1"
-            >
-              {t('nav_tools')}
-            </Link>
-            <Link 
-              href="/escrow" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-emerald-700 py-1"
-            >
-              {t('nav_escrow')}
-            </Link>
-
-            {userSession ? (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleSignOut();
-                }}
-                className="w-full py-2.5 bg-red-50 text-red-600 text-center font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>{t('nav_sign_out')} ({userSession.email?.split('@')[0]})</span>
-              </button>
-            ) : (
-              <Link 
-                href="/login" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2.5 bg-slate-100 text-slate-700 text-center font-bold text-xs rounded-xl block"
-              >
-                {t('nav_sign_in')}
+              <Link href="/" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-[#0A1128] py-1">
+                {t('nav_home')}
               </Link>
-            )}
+              <Link href="/find-a-lawyer" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
+                {t('nav_find_lawyer')}
+              </Link>
+              <Link href="/practice-areas" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
+                {t('nav_practice_areas')}
+              </Link>
+              <Link href="/diaspora" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-blue-600 py-1 flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                <span>{t('nav_diaspora')}</span>
+              </Link>
+              <Link href="/legaltalk" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-amber-600 py-1 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                <span>{t('nav_legaltalk')}</span>
+              </Link>
+              <Link href="/tools" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-slate-800 py-1">
+                {t('nav_tools')}
+              </Link>
+              <Link href="/escrow" onClick={() => setMobileMenuOpen(false)} className="block text-sm font-bold text-emerald-700 py-1">
+                {t('nav_escrow')}
+              </Link>
 
-            <Link 
-              href="/find-a-lawyer" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-3 bg-[#0A1128] text-white text-center font-bold text-xs rounded-xl block shadow-sm"
-            >
-              {t('nav_book_consultation')}
-            </Link>
-          </div>
-        )}
+              {userSession ? (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="w-full py-2.5 bg-red-50 text-red-600 text-center font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{t('nav_sign_out')}</span>
+                </button>
+              ) : (
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full py-2.5 bg-slate-100 text-slate-700 text-center font-bold text-xs rounded-xl block">
+                  {t('nav_sign_in')}
+                </Link>
+              )}
+
+              <Link href="/find-a-lawyer" onClick={() => setMobileMenuOpen(false)} className="w-full py-3 bg-[#0A1128] text-white text-center font-bold text-xs rounded-xl block shadow-sm">
+                {t('nav_book_consultation')}
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* 2. Hero Section */}
@@ -395,20 +353,36 @@ export default function HomePage() {
           
           <div className="max-w-3xl mx-auto text-center space-y-6">
             
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-[#0A1128] text-xs font-bold">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-[#0A1128] text-xs font-bold cursor-default"
+            >
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>{t('hero_badge')}</span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0A1128] tracking-tight leading-tight">
+            <motion.h1 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0A1128] tracking-tight leading-tight"
+            >
               {t('hero_title_1')}<span className="text-amber-500">{t('hero_title_2')}</span>
-            </h1>
+            </motion.h1>
 
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
               {t('hero_sub')}
             </p>
 
-            <div className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
+            {/* Interactive Search Card */}
+            <motion.div 
+              whileHover={{ y: -3, boxShadow: "0 20px 30px -10px rgba(10, 17, 40, 0.08)" }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="mt-8 bg-white p-3 sm:p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex flex-col sm:flex-row items-center gap-3"
+            >
               <div className="relative w-full sm:flex-1">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <select
@@ -424,14 +398,21 @@ export default function HomePage() {
                 </select>
               </div>
 
-              <Link
-                href="/find-a-lawyer"
-                className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap shadow-sm hover:shadow"
+              <motion.div
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 450, damping: 18 }}
+                className="w-full sm:w-auto"
               >
-                <span>{t('hero_cta')}</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+                <Link
+                  href={`/find-a-lawyer?category=${selectedPracticeArea}`}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 whitespace-nowrap shadow-sm group"
+                >
+                  <span>{t('hero_cta')}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
+            </motion.div>
 
             <div className="pt-6 grid grid-cols-3 gap-4 border-t border-slate-200/80 max-w-xl mx-auto text-center">
               <div>
@@ -469,13 +450,19 @@ export default function HomePage() {
             </p>
           </div>
 
-          <Link
-            href="/diaspora"
-            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 whitespace-nowrap shrink-0"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: "spring", stiffness: 450, damping: 18 }}
           >
-            <span>{t('diaspora_btn')}</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+            <Link
+              href="/diaspora"
+              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-2 whitespace-nowrap shrink-0 group"
+            >
+              <span>{t('diaspora_btn')}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </motion.div>
         </div>
       </section>
 
@@ -496,41 +483,33 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
-              <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-[#0A1128] font-black text-sm flex items-center justify-center shadow-xs">
-                01
-              </span>
-              <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step1_title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                {t('hiw_step1_desc')}
-              </p>
-            </div>
-
-            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
-              <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-amber-600 font-black text-sm flex items-center justify-center shadow-xs">
-                02
-              </span>
-              <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step2_title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                {t('hiw_step2_desc')}
-              </p>
-            </div>
-
-            <div className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4">
-              <span className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-emerald-600 font-black text-sm flex items-center justify-center shadow-xs">
-                03
-              </span>
-              <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step3_title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                {t('hiw_step3_desc')}
-              </p>
-            </div>
+            {[
+              { num: '01', title: t('hiw_step1_title'), desc: t('hiw_step1_desc'), color: 'text-[#0A1128]' },
+              { num: '02', title: t('hiw_step2_title'), desc: t('hiw_step2_desc'), color: 'text-amber-600' },
+              { num: '03', title: t('hiw_step3_title'), desc: t('hiw_step3_desc'), color: 'text-emerald-600' }
+            ].map((step, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -6, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                className="bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200/80 space-y-4 cursor-default shadow-xs hover:shadow-md transition-shadow"
+              >
+                <span className={`w-10 h-10 rounded-2xl bg-white border border-slate-200 ${step.color} font-black text-sm flex items-center justify-center shadow-xs`}>
+                  {step.num}
+                </span>
+                <h3 className="text-base font-bold text-[#0A1128]">{step.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  {step.desc}
+                </p>
+              </motion.div>
+            ))}
           </div>
 
         </div>
       </section>
 
-      {/* 5. Practice Areas */}
+      {/* 5. Practice Areas with Spring Hover & Tap */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -543,42 +522,51 @@ export default function HomePage() {
                 {t('pa_title')}
               </h2>
             </div>
-            <Link 
-              href="/practice-areas" 
-              className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
-            >
-              <span>{t('pa_view_all')}</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+            <motion.div whileHover={{ x: 3 }} whileTap={{ scale: 0.96 }}>
+              <Link 
+                href="/practice-areas" 
+                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
+              >
+                <span>{t('pa_view_all')}</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {practiceAreas.map((area, idx) => {
               const IconComponent = area.icon;
               return (
-                <Link
+                <motion.div
                   key={idx}
-                  href={`/find-a-lawyer?category=${area.slug}`}
-                  className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group flex flex-col justify-between space-y-4"
+                  whileHover={{ y: -6, scale: 1.02, boxShadow: "0 15px 30px -10px rgba(10, 17, 40, 0.08)" }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                  className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300"
                 >
-                  <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0A1128] group-hover:bg-[#0A1128] group-hover:text-white transition-colors">
-                      <IconComponent className="w-5 h-5" />
+                  <Link
+                    href={`/find-a-lawyer?category=${area.slug}`}
+                    className="p-6 flex flex-col justify-between space-y-4 h-full block group"
+                  >
+                    <div className="space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0A1128] group-hover:bg-[#0A1128] group-hover:text-white transition-colors">
+                        <IconComponent className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-[#0A1128]">{area.title}</h3>
+                        <span className="text-[11px] font-medium text-slate-400 block">{area.amharic}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                        {area.desc}
+                      </p>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-[#0A1128]">{area.title}</h3>
-                      <span className="text-[11px] font-medium text-slate-400 block">{area.amharic}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                      {area.desc}
-                    </p>
-                  </div>
 
-                  <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-amber-600 group-hover:translate-x-0.5 transition-transform">
-                    <span>{t('pa_find_btn')}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </div>
-                </Link>
+                    <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-xs font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+                      <span>{t('pa_find_btn')}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
@@ -586,7 +574,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. Featured Advocates */}
+      {/* 6. Featured Advocates Cards with Spring Pop */}
       <section className="py-16 md:py-24 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -599,20 +587,25 @@ export default function HomePage() {
                 {t('fa_title')}
               </h2>
             </div>
-            <Link 
-              href="/find-a-lawyer" 
-              className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
-            >
-              <span>{t('fa_view_all')}</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+            <motion.div whileHover={{ x: 3 }} whileTap={{ scale: 0.96 }}>
+              <Link 
+                href="/find-a-lawyer" 
+                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] inline-flex items-center gap-1 group"
+              >
+                <span>{t('fa_view_all')}</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {featuredAdvocates.map((adv, idx) => (
-              <div 
+              <motion.div 
                 key={idx}
-                className="bg-[#F8FAFC] border border-slate-200 rounded-3xl p-6 flex flex-col justify-between space-y-6 hover:border-slate-300 transition-colors"
+                whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 30px -10px rgba(10, 17, 40, 0.08)" }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                className="bg-[#F8FAFC] border border-slate-200 rounded-3xl p-6 flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
@@ -646,88 +639,23 @@ export default function HomePage() {
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">{t('fa_retainer_label')}</span>
                     <strong className="text-sm font-black text-[#0A1128]">ETB {adv.rate}</strong>
                   </div>
-                  <Link
-                    href="/find-a-lawyer"
-                    className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all"
-                  >
-                    {t('fa_book_session')}
-                  </Link>
+                  <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}>
+                    <Link
+                      href="/find-a-lawyer"
+                      className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl block"
+                    >
+                      {t('fa_book_session')}
+                    </Link>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
         </div>
       </section>
 
-      {/* 7. LegalTalk Community Showcase */}
-      <section className="py-16 md:py-24 bg-[#F8FAFC]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>{t('lt_tag')}</span>
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
-                {t('lt_title')}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-normal">
-                {t('lt_sub')}
-              </p>
-            </div>
-            <Link 
-              href="/legaltalk" 
-              className="px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 text-[#0A1128] text-xs font-bold rounded-xl inline-flex items-center gap-1.5 shadow-xs"
-            >
-              <span>{t('lt_explore')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {legalTalkTeasers.map((tItem) => (
-              <div 
-                key={tItem.id}
-                className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition-all"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase">
-                      {tItem.category}
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-medium">{tItem.views}</span>
-                  </div>
-                  <h3 className="font-black text-base text-[#0A1128] hover:text-amber-600 transition-colors">
-                    <Link href="/legaltalk">{tItem.title}</Link>
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                    {tItem.excerpt}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-bold text-slate-800 text-[11px]">{tItem.lawyer}</span>
-                  </div>
-                  <Link 
-                    href="/find-a-lawyer" 
-                    className="font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 text-[11px]"
-                  >
-                    <span>{t('lt_consult')}</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 8. Institutional Trust & Telebirr Escrow Notice */}
+      {/* 7. Institutional Escrow Notice */}
       <section className="py-16 bg-[#0A1128] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -747,14 +675,20 @@ export default function HomePage() {
                   <CheckCircle2 className="w-4 h-4 text-amber-400" />
                   <span>{language === 'am' ? 'ግልጽ የሆነ ቋሚ ዋጋ' : 'Transparent Fixed Pricing'}</span>
                 </div>
-                <Link href="/escrow" className="flex items-center gap-2 text-emerald-400 hover:underline">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>{t('escrow_desk_btn')}</span>
-                </Link>
+                <motion.div whileHover={{ x: 2 }}>
+                  <Link href="/escrow" className="flex items-center gap-2 text-emerald-400 hover:underline">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>{t('escrow_desk_btn')}</span>
+                  </Link>
+                </motion.div>
               </div>
             </div>
 
-            <div className="bg-slate-800/60 p-6 sm:p-8 rounded-3xl border border-slate-700 space-y-4">
+            <motion.div 
+              whileHover={{ y: -4, scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="bg-slate-800/60 p-6 sm:p-8 rounded-3xl border border-slate-700 space-y-4"
+            >
               <div className="flex items-center gap-3">
                 <Lock className="w-6 h-6 text-amber-400" />
                 <h3 className="font-bold text-sm text-white">{t('escrow_ussd_title')}</h3>
@@ -763,27 +697,31 @@ export default function HomePage() {
                 {t('escrow_ussd_desc')}
               </p>
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/find-a-lawyer"
-                  className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
-                >
-                  <span>{t('escrow_start_btn')}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-                <Link
-                  href="/escrow"
-                  className="py-3 px-5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl flex items-center justify-center transition-all"
-                >
-                  {t('escrow_rules_btn')}
-                </Link>
+                <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }} className="flex-1">
+                  <Link
+                    href="/find-a-lawyer"
+                    className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2"
+                  >
+                    <span>{t('escrow_start_btn')}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}>
+                  <Link
+                    href="/escrow"
+                    className="py-3 px-5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl flex items-center justify-center block"
+                  >
+                    {t('escrow_rules_btn')}
+                  </Link>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
         </div>
       </section>
 
-      {/* 9. Footer */}
+      {/* 8. Footer */}
       <footer className="bg-white border-t border-slate-200 text-slate-600 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
