@@ -6,18 +6,21 @@ import {
   Scale, Briefcase, ShieldCheck, Clock, Lock, CheckCircle2, DollarSign, 
   Calendar, Users, MessageSquare, Gavel, FileText, Volume2, Printer, 
   ExternalLink, AlertCircle, Check, X, ChevronRight, TrendingUp, Sparkles, 
-  UploadCloud, LogOut, Settings, HelpCircle, BookOpen, Send, Mic, Play, Pause,
-  Trash2, Search, Plus, Award, RefreshCw, Smartphone, Eye, ArrowLeft, Loader2,
-  ShieldAlert, Info
+  UploadCloud, LogOut, Settings, HelpCircle, BookOpen, Send, Mic, Play, Pause, 
+  Trash2, Search, Plus, Award, RefreshCw, Smartphone, Eye, ArrowLeft, Loader2, 
+  ShieldAlert, Info, Languages
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface CaseBrief {
   id: string;
   client_name: string;
   practice_area: string;
+  amharic_practice_area?: string;
   location: string;
   situation_description: string;
+  amharic_situation_description?: string;
   escrow_amount: number;
   settlement_status: 'escrow_locked' | 'delivered' | 'released';
   case_stage: number;
@@ -34,8 +37,10 @@ const INITIAL_DEMO_CASES: CaseBrief[] = [
     id: 'case-demo-101',
     client_name: 'Dawit Alemu (Synthetic Demo Client)',
     practice_area: 'Capital Markets & Securities',
+    amharic_practice_area: 'የካፒታል ገበያና ሰነደ-ሙዓለ-ንዋይ',
     location: 'Addis Ababa',
     situation_description: '[DEMO RECORD] Restructuring tech logistics PLC into a Share Company (S.C.) pursuant to ECMA Directive 1030/2024 and Commercial Code Art. 495.',
+    amharic_situation_description: '[የሙከራ መዝገብ] የቴክኖሎጂ ኃ.የተ.የግ.ማህበርን በካፒታል ገበያ መመሪያ 1030/2024 እና በንግድ ህግ አንቀጽ 495 መሰረት ወደ አክሲዮን ማህበር የመቀየር ሂደት።',
     escrow_amount: 1500,
     settlement_status: 'escrow_locked',
     case_stage: 2,
@@ -50,8 +55,10 @@ const INITIAL_DEMO_CASES: CaseBrief[] = [
     id: 'case-demo-102',
     client_name: 'Bethlehem Tadesse (Synthetic Demo Client)',
     practice_area: 'Property & Real Estate',
+    amharic_practice_area: 'የመሬትና ይዞታ ሕግ',
     location: 'Bole, Addis Ababa',
     situation_description: '[DEMO RECORD] Commercial tenancy dispute in Bole. Landlord demanding unilateral 45% rent increment mid-lease.',
+    amharic_situation_description: '[የሙከራ መዝገብ] በቦሌ ክፍለ ከተማ የንግድ ቤት ኪራይ ክርክር። አከራዩ በውል ዘመኑ አጋማሽ የ45% ጭማሪ በግል ውሳኔ የጠየቁበት ጉዳይ።',
     escrow_amount: 1500,
     settlement_status: 'escrow_locked',
     case_stage: 1,
@@ -65,11 +72,13 @@ const INITIAL_DEMO_CASES: CaseBrief[] = [
 ];
 
 export default function AdvocatePortalPage() {
+  const { language, toggleLanguage } = useLanguage();
+
   const [mounted, setMounted] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected'>('approved');
   const [advocateEmail, setAdvocateEmail] = useState('mulu.haile@lawfirm.et');
   const [advocateName, setAdvocateName] = useState('Advocate Mulu Haile (Simulated Session)');
-  const [licenseNo, setLicenseNo] = useState('ETH-BAR-2019-00421-DEMO');
+  const [licenseNo, setLicenseNo] = useState('ETH-BAR-2018-0492');
   const [hourlyRate, setHourlyRate] = useState(1500);
   const [isAvailableOnline, setIsAvailableOnline] = useState(true);
 
@@ -78,7 +87,6 @@ export default function AdvocatePortalPage() {
 
   // Audio Playback State for Docket Voice Briefs
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(28);
 
   // In-app Toast Feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -149,32 +157,36 @@ export default function AdvocatePortalPage() {
 
   const handleAcceptCase = (caseId: string) => {
     setCases((prev) => prev.map((c) => c.id === caseId ? { ...c, status: 'active' } : c));
-    showToast('Case brief accepted! Client notified.');
+    showToast(language === 'am' ? 'የጉዳዩ ማጠቃለያ ተቀባይነት አግኝቷል! ለደንበኛው ማሳወቂያ ደርሷል።' : 'Case brief accepted! Client notified.');
   };
 
   const handleDeclineCase = (caseId: string) => {
     setCases((prev) => prev.map((c) => c.id === caseId ? { ...c, status: 'declined' } : c));
-    showToast('Consultation request declined.');
+    showToast(language === 'am' ? 'የማማከር ጥያቄው ውድቅ ተደርጓል።' : 'Consultation request declined.');
   };
 
   const handleAdvanceCaseStage = (newStage: number) => {
     if (!selectedCase) return;
-    const updated = { ...selectedCase, case_stage: newStage };
+    const updated: CaseBrief = { ...selectedCase, case_stage: newStage };
     setSelectedCase(updated);
     setCases((prev) => prev.map((c) => c.id === selectedCase.id ? updated : c));
-    showToast(`Docket advanced to Stage ${newStage}!`);
+    showToast(language === 'am' ? `የክርክሩ ሂደት ወደ ደረጃ ${newStage} ተሸጋግሯል!` : `Docket advanced to Stage ${newStage}!`);
   };
 
   const handleSaveNextHearing = () => {
     if (!selectedCase || !hearingDateInput) return;
-    const updated = {
+    const updated: CaseBrief = {
       ...selectedCase,
       next_court_date: hearingDateInput,
       court_name: hearingCourtInput
     };
     setSelectedCase(updated);
     setCases((prev) => prev.map((c) => c.id === selectedCase.id ? updated : c));
-    showToast('Court hearing schedule registered & dispatched to client SMS!');
+    showToast(
+      language === 'am' 
+        ? 'የቀጠሮ ቀን ተመዝግቧል! ለደንበኛው በSMS ተልኳል።' 
+        : 'Court hearing schedule registered & dispatched to client SMS!'
+    );
   };
 
   const handleMarkConsultationDelivered = (caseId: string) => {
@@ -187,7 +199,11 @@ export default function AdvocatePortalPage() {
     if (selectedCase && selectedCase.id === caseId) {
       setSelectedCase({ ...selectedCase, settlement_status: 'delivered' });
     }
-    showToast('Settlement voucher issued! Client requested to release Telebirr funds.');
+    showToast(
+      language === 'am'
+        ? 'የክፍያ መልቀቂያ ቫውቸር ተዘጋጅቷል! ደንበኛው ክፍያውን እንዲያረጋግጥ ተጠይቋል።'
+        : 'Settlement voucher issued! Client requested to release Telebirr funds.'
+    );
   };
 
   const [proBonoHours, setProBonoHours] = useState<number>(26);
@@ -212,7 +228,11 @@ export default function AdvocatePortalPage() {
     setProBonoLogs([log, ...proBonoLogs]);
     setProBonoHours((prev) => prev + Number(newPbHours));
     setNewPbMatter('');
-    showToast(`Logged ${newPbHours} pro bono hours! Bar audit badge updated.`);
+    showToast(
+      language === 'am'
+        ? `${newPbHours} ነፃ የህግ አገልግሎት ሰዓታት ተመዝግቧል! የባር ኦዲት ባጅ ታድሷል።`
+        : `Logged ${newPbHours} pro bono hours! Bar audit badge updated.`
+    );
   };
 
   const [books, setBooks] = useState<any[]>([
@@ -244,7 +264,7 @@ export default function AdvocatePortalPage() {
     setBooks([newBk, ...books]);
     setNewBookTitle('');
     setNewBookAmTitle('');
-    showToast('Publication listed on LegalLink Bookstore!');
+    showToast(language === 'am' ? 'መጽሐፉ በሊጋልሊንክ የህግ መደብር ውስጥ ቀርቧል!' : 'Publication listed on LegalLink Bookstore!');
   };
 
   const [articles, setArticles] = useState<any[]>([
@@ -273,7 +293,7 @@ export default function AdvocatePortalPage() {
     setArticles([art, ...articles]);
     setNewArtTitle('');
     setNewArtExcerpt('');
-    showToast('Article published to public LegalTalk Knowledge Hub!');
+    showToast(language === 'am' ? 'ጽሑፉ በሊጋልቶክ እውቀት ማዕከል ታትሟል!' : 'Article published to public LegalTalk Knowledge Hub!');
   };
 
   const [qaQuestions, setQaQuestions] = useState<any[]>([
@@ -297,11 +317,11 @@ export default function AdvocatePortalPage() {
   const handlePublishQaAnswer = (qId: string) => {
     const text = qaDrafts[qId];
     if (!text || text.trim().length < 30) {
-      alert('Answer must be at least 30 characters and cite statutory provisions.');
+      alert(language === 'am' ? 'ምላሹ ቢያንስ 30 ፊደላት መሆን እና የህግ አንቀጾችን መጥቀስ አለበት።' : 'Answer must be at least 30 characters and cite statutory provisions.');
       return;
     }
     setQaQuestions((prev) => prev.map((q) => q.id === qId ? { ...q, answered: true } : q));
-    showToast('Verified legal answer published to LegalTalk forum!');
+    showToast(language === 'am' ? 'የተረጋገጠ የህግ ምላሽ በሊጋልቶክ መድረክ ታትሟል!' : 'Verified legal answer published to LegalTalk forum!');
   };
 
   if (!mounted) return null;
@@ -310,20 +330,30 @@ export default function AdvocatePortalPage() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col selection:bg-amber-100 selection:text-amber-900">
       
       {/* Privacy & Sandbox Banner */}
-      <div className="bg-slate-900 text-amber-400 px-4 py-2.5 text-xs font-bold border-b border-slate-800 flex flex-col sm:flex-row items-center justify-center gap-2 text-center">
-        <div className="flex items-center gap-1.5">
+      <div className="bg-slate-900 text-amber-400 px-4 py-2.5 text-xs font-bold border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
-          <span>ADVOCATE DEMONSTRATION WORKSPACE:</span>
+          <span>
+            {language === 'am' 
+              ? 'የተረጋገጠ የጥብቅና ማዕከል — የፌዴራል ጠቅላይ ፍርድ ቤትና ሰበር ሰሚ ችሎት ተሟጋች' 
+              : 'ACCREDITED ADVOCATE PRACTICE CHAMBERS — Federal Supreme Court & Cassation Qualified'}
+          </span>
         </div>
-        <span className="font-medium text-slate-300">
-          You are viewing a demonstration docket featuring synthetic client inquiries, audio briefs, and simulated Telebirr escrow holdings.
-        </span>
-        <Link 
-          href="/login" 
-          className="underline font-bold text-white hover:text-amber-300 ml-1"
-        >
-          Sign In with Bar Account
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link 
+            href={`/verify/${licenseNo}`} 
+            className="underline font-bold text-white hover:text-amber-300 flex items-center gap-1"
+          >
+            <ExternalLink className="w-3 h-3" />
+            <span>{language === 'am' ? 'ይፋዊ ማረጋገጫ' : 'Public MOJ Audit'}</span>
+          </Link>
+          <Link 
+            href="/escrow" 
+            className="underline font-bold text-emerald-400 hover:text-emerald-300"
+          >
+            {language === 'am' ? 'የዋስትና ሂሳብ ደንቦች' : 'Escrow Desk'}
+          </Link>
+        </div>
       </div>
 
       {toastMessage && (
@@ -337,6 +367,14 @@ export default function AdvocatePortalPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{language === 'am' ? 'ዋና ገጽ' : 'Home'}</span>
+            </Link>
+
             <Link href="/" className="flex items-center gap-2.5">
               <img src="/logo.png" alt="LegalLink" className="w-10 h-10 object-contain" />
               <div>
@@ -344,16 +382,27 @@ export default function AdvocatePortalPage() {
                   Legal<span className="text-amber-500">Link</span>
                 </span>
                 <span className="text-[10px] block font-bold text-amber-600 uppercase tracking-widest">
-                  Advocate Workspace
+                  {language === 'am' ? 'የጠበቆች የስራ ገጽ' : 'Advocate Workspace'}
                 </span>
               </div>
             </Link>
+            
             <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              ✓ MOJ Verified
+              ✓ {language === 'am' ? 'የፍትህ ሚኒስቴር የታደሰ ፍቃድ' : 'MOJ Bar Verified'}
             </span>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Bilingual Toggle */}
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-bold text-slate-700 flex items-center gap-1.5 bg-slate-50 transition-all cursor-pointer shadow-xs"
+            >
+              <Languages className="w-3.5 h-3.5 text-amber-600" />
+              <span>{language === 'en' ? 'አማርኛ' : 'English'}</span>
+            </button>
+
+            {/* Online / Offline status */}
             <button
               onClick={() => {
                 setIsAvailableOnline(!isAvailableOnline);
@@ -364,11 +413,11 @@ export default function AdvocatePortalPage() {
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${isAvailableOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-              <span>{isAvailableOnline ? 'Online for Cases' : 'Offline'}</span>
+              <span>{isAvailableOnline ? (language === 'am' ? 'ለቀጠሮ ክፍት' : 'Online for Cases') : (language === 'am' ? 'ዝግ' : 'Offline')}</span>
             </button>
 
-            <Link href="/admin/verification" className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200">
-              Admin Queue
+            <Link href="/admin/verification" className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 hidden md:block">
+              {language === 'am' ? 'የኦዲት ተራ' : 'Admin Queue'}
             </Link>
 
             <button
@@ -377,7 +426,8 @@ export default function AdvocatePortalPage() {
                 await supabase.auth.signOut();
                 window.location.href = '/';
               }}
-              className="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-slate-100"
+              title="Sign Out"
+              className="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-slate-100 cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -403,13 +453,41 @@ export default function AdvocatePortalPage() {
 
             <nav className="space-y-1 text-xs font-bold">
               {[
-                { id: 'overview', label: 'Overview & Metrics', icon: TrendingUp },
-                { id: 'cases', label: `My Cases (${cases.length})`, icon: Briefcase },
-                { id: 'billing', label: 'Billing & Settlement', icon: DollarSign },
-                { id: 'probono', label: `Pro Bono Log (${proBonoHours}h)`, icon: Award },
-                { id: 'bookstore', label: `Bookstore Desk (${books.length})`, icon: BookOpen },
-                { id: 'legaltalk', label: 'LegalTalk Q&A Studio', icon: HelpCircle },
-                { id: 'settings', label: 'Practice Settings', icon: Settings },
+                { 
+                  id: 'overview', 
+                  label: language === 'am' ? 'አጠቃላይ እይታ' : 'Overview & Metrics', 
+                  icon: TrendingUp 
+                },
+                { 
+                  id: 'cases', 
+                  label: language === 'am' ? `የደንበኛ መዝገቦች (${cases.length})` : `My Cases (${cases.length})`, 
+                  icon: Briefcase 
+                },
+                { 
+                  id: 'billing', 
+                  label: language === 'am' ? 'የዋስትና ሂሳብና ክፍያ' : 'Billing & Escrow', 
+                  icon: DollarSign 
+                },
+                { 
+                  id: 'probono', 
+                  label: language === 'am' ? `ነፃ አገልግሎት (${proBonoHours}h)` : `Pro Bono Log (${proBonoHours}h)`, 
+                  icon: Award 
+                },
+                { 
+                  id: 'bookstore', 
+                  label: language === 'am' ? `የህግ መጽሐፍት (${books.length})` : `Bookstore Desk (${books.length})`, 
+                  icon: BookOpen 
+                },
+                { 
+                  id: 'legaltalk', 
+                  label: language === 'am' ? 'ሊጋልቶክ የህግ ማዕከል' : 'LegalTalk Q&A Studio', 
+                  icon: HelpCircle 
+                },
+                { 
+                  id: 'settings', 
+                  label: language === 'am' ? 'የጥብቅና ማስተካከያዎች' : 'Practice Settings', 
+                  icon: Settings 
+                },
               ].map((item) => {
                 const Icon = item.icon;
                 const isSelected = activeTab === item.id;
@@ -431,12 +509,29 @@ export default function AdvocatePortalPage() {
 
           <div className="bg-gradient-to-br from-[#0A1128] to-[#102A43] text-white p-5 rounded-3xl shadow-sm space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Bar Association Audit</span>
+              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">
+                {language === 'am' ? 'የፍትህ ሚኒስቴር ኦዲት' : 'Bar Association Audit'}
+              </span>
               <Award className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-3xl font-black font-mono text-emerald-400">{proBonoHours} Hours</div>
-            <span className="text-[11px] text-slate-300 block">Verified Pro Bono Legal Work</span>
+            <span className="text-[11px] text-slate-300 block">
+              {language === 'am' ? 'የተረጋገጠ ነፃ የህግ ድጋፍ (Pro Bono)' : 'Verified Pro Bono Legal Work'}
+            </span>
           </div>
+
+          <Link
+            href="/signup"
+            className="w-full p-4 bg-white border border-slate-200 rounded-3xl shadow-xs flex items-center justify-between hover:border-slate-300 transition-all text-xs group"
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span className="font-bold text-[#0A1128]">
+                {language === 'am' ? 'ዲጂታል የጥብቅና ባጅ' : 'Advocate Digital Badge'}
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </aside>
 
         {/* Modules */}
@@ -447,32 +542,44 @@ export default function AdvocatePortalPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Active Dockets</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    {language === 'am' ? 'ንቁ ጉዳዮች' : 'Active Dockets'}
+                  </span>
                   <div className="text-2xl font-black text-[#0A1128] font-mono">{cases.filter((c) => c.status === 'active').length}</div>
-                  <span className="text-[10px] text-emerald-700 font-bold block">In progress</span>
+                  <span className="text-[10px] text-emerald-700 font-bold block">{language === 'am' ? 'በሂደት ላይ ያሉ' : 'In progress'}</span>
                 </div>
                 <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">In Escrow Holding</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    {language === 'am' ? 'በዋስትና ሂሳብ የተያዘ' : 'In Escrow Holding'}
+                  </span>
                   <div className="text-2xl font-black text-emerald-600 font-mono">ETB 3,000</div>
-                  <span className="text-[10px] text-slate-400 block">Pre-authorized</span>
+                  <span className="text-[10px] text-slate-400 block">{language === 'am' ? 'በቴሌብር የተያዘ' : 'Pre-authorized'}</span>
                 </div>
                 <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Client Rating</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    {language === 'am' ? 'የተገልጋይ ደረጃ' : 'Client Rating'}
+                  </span>
                   <div className="text-2xl font-black text-amber-500 font-mono flex items-center gap-1">4.95 ★</div>
-                  <span className="text-[10px] text-slate-400 block">442 Verified Reviews</span>
+                  <span className="text-[10px] text-slate-400 block">442 {language === 'am' ? 'ግምገማዎች' : 'Verified Reviews'}</span>
                 </div>
                 <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Hourly Retainer</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                    {language === 'am' ? 'የማማከር ተመን' : 'Hourly Retainer'}
+                  </span>
                   <div className="text-2xl font-black text-[#0A1128] font-mono">ETB {hourlyRate}</div>
-                  <span className="text-[10px] text-blue-600 font-bold block">Standard Rate</span>
+                  <span className="text-[10px] text-blue-600 font-bold block">{language === 'am' ? 'መደበኛ ታሪፍ' : 'Standard Rate'}</span>
                 </div>
               </div>
 
               {/* Case Requests List */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-black text-base text-[#0A1128]">Incoming Consultation Requests</h3>
-                  <span className="text-xs text-slate-400">Pre-authorized via Telebirr Escrow</span>
+                  <h3 className="font-black text-base text-[#0A1128]">
+                    {language === 'am' ? 'አዳዲስ የማማከር ጥያቄዎች' : 'Incoming Consultation Requests'}
+                  </h3>
+                  <span className="text-xs text-slate-400">
+                    {language === 'am' ? 'በቴሌብር ዋስትና ሂሳብ የተረጋገጠ' : 'Pre-authorized via Telebirr Escrow'}
+                  </span>
                 </div>
 
                 <div className="space-y-3">
@@ -481,30 +588,34 @@ export default function AdvocatePortalPage() {
                       <div className="space-y-1.5 flex-1">
                         <div className="flex items-center gap-2">
                           <strong className="text-slate-900 font-bold">{c.client_name}</strong>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A1128] text-amber-400">{c.practice_area}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A1128] text-amber-400">
+                            {language === 'am' && c.amharic_practice_area ? c.amharic_practice_area : c.practice_area}
+                          </span>
                           {c.voice_note_url && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
                               <Mic className="w-3 h-3 text-amber-700" />
-                              <span>Audio Brief ({c.voice_duration})</span>
+                              <span>{language === 'am' ? 'የድምፅ መግለጫ' : 'Audio Brief'} ({c.voice_duration})</span>
                             </span>
                           )}
                         </div>
-                        <p className="text-slate-600 line-clamp-2">{c.situation_description}</p>
+                        <p className="text-slate-600 line-clamp-2">
+                          {language === 'am' && c.amharic_situation_description ? c.amharic_situation_description : c.situation_description}
+                        </p>
                       </div>
 
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                         {c.status === 'pending_acceptance' ? (
                           <>
                             <button onClick={() => handleAcceptCase(c.id)} className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 cursor-pointer">
-                              Accept Brief
+                              {language === 'am' ? 'ተቀበል' : 'Accept Brief'}
                             </button>
                             <button onClick={() => handleDeclineCase(c.id)} className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 cursor-pointer">
-                              Decline
+                              {language === 'am' ? 'አትቀበል' : 'Decline'}
                             </button>
                           </>
                         ) : (
                           <button onClick={() => { setSelectedCase(c); setActiveTab('cases'); }} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl cursor-pointer">
-                            Open Case
+                            {language === 'am' ? 'ጉዳዩን ክፈት' : 'Open Case'}
                           </button>
                         )}
                       </div>
@@ -519,8 +630,12 @@ export default function AdvocatePortalPage() {
           {activeTab === 'cases' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-black text-[#0A1128]">Active Client Dockets</h2>
-                <span className="text-xs text-slate-500 font-medium">{cases.length} cases registered</span>
+                <h2 className="text-xl font-black text-[#0A1128]">
+                  {language === 'am' ? 'ንቁ የደንበኛ የክርክር መዝገቦች' : 'Active Client Dockets'}
+                </h2>
+                <span className="text-xs text-slate-500 font-medium">
+                  {cases.length} {language === 'am' ? 'መዝገቦች ተመዝግበዋል' : 'cases registered'}
+                </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -529,27 +644,31 @@ export default function AdvocatePortalPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
                         <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                          {c.practice_area}
+                          {language === 'am' && c.amharic_practice_area ? c.amharic_practice_area : c.practice_area}
                         </span>
                         <span className="font-mono font-bold text-xs text-emerald-700">
                           ETB {c.escrow_amount}
                         </span>
                       </div>
                       <h3 className="font-black text-base text-[#0A1128]">{c.client_name}</h3>
-                      <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{c.situation_description}</p>
+                      <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">
+                        {language === 'am' && c.amharic_situation_description ? c.amharic_situation_description : c.situation_description}
+                      </p>
                       
                       {c.voice_note_url && (
                         <div className="pt-1 flex items-center gap-1.5 text-amber-700 font-bold text-[11px]">
                           <Volume2 className="w-3.5 h-3.5" />
-                          <span>Includes Client Audio Brief ({c.voice_duration})</span>
+                          <span>{language === 'am' ? 'የድምፅ መግለጫ ተካቷል' : 'Includes Client Audio Brief'} ({c.voice_duration})</span>
                         </div>
                       )}
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Stage {c.case_stage || 1} of 6</span>
+                      <span className="text-slate-400">
+                        {language === 'am' ? `ደረጃ ${c.case_stage || 1} ከ 6` : `Stage ${c.case_stage || 1} of 6`}
+                      </span>
                       <button onClick={() => setSelectedCase(c)} className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl hover:bg-[#102A43] cursor-pointer">
-                        Manage Docket ➔
+                        {language === 'am' ? 'መዝገቡን አስተዳድር ➔' : 'Manage Docket ➔'}
                       </button>
                     </div>
                   </div>
@@ -563,17 +682,23 @@ export default function AdvocatePortalPage() {
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
                 <div>
-                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">BAR ACCREDITATION AUDIT</span>
-                  <h2 className="text-xl font-black text-[#0A1128] mt-1">Pro Bono Hours Registry</h2>
+                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
+                    {language === 'am' ? 'የጥብቅና ማህበር ኦዲት' : 'BAR ACCREDITATION AUDIT'}
+                  </span>
+                  <h2 className="text-xl font-black text-[#0A1128] mt-1">
+                    {language === 'am' ? 'ነፃ የህግ አገልግሎት መዝገብ (Pro Bono)' : 'Pro Bono Hours Registry'}
+                  </h2>
                 </div>
                 <div className="px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 font-bold text-xs">
-                  Total Logged: {proBonoHours} Hours
+                  {language === 'am' ? `ጠቅላላ የተመዘገበ፡ ${proBonoHours} ሰዓት` : `Total Logged: ${proBonoHours} Hours`}
                 </div>
               </div>
 
               <form onSubmit={handleAddProBonoLog} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs items-end">
                 <div className="sm:col-span-6 space-y-1">
-                  <label className="font-bold text-slate-700">Matter / Client Description *</label>
+                  <label className="font-bold text-slate-700">
+                    {language === 'am' ? 'የጉዳዩ ማጠቃለያ *' : 'Matter / Client Description *'}
+                  </label>
                   <input
                     type="text"
                     required
@@ -584,20 +709,20 @@ export default function AdvocatePortalPage() {
                   />
                 </div>
                 <div className="sm:col-span-3 space-y-1">
-                  <label className="font-bold text-slate-700">Category</label>
+                  <label className="font-bold text-slate-700">{language === 'am' ? 'ዘርፍ' : 'Category'}</label>
                   <select
                     value={newPbCategory}
                     onChange={(e) => setNewPbCategory(e.target.value)}
                     className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold"
                   >
-                    <option value="Labor Law">Labor Law</option>
-                    <option value="Family Mediation">Family Mediation</option>
-                    <option value="Civil Tenancy">Civil Tenancy</option>
-                    <option value="Criminal Defense">Criminal Defense</option>
+                    <option value="Labor Law">Labor Law (የሠራተኛና አሠሪ)</option>
+                    <option value="Family Mediation">Family Mediation (የቤተሰብ እርቅ)</option>
+                    <option value="Civil Tenancy">Civil Tenancy (የፍትሐብሔር ኪራይ)</option>
+                    <option value="Criminal Defense">Criminal Defense (የወንጀል መከላከያ)</option>
                   </select>
                 </div>
                 <div className="sm:col-span-1 space-y-1">
-                  <label className="font-bold text-slate-700">Hours</label>
+                  <label className="font-bold text-slate-700">{language === 'am' ? 'ሰዓት' : 'Hours'}</label>
                   <input
                     type="number"
                     min={1}
@@ -608,7 +733,7 @@ export default function AdvocatePortalPage() {
                 </div>
                 <div className="sm:col-span-2">
                   <button type="submit" className="w-full py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shadow-xs cursor-pointer">
-                    + Log Hours
+                    + {language === 'am' ? 'መዝግብ' : 'Log Hours'}
                   </button>
                 </div>
               </form>
@@ -618,7 +743,9 @@ export default function AdvocatePortalPage() {
                   <div key={p.id} className="p-4 border border-slate-200 rounded-2xl bg-white flex justify-between items-center text-xs">
                     <div>
                       <strong className="text-slate-900 block">{p.matter}</strong>
-                      <span className="text-[11px] text-slate-400">{p.category} • Logged on {p.date}</span>
+                      <span className="text-[11px] text-slate-400">
+                        {p.category} • {language === 'am' ? 'የተመዘገበበት ቀን' : 'Logged on'} {p.date}
+                      </span>
                     </div>
                     <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-mono font-bold rounded-full border border-emerald-200">
                       +{p.hours} Hours
@@ -633,12 +760,18 @@ export default function AdvocatePortalPage() {
           {activeTab === 'bookstore' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="pb-4 border-b border-slate-100">
-                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">AUTHOR MONETIZATION</span>
-                <h2 className="text-xl font-black text-[#0A1128] mt-1">Advocate Legal Bookstore & Publications</h2>
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
+                  {language === 'am' ? 'የህትመት ገቢ ማግኛ' : 'AUTHOR MONETIZATION'}
+                </span>
+                <h2 className="text-xl font-black text-[#0A1128] mt-1">
+                  {language === 'am' ? 'የጠበቃ ህጋዊ ህትመቶችና መጽሐፍት መደብር' : 'Advocate Legal Bookstore & Publications'}
+                </h2>
               </div>
 
               <form onSubmit={handleListNewBook} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
-                <strong className="block text-slate-800 font-bold">List a New Publication</strong>
+                <strong className="block text-slate-800 font-bold">
+                  {language === 'am' ? 'አዲስ መጽሐፍ ወይም ጥናት አቅርብ' : 'List a New Publication'}
+                </strong>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
@@ -650,7 +783,7 @@ export default function AdvocatePortalPage() {
                   />
                   <input
                     type="text"
-                    placeholder="Title in Amharic (የመጽሐፉ ርዕስ)"
+                    placeholder="Title in Amharic (የመጽሐፉ ርዕስ በአማርኛ)"
                     value={newBookAmTitle}
                     onChange={(e) => setNewBookAmTitle(e.target.value)}
                     className="p-2.5 bg-white border border-slate-200 rounded-xl"
@@ -673,7 +806,7 @@ export default function AdvocatePortalPage() {
                   />
                 </div>
                 <button type="submit" className="px-6 py-2.5 bg-[#0A1128] text-white font-bold rounded-xl text-xs cursor-pointer">
-                  Publish to Legal Bookstore
+                  {language === 'am' ? 'ወደ መጽሐፍት መደብር ጨምር' : 'Publish to Legal Bookstore'}
                 </button>
               </form>
 
@@ -698,12 +831,18 @@ export default function AdvocatePortalPage() {
           {activeTab === 'legaltalk' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-8">
               <div>
-                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">EXPERT DESK & THOUGHT LEADERSHIP</span>
-                <h2 className="text-xl font-black text-[#0A1128] mt-1">LegalTalk Studio & Q&A Console</h2>
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block">
+                  {language === 'am' ? 'የህግ ማብራሪያና የባለሙያ መድረክ' : 'EXPERT DESK & THOUGHT LEADERSHIP'}
+                </span>
+                <h2 className="text-xl font-black text-[#0A1128] mt-1">
+                  {language === 'am' ? 'ሊጋልቶክ የህግ ትንታኔ ማዕከል' : 'LegalTalk Studio & Q&A Console'}
+                </h2>
               </div>
 
               <form onSubmit={handlePublishArticle} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs">
-                <strong className="block text-slate-800 font-bold">Write New LegalTalk Article</strong>
+                <strong className="block text-slate-800 font-bold">
+                  {language === 'am' ? 'አዲስ ህጋዊ ጽሑፍ አትም' : 'Write New LegalTalk Article'}
+                </strong>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <input
                     type="text"
@@ -733,17 +872,21 @@ export default function AdvocatePortalPage() {
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl"
                 />
                 <button type="submit" className="px-6 py-2.5 bg-[#0A1128] text-white font-bold rounded-xl text-xs cursor-pointer">
-                  Publish to Community Knowledge Hub
+                  {language === 'am' ? 'ለህዝብ እውቀት አትም' : 'Publish to Community Knowledge Hub'}
                 </button>
               </form>
 
               <div className="space-y-4 pt-2">
-                <span className="font-bold text-slate-700 uppercase text-[11px] block">Public Legal Questions</span>
+                <span className="font-bold text-slate-700 uppercase text-[11px] block">
+                  {language === 'am' ? 'ከተጠቃሚዎች የቀረቡ ህጋዊ ጥያቄዎች' : 'Public Legal Questions'}
+                </span>
                 {qaQuestions.map((q) => (
                   <div key={q.id} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
                     <h4 className="font-bold text-sm text-[#0A1128]">{q.title}</h4>
                     {q.answered ? (
-                      <span className="text-emerald-700 font-bold block pt-1">✓ Verified answer published.</span>
+                      <span className="text-emerald-700 font-bold block pt-1">
+                        ✓ {language === 'am' ? 'የተረጋገጠ ምላሽ ተሰጥቷል።' : 'Verified answer published.'}
+                      </span>
                     ) : (
                       <div className="space-y-2 pt-1">
                         <textarea
@@ -758,7 +901,7 @@ export default function AdvocatePortalPage() {
                           onClick={() => handlePublishQaAnswer(q.id)}
                           className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs cursor-pointer"
                         >
-                          Publish Verified Answer
+                          {language === 'am' ? 'ምላሹን አረጋግጥና አትም' : 'Publish Verified Answer'}
                         </button>
                       </div>
                     )}
@@ -772,44 +915,72 @@ export default function AdvocatePortalPage() {
           {activeTab === 'billing' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div>
-                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block">TELEBIRR ESCROW SETTLEMENT</span>
-                <h2 className="text-xl font-black text-[#0A1128] mt-1">Payout Ledger & Escrow Vault</h2>
+                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block">
+                  {language === 'am' ? 'የቴሌብር ዋስትና ሂሳብ ክፍያ' : 'TELEBIRR ESCROW SETTLEMENT'}
+                </span>
+                <h2 className="text-xl font-black text-[#0A1128] mt-1">
+                  {language === 'am' ? 'የክፍያ መዝገብና የዋስትና ካዝና' : 'Payout Ledger & Escrow Vault'}
+                </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Available Balance</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    {language === 'am' ? 'ሊወጣ የሚችል ሂሳብ' : 'Available Balance'}
+                  </span>
                   <div className="text-2xl font-black text-slate-900 font-mono mt-1">ETB 14,250.00</div>
-                  <span className="text-[10px] text-emerald-700 block">Ready to disburse</span>
+                  <span className="text-[10px] text-emerald-700 block">
+                    {language === 'am' ? 'ለማውጣት ዝግጁ' : 'Ready to disburse'}
+                  </span>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">In Escrow Holding</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    {language === 'am' ? 'በዋስትና ሂሳብ የተያዘ' : 'In Escrow Holding'}
+                  </span>
                   <div className="text-2xl font-black text-amber-600 font-mono mt-1">ETB 3,000.00</div>
-                  <span className="text-[10px] text-slate-400 block">2 active retainers</span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {language === 'am' ? '2 ንቁ የቀጠሮ ክፍያዎች' : '2 active retainers'}
+                  </span>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Platform Fee</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    {language === 'am' ? 'የመድረክ አገልግሎት ክፍያ' : 'Platform Fee'}
+                  </span>
                   <div className="text-2xl font-black text-slate-900 font-mono mt-1">15%</div>
-                  <span className="text-[10px] text-slate-400 block">85% net take-home</span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {language === 'am' ? '85% ቀጥታ ገቢ' : '85% net take-home'}
+                  </span>
                 </div>
               </div>
 
-              <button
-                onClick={() => alert('Withdrawal request of ETB 14,250 dispatched to your Telebirr Business account.')}
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-xs"
-              >
-                Request Telebirr / CBE Payout ➔
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => alert('Withdrawal request of ETB 14,250 dispatched to your Telebirr Business account.')}
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-xs"
+                >
+                  {language === 'am' ? 'የቴሌብር / CBE ክፍያ ጠይቅ ➔' : 'Request Telebirr / CBE Payout ➔'}
+                </button>
+                <Link
+                  href="/escrow"
+                  className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs text-center"
+                >
+                  {language === 'am' ? 'የሁለትዮሽ የዋስትና መዝገብ' : 'Two-Party Escrow Desk'}
+                </Link>
+              </div>
             </div>
           )}
 
           {/* TAB 7: SETTINGS */}
           {activeTab === 'settings' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6 text-xs">
-              <h2 className="text-xl font-black text-[#0A1128]">Advocate Profile & Retainer Settings</h2>
+              <h2 className="text-xl font-black text-[#0A1128]">
+                {language === 'am' ? 'የጠበቃ መገለጫና የታሪፍ ተመን' : 'Advocate Profile & Retainer Settings'}
+              </h2>
               <div className="space-y-4 max-w-lg">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Full Legal Name</label>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {language === 'am' ? 'ሙሉ ህጋዊ ስም' : 'Full Legal Name'}
+                  </label>
                   <input
                     type="text"
                     value={advocateName}
@@ -818,7 +989,9 @@ export default function AdvocatePortalPage() {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Bar License Number</label>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {language === 'am' ? 'የጥብቅና ፍቃድ ቁጥር' : 'Bar License Number'}
+                  </label>
                   <input
                     type="text"
                     disabled
@@ -827,7 +1000,9 @@ export default function AdvocatePortalPage() {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Hourly Retainer Rate (ETB)</label>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {language === 'am' ? 'የማማከር ተመን በሰዓት (ETB)' : 'Hourly Retainer Rate (ETB)'}
+                  </label>
                   <input
                     type="number"
                     value={hourlyRate}
@@ -840,7 +1015,7 @@ export default function AdvocatePortalPage() {
                   onClick={() => showToast('Profile settings saved successfully.')}
                   className="px-6 py-2.5 bg-[#0A1128] text-white font-bold rounded-xl cursor-pointer"
                 >
-                  Save Changes
+                  {language === 'am' ? 'ለውጦችን መዝግብ' : 'Save Changes'}
                 </button>
               </div>
             </div>
@@ -857,10 +1032,12 @@ export default function AdvocatePortalPage() {
             <div className="p-6 bg-gradient-to-r from-[#0A1128] to-[#102A43] text-white flex justify-between items-start">
               <div>
                 <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mb-1">
-                  CASE DOCKET MANAGER (DEMO)
+                  {language === 'am' ? 'የጉዳይ አስተዳዳሪ ማዕከል' : 'CASE DOCKET MANAGER'}
                 </span>
                 <h3 className="font-black text-xl">{selectedCase.client_name}</h3>
-                <span className="text-xs text-slate-300 font-mono">{selectedCase.practice_area}</span>
+                <span className="text-xs text-slate-300 font-mono">
+                  {language === 'am' && selectedCase.amharic_practice_area ? selectedCase.amharic_practice_area : selectedCase.practice_area}
+                </span>
               </div>
               <button onClick={() => setSelectedCase(null)} className="text-white/70 hover:text-white p-1 cursor-pointer">
                 <X className="w-5 h-5" />
@@ -872,19 +1049,19 @@ export default function AdvocatePortalPage() {
                 onClick={() => setCaseModalTab('brief')} 
                 className={`py-3 border-b-2 cursor-pointer ${caseModalTab === 'brief' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'}`}
               >
-                Case Intake Brief & Audio
+                {language === 'am' ? 'የጉዳዩ ማጠቃለያና ድምፅ' : 'Case Intake Brief & Audio'}
               </button>
               <button 
                 onClick={() => setCaseModalTab('hearings')} 
                 className={`py-3 border-b-2 cursor-pointer ${caseModalTab === 'hearings' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'}`}
               >
-                Litigation Stages & Hearings
+                {language === 'am' ? 'የሙግት ደረጃዎችና ቀጠሮ' : 'Litigation Stages & Hearings'}
               </button>
               <button 
                 onClick={() => setCaseModalTab('chat')} 
                 className={`py-3 border-b-2 cursor-pointer ${caseModalTab === 'chat' ? 'border-[#0A1128] text-[#0A1128]' : 'border-transparent text-slate-400'}`}
               >
-                Client Chat Room
+                {language === 'am' ? 'የደንበኛ ቀጥታ ውይይት' : 'Client Chat Room'}
               </button>
             </div>
 
@@ -895,17 +1072,23 @@ export default function AdvocatePortalPage() {
                   
                   {/* TEXT DESCRIPTION */}
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-                    <strong className="block text-slate-900 font-bold uppercase text-[10px]">Client Description</strong>
-                    <p className="text-slate-700 leading-relaxed">{selectedCase.situation_description}</p>
+                    <strong className="block text-slate-900 font-bold uppercase text-[10px]">
+                      {language === 'am' ? 'የደንበኛው ማብራሪያ' : 'Client Description'}
+                    </strong>
+                    <p className="text-slate-700 leading-relaxed">
+                      {language === 'am' && selectedCase.amharic_situation_description ? selectedCase.amharic_situation_description : selectedCase.situation_description}
+                    </p>
                   </div>
 
-                  {/* RESTORED: VOICE BRIEF AUDIO PLAYER */}
+                  {/* VOICE BRIEF AUDIO PLAYER */}
                   {selectedCase.voice_note_url && (
                     <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Volume2 className="w-4 h-4 text-amber-700" />
-                          <strong className="text-amber-950 font-bold">Client Audio Brief (የድምፅ መግለጫ)</strong>
+                          <strong className="text-amber-950 font-bold">
+                            {language === 'am' ? 'የደንበኛ የድምፅ መግለጫ' : 'Client Audio Brief'} (የድምፅ መግለጫ)
+                          </strong>
                         </div>
                         <span className="font-mono text-[11px] font-bold text-amber-800">
                           {selectedCase.voice_duration || '01:24'}
@@ -926,7 +1109,6 @@ export default function AdvocatePortalPage() {
                         </button>
 
                         <div className="flex-1 space-y-1">
-                          {/* Simulated Audio Waveform Bar */}
                           <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex items-center cursor-pointer">
                             <div 
                               className="bg-amber-500 h-full rounded-full transition-all duration-300" 
@@ -950,14 +1132,16 @@ export default function AdvocatePortalPage() {
                   <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex justify-between items-center">
                     <div>
                       <strong className="text-emerald-950 block">Telebirr Retainer Escrow</strong>
-                      <span className="text-[11px] text-emerald-700">Status: {selectedCase.settlement_status === 'delivered' ? '✓ Voucher Issued' : 'Locked in Regulatory Trust'}</span>
+                      <span className="text-[11px] text-emerald-700">
+                        {language === 'am' ? 'ሁኔታ' : 'Status'}: {selectedCase.settlement_status === 'delivered' ? '✓ Voucher Issued' : 'Locked in Regulatory Trust'}
+                      </span>
                     </div>
                     <span className="font-mono font-bold text-emerald-900 text-sm">ETB {selectedCase.escrow_amount}</span>
                   </div>
 
                   {selectedCase.settlement_status === 'delivered' ? (
                     <div className="p-3 bg-emerald-100 text-emerald-900 rounded-xl font-bold text-center">
-                      ✓ Consultation Delivered — Client notified to confirm release.
+                      ✓ {language === 'am' ? 'ምክክሩ ተጠናቋል — ደንበኛው ክፍያ እንዲለቅ ማሳወቂያ ተልኳል።' : 'Consultation Delivered — Client notified to confirm release.'}
                     </div>
                   ) : (
                     <button
@@ -965,7 +1149,7 @@ export default function AdvocatePortalPage() {
                       className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                     >
                       <Check className="w-4 h-4" />
-                      <span>Mark Consultation Delivered (Release Payment Voucher)</span>
+                      <span>{language === 'am' ? 'ምክክሩ መጠናቀቁን አረጋግጥ (የክፍያ ቫውቸር አውጣ)' : 'Mark Consultation Delivered (Release Payment Voucher)'}</span>
                     </button>
                   )}
                 </div>
@@ -976,7 +1160,7 @@ export default function AdvocatePortalPage() {
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
                     <div className="flex items-center gap-2 font-bold text-amber-900">
                       <Calendar className="w-4 h-4 text-amber-700" />
-                      <span>Set Next Court Hearing (ቀጣይ ቀጠሮ)</span>
+                      <span>{language === 'am' ? 'ቀጣይ የፍርድ ቤት ቀጠሮ መዝግብ' : 'Set Next Court Hearing (ቀጣይ ቀጠሮ)'}</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
@@ -997,19 +1181,21 @@ export default function AdvocatePortalPage() {
                       onClick={handleSaveNextHearing}
                       className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl text-xs hover:bg-[#102A43] cursor-pointer"
                     >
-                      Save & Dispatch Client SMS
+                      {language === 'am' ? 'መዝግብና ለደንበኛው በSMS ላክ' : 'Save & Dispatch Client SMS'}
                     </button>
                   </div>
 
                   <div className="space-y-2">
-                    <span className="font-bold text-slate-700 uppercase text-[11px] block">Advance Litigation Progress</span>
+                    <span className="font-bold text-slate-700 uppercase text-[11px] block">
+                      {language === 'am' ? 'የሙግት ሂደቱን አሻሽል' : 'Advance Litigation Progress'}
+                    </span>
                     {[
-                      { step: 1, title: 'Case Intake & Evidence Audit' },
-                      { step: 2, title: 'Pleadings & Statement of Claim Drafted' },
-                      { step: 3, title: 'Court Registry & Summons Served' },
-                      { step: 4, title: 'Preliminary Objections & Statement of Defense' },
-                      { step: 5, title: 'Witness Hearing & Cross-Examination' },
-                      { step: 6, title: 'Final Judgment & Execution Decree' }
+                      { step: 1, title: language === 'am' ? '1. የጉዳይ ምዝገባና ማስረጃ ማጣራት' : 'Case Intake & Evidence Audit' },
+                      { step: 2, title: language === 'am' ? '2. አቤቱታና የክስ መመስረቻ ማዘጋጀት' : 'Pleadings & Statement of Claim Drafted' },
+                      { step: 3, title: language === 'am' ? '3. ፍርድ ቤት ምዝገባና መጥሪያ ማድረስ' : 'Court Registry & Summons Served' },
+                      { step: 4, title: language === 'am' ? '4. የመጀመሪያ ደረጃ መቃወሚያና የመከላከያ መልስ' : 'Preliminary Objections & Statement of Defense' },
+                      { step: 5, title: language === 'am' ? '5. የሰውና ሰነድ ማስረጃ መስማት' : 'Witness Hearing & Cross-Examination' },
+                      { step: 6, title: language === 'am' ? '6. የመጨረሻ ውሳኔና ፍርድ አፈፃፀም' : 'Final Judgment & Execution Decree' }
                     ].map((st) => (
                       <div
                         key={st.step}
@@ -1030,7 +1216,7 @@ export default function AdvocatePortalPage() {
                         </div>
                         {st.step === selectedCase.case_stage && (
                           <span className="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                            Active
+                            {language === 'am' ? 'አሁን ያለበት' : 'Active'}
                           </span>
                         )}
                       </div>
@@ -1058,14 +1244,14 @@ export default function AdvocatePortalPage() {
                   <form onSubmit={handleSendCaseChat} className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Type instructions or document request..."
+                      placeholder={language === 'am' ? 'መመሪያ ወይም የሰነድ ጥያቄ ይጻፉ...' : 'Type instructions or document request...'}
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
                     />
                     <button type="submit" className="px-5 py-2.5 bg-[#0A1128] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 hover:bg-[#102A43] cursor-pointer">
                       <Send className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Send</span>
+                      <span>{language === 'am' ? 'ላክ' : 'Send'}</span>
                     </button>
                   </form>
                 </div>
@@ -1078,7 +1264,7 @@ export default function AdvocatePortalPage() {
 
       {/* Footer */}
       <footer className="bg-[#060B1A] text-slate-400 py-6 border-t border-slate-800 text-center text-xs mt-auto">
-        LegalLink Advocate Portal • Ministry of Justice Regulatory Compliance • Addis Ababa, Ethiopia
+        LegalLink Advocate Portal • Ministry of Justice Regulatory Compliance • Commercial Code 1240/2021 Custody Node • Addis Ababa, Ethiopia
       </footer>
 
     </div>
