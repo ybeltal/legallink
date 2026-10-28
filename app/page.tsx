@@ -6,7 +6,7 @@ import {
   ShieldCheck, Search, ArrowRight, CheckCircle2, Lock, Scale, 
   Star, Menu, X, Building2, Briefcase, Home as HomeIcon, 
   Users, ChevronRight, Sparkles, MessageSquare, LogOut, 
-  User, Globe, Languages 
+  User, Globe, Languages, FileText 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
@@ -748,6 +748,12 @@ export default function HomePage() {
                 <li><Link href="/find-a-lawyer" className="hover:text-[#0A1128]">{t('nav_find_lawyer')}</Link></li>
                 <li><Link href="/diaspora" className="text-blue-600 font-bold hover:underline">{t('nav_diaspora')}</Link></li>
                 <li><Link href="/practice-areas" className="hover:text-[#0A1128]">{t('nav_practice_areas')}</Link></li>
+                <li>
+                  <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] flex items-center gap-1 font-semibold text-amber-800">
+                    <FileText className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{language === 'am' ? 'የህግ አስተያየት ሰነድ (A4 PDF)' : 'Sample Legal Opinion Memo'}</span>
+                  </Link>
+                </li>
                 <li><Link href="/legaltalk" className="hover:text-[#0A1128]">{t('nav_legaltalk')}</Link></li>
                 <li><Link href="/tools" className="hover:text-[#0A1128]">{t('nav_tools')}</Link></li>
                 <li><Link href="/escrow" className="text-emerald-700 font-bold hover:underline">{t('nav_escrow')}</Link></li>

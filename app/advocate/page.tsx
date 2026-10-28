@@ -8,7 +8,7 @@ import {
   ExternalLink, AlertCircle, Check, X, ChevronRight, TrendingUp, Sparkles, 
   UploadCloud, LogOut, Settings, HelpCircle, BookOpen, Send, Mic, Play, Pause, 
   Trash2, Search, Plus, Award, RefreshCw, Smartphone, Eye, ArrowLeft, Loader2, 
-  ShieldAlert, Info, Languages
+  ShieldAlert, Info, Languages, ArrowRight
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
@@ -348,6 +348,13 @@ export default function AdvocatePortalPage() {
             <span>{language === 'am' ? 'ይፋዊ ማረጋገጫ' : 'Public MOJ Audit'}</span>
           </Link>
           <Link 
+            href="/memo/MEMO-2026-9041" 
+            className="underline font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1"
+          >
+            <FileText className="w-3 h-3" />
+            <span>{language === 'am' ? 'የህግ አስተያየት ሰነድ ናሙና (A4 PDF)' : 'Legal Opinion Memo (A4 PDF)'}</span>
+          </Link>
+          <Link 
             href="/escrow" 
             className="underline font-bold text-emerald-400 hover:text-emerald-300"
           >
@@ -519,6 +526,23 @@ export default function AdvocatePortalPage() {
               {language === 'am' ? 'የተረጋገጠ ነፃ የህግ ድጋፍ (Pro Bono)' : 'Verified Pro Bono Legal Work'}
             </span>
           </div>
+
+          {/* Quick Access to Pillar 4 Memo */}
+          <Link
+            href="/memo/MEMO-2026-9041"
+            className="w-full p-4 bg-amber-50/70 border border-amber-200 rounded-3xl shadow-xs flex items-center justify-between hover:bg-amber-100 transition-all text-xs group"
+          >
+            <div className="flex items-center gap-2.5">
+              <FileText className="w-4 h-4 text-amber-700" />
+              <div>
+                <span className="font-bold text-[#0A1128] block">
+                  {language === 'am' ? 'የህግ አስተያየት ሰነድ (A4 PDF)' : 'Legal Opinion Memo'}
+                </span>
+                <span className="text-[10px] text-amber-900 block font-mono">MEMO-2026-9041</span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-700 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
 
           <Link
             href="/signup"
@@ -1024,7 +1048,7 @@ export default function AdvocatePortalPage() {
         </main>
       </div>
 
-      {/* CASE DOCKET & SETTLEMENT MODAL WITH VOICE BRIEF AUDIO PLAYER */}
+      {/* CASE DOCKET & SETTLEMENT MODAL WITH VOICE BRIEF & OPINION MEMO LINK */}
       {selectedCase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
@@ -1137,6 +1161,26 @@ export default function AdvocatePortalPage() {
                       </span>
                     </div>
                     <span className="font-mono font-bold text-emerald-900 text-sm">ETB {selectedCase.escrow_amount}</span>
+                  </div>
+
+                  {/* PILLAR 4 ACTION: GENERATE LEGAL OPINION MEMO */}
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5 font-bold text-[#0A1128]">
+                        <FileText className="w-4 h-4 text-amber-600" />
+                        <span>{language === 'am' ? 'ይፋዊ የህግ አስተያየት ሰነድ (A4 PDF)' : 'Official Legal Opinion Memo'}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        {language === 'am' ? 'የተሟላ የህግ ትንታኔ ሰነድ ለደንበኛው በPDF ያውጡ' : 'Issue verifiable consultation summary with MOJ seal for client'}
+                      </p>
+                    </div>
+                    <Link
+                      href="/memo/MEMO-2026-9041"
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+                    >
+                      <span>{language === 'am' ? 'ሰነዱን ክፈት / አትም' : 'Open / Export Memo'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
 
                   {selectedCase.settlement_status === 'delivered' ? (
