@@ -1,697 +1,685 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
-  ShieldCheck, Search, Star, Phone, CheckCircle2, Lock, 
-  ArrowRight, ArrowLeft, Mic, Square, Play, Pause, RotateCcw, 
-  Scale, FileText, Building2, Briefcase, Home as HomeIcon,
-  Users, Check, AlertCircle, Sparkles, Smartphone, Landmark, Clock
+  Search, ShieldCheck, Star, MapPin, Lock, ArrowRight, 
+  Video, Phone, Building2, Scale, X, Check, AlertCircle, 
+  Smartphone, Clock, Home as HomeIcon, Globe, FileText,
+  Languages, User, LogOut, Menu
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Advocate {
   id: string;
   name: string;
-  amharic_name: string;
-  tier: 'Top Match' | 'Fast Responder' | 'Senior Specialist';
-  role: string;
+  amharicName: string;
+  title: string;
+  amharicTitle: string;
   barLicense: string;
-  experience: string;
+  courtStanding: string;
+  amharicCourtStanding: string;
+  categories: string[];
   hourlyRate: number;
+  experienceYears: number;
   rating: number;
   reviewsCount: number;
-  practiceAreas: string[];
+  location: string;
+  languagesSpoken: string[];
+  badges: string[];
   bio: string;
-  badgeColor: string;
+  amharicBio: string;
+  availability: string;
 }
 
 const ADVOCATES_DIRECTORY: Advocate[] = [
   {
-    id: 'adv-001',
+    id: 'ETH-BAR-2018-0492',
     name: 'Advocate Mulu Haile',
-    amharic_name: 'ጠበቃ ሙሉ ኃይሌ',
-    tier: 'Top Match',
-    role: 'Corporate Restructuring & Capital Markets',
+    amharicName: 'ጠበቃ ሙሉ ኃይሌ',
+    title: 'Senior Corporate & Capital Markets Counsel',
+    amharicTitle: 'ከፍተኛ የንግድና ካፒታል ገበያ አማካሪ',
     barLicense: 'ETH-BAR-2018-0492',
-    experience: '12 Years (Federal Supreme Court)',
+    courtStanding: 'Federal Supreme Court & Cassation Division Qualified',
+    amharicCourtStanding: 'የፌዴራል ጠቅላይ ፍርድ ቤት እና ሰበር ሰሚ ችሎት ተሟጋች',
+    categories: ['corporate', 'capital-markets'],
     hourlyRate: 1500,
+    experienceYears: 12,
     rating: 4.95,
     reviewsCount: 442,
-    practiceAreas: ['Corporate & Commercial', 'Capital Markets & ESX', 'Tax Law'],
+    location: 'Bole, Addis Ababa',
+    languagesSpoken: ['Amharic', 'English'],
+    badges: ['Top Match', 'ECMA Accredited'],
     bio: 'Specialist in Commercial Code Art. 495 share company conversions, ECMA Directive 1030/2024 compliance, and Addis Ababa Chamber arbitration.',
-    badgeColor: 'bg-amber-50 text-amber-900 border-amber-200'
+    amharicBio: 'በአዲሱ የንግድ ህግ አዋጅ 1240/2021 የኩባንያ መልሶ ማዋቀር፣ የውጭ ኢንቨስትመንት ፍቃድ እና የካፒታል ገበያ ባለስልጣን ተገዢነት ላይ የካበተ ልምድ ያላቸው ባለሙያ።',
+    availability: 'Available Today'
   },
   {
-    id: 'adv-002',
+    id: 'ETH-BAR-2020-1104',
     name: 'Advocate Tigist Bekele',
-    amharic_name: 'ጠበቃ ትዕግሥት በቀለ',
-    tier: 'Fast Responder',
-    role: 'Labor Relations & Family Law Counsel',
+    amharicName: 'ጠበቃ ትዕግሥት በቀለ',
+    title: 'Labor Relations & Family Law Counsel',
+    amharicTitle: 'የሠራተኛና አሠሪ ህግ ባለሙያ',
     barLicense: 'ETH-BAR-2020-1104',
-    experience: '8 Years (Federal High Court)',
+    courtStanding: 'Federal High Court Qualified',
+    amharicCourtStanding: 'የፌዴራል ከፍተኛ ፍርድ ቤት ጠበቃ',
+    categories: ['employment', 'family'],
     hourlyRate: 1200,
+    experienceYears: 8,
     rating: 4.88,
     reviewsCount: 312,
-    practiceAreas: ['Employment & Labor', 'Family & Civil Law'],
+    location: 'Kirkos, Addis Ababa',
+    languagesSpoken: ['Amharic', 'English', 'Afaan Oromoo'],
+    badges: ['Fast Responder', 'Mediation Expert'],
     bio: 'Experienced litigator specializing in Labor Proclamation No. 1156/2019 claims, collective bargaining, and amicable civil divorce settlements.',
-    badgeColor: 'bg-blue-50 text-blue-900 border-blue-200'
+    amharicBio: 'በአዋጅ ቁጥር 1156/2019 መሰረት በስራ ቅጥር ውሎች፣ በህብረት ስምምነቶች እና በስንብት ክፍያ ክርክሮች ላይ ልዩ ድጋፍ የሚሰጡ አማካሪ።',
+    availability: 'Available Tomorrow'
   },
   {
-    id: 'adv-003',
+    id: 'ETH-BAR-2015-0081',
     name: 'Advocate Dawit Tesfaye',
-    amharic_name: 'ጠበቃ ዳዊት ተስፋዬ',
-    tier: 'Senior Specialist',
-    role: 'Real Estate & Land Administration Counsel',
+    amharicName: 'ጠበቃ ዳዊት ተስፋዬ',
+    title: 'Real Estate & Land Administration Counsel',
+    amharicTitle: 'የመሬት ይዞታና ሪል እስቴት ህግ ባለሙያ',
     barLicense: 'ETH-BAR-2015-0081',
-    experience: '15 Years (Cassation Division)',
+    courtStanding: 'Cassation Division Senior Litigator',
+    amharicCourtStanding: 'የፌዴራል ጠቅላይ ፍርድ ቤት ሰበር ሰሚ ችሎት ከፍተኛ ጠበቃ',
+    categories: ['property', 'corporate'],
     hourlyRate: 1800,
+    experienceYears: 15,
     rating: 4.92,
     reviewsCount: 521,
-    practiceAreas: ['Real Estate & Land', 'Commercial Tenancy'],
+    location: 'Yeka, Addis Ababa',
+    languagesSpoken: ['Amharic', 'English'],
+    badges: ['Senior Specialist', 'Land Due Diligence'],
     bio: 'Extensive litigation experience across municipal land tenure transfers, commercial title deed verification, and Cassation precedent appeals.',
-    badgeColor: 'bg-emerald-50 text-emerald-900 border-emerald-200'
+    amharicBio: 'በማዘጋጃ ቤት የመሬት ይዞታዎች፣ የካርታ ትክክለኛነት ማረጋገጫ፣ የሊዝ መብት ዝውውር እና የሪል እስቴት ክርክሮች ላይ የ15 ዓመታት የሙግት ልምድ።',
+    availability: 'Next Opening: Thursday'
   }
 ];
 
-export default function FindALawyerPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+export default function FindLawyerPage() {
+  const { language, toggleLanguage, t } = useLanguage();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  // Intake Modal State
   const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
-
-  // 1: Lawyer Selection | 2: Case Intake & Audio | 3: Telebirr Escrow | 4: Confirmed
-  const [bookingStep, setBookingStep] = useState<1 | 2 | 3 | 4>(1);
-
-  // Intake State
+  const [modalStep, setModalStep] = useState<1 | 2 | 3>(1);
+  
+  // Step 1: Matter Dossier
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
-  const [caseDescription, setCaseDescription] = useState('');
-  const [intakeMode, setIntakeMode] = useState<'text' | 'voice'>('text');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [matterCategory, setMatterCategory] = useState('Corporate & Commercial');
+  const [matterDetails, setMatterDetails] = useState('');
+  
+  // Step 2: Schedule & Format
+  const [sessionType, setSessionType] = useState<'video' | 'in_person' | 'phone'>('video');
+  const [sessionDate, setSessionDate] = useState('Tomorrow, 10:00 AM EAT');
 
-  // MediaRecorder Voice Brief Engine
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Step 3: Authorization State
+  const [isAuthorizing, setIsAuthorizing] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [telebirrUssdCode, setTelebirrUssdCode] = useState<string | null>(null);
 
-  // Telebirr Checkout State
-  const [telebirrStatus, setTelebirrStatus] = useState<'idle' | 'pushing' | 'pin_pending' | 'success'>('idle');
-  const [telebirrPin, setTelebirrPin] = useState('');
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingSeconds(0);
-
-      timerIntervalRef.current = setInterval(() => {
-        setRecordingSeconds((prev) => prev + 1);
-      }, 1000);
-    } catch (err) {
-      alert('Microphone access is required to record a voice brief.');
+  const handlePhoneChange = (val: string) => {
+    setClientPhone(val);
+    const cleaned = val.replace(/\s+/g, '');
+    if (!cleaned) {
+      setPhoneError(null);
+      return;
     }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
-      setIsRecording(false);
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    }
-  };
-
-  const resetRecording = () => {
-    setAudioUrl(null);
-    setRecordingSeconds(0);
-    setIsRecording(false);
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-  };
-
-  const toggleAudioPreview = () => {
-    if (!audioPlayerRef.current || !audioUrl) return;
-    if (isPlayingPreview) {
-      audioPlayerRef.current.pause();
-      setIsPlayingPreview(false);
+    const ethiopianPhoneRegex = /^(\+251|0)(9|7)\d{8}$/;
+    if (!ethiopianPhoneRegex.test(cleaned)) {
+      setPhoneError(
+        language === 'am' 
+          ? 'እባክዎ ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (ለምሳሌ 0911... ወይም 0712...)' 
+          : 'Please enter a valid Ethiopian phone number (e.g. 0911... or 0712...)'
+      );
     } else {
-      audioPlayerRef.current.play();
-      setIsPlayingPreview(true);
+      setPhoneError(null);
     }
   };
 
-  const handleTriggerTelebirrEscrow = () => {
-    setTelebirrStatus('pushing');
-    setTimeout(() => {
-      setTelebirrStatus('pin_pending');
-    }, 1500);
+  const handleOpenBooking = (advocate: Advocate) => {
+    setSelectedAdvocate(advocate);
+    setModalStep(1);
+    setBookingSuccess(false);
+    setTelebirrUssdCode(null);
   };
 
-  const handleConfirmPin = (e: React.FormEvent) => {
+  const handleNextToSchedule = (e: React.FormEvent) => {
     e.preventDefault();
-    if (telebirrPin.length < 4) return;
-    setTelebirrStatus('success');
+    const cleaned = clientPhone.replace(/\s+/g, '');
+    const ethiopianPhoneRegex = /^(\+251|0)(9|7)\d{8}$/;
+    if (!ethiopianPhoneRegex.test(cleaned)) {
+      setPhoneError(
+        language === 'am' 
+          ? 'ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ማስገባት ግዴታ ነው' 
+          : 'A valid Ethiopian phone number is required'
+      );
+      return;
+    }
+    setModalStep(2);
+  };
+
+  const handleConfirmEscrowHold = () => {
+    setIsAuthorizing(true);
     setTimeout(() => {
-      setBookingStep(4);
-    }, 1200);
+      setIsAuthorizing(false);
+      setBookingSuccess(true);
+      setTelebirrUssdCode(`*127*${Math.floor(100000 + Math.random() * 900000)}#`);
+    }, 1600);
   };
 
   const filteredAdvocates = ADVOCATES_DIRECTORY.filter((adv) => {
-    const matchesCat = selectedCategory === 'all' || adv.practiceAreas.some(pa => pa.toLowerCase().includes(selectedCategory.toLowerCase()));
-    const matchesQuery = adv.name.toLowerCase().includes(searchQuery.toLowerCase()) || adv.bio.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesQuery;
+    const matchesCategory = selectedCategory === 'all' || adv.categories.includes(selectedCategory);
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = 
+      adv.name.toLowerCase().includes(query) ||
+      adv.amharicName.includes(query) ||
+      adv.title.toLowerCase().includes(query) ||
+      adv.courtStanding.toLowerCase().includes(query) ||
+      adv.barLicense.toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
   });
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       
-      {/* Header with Clickable Return Arrow */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Home</span>
-            </Link>
-            <Link href="/" className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="LegalLink" className="w-8 h-8 object-contain" />
-              <span className="font-black text-lg text-[#0A1128]">
+      {/* 1. Global Navigation Bar - Unified Across Site */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+          
+          <Link href="/" className="flex items-center gap-3 shrink-0 mr-2">
+            <img 
+              src="/logo.png" 
+              alt="LegalLink" 
+              className="w-9 h-9 object-contain" 
+            />
+            <div className="flex flex-col">
+              <span className="font-black text-xl tracking-tight text-[#0A1128]">
                 Legal<span className="text-amber-500">Link</span>
               </span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest -mt-1 hidden sm:block">
+                {language === 'am' ? 'ኢትዮጵያ' : 'Ethiopia'}
+              </span>
+            </div>
+          </Link>
+
+          <nav className="hidden xl:flex items-center gap-6 text-xs font-bold text-slate-600">
+            <Link href="/" className="hover:text-[#0A1128] transition-colors whitespace-nowrap flex items-center gap-1">
+              <HomeIcon className="w-3.5 h-3.5 text-slate-400" />
+              <span>{t('nav_home')}</span>
+            </Link>
+
+            <Link href="/find-a-lawyer" className="text-[#0A1128] font-black border-b-2 border-amber-500 pb-1 whitespace-nowrap">
+              {t('nav_find_lawyer')}
+            </Link>
+
+            <Link href="/practice-areas" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
+              {t('nav_practice_areas')}
+            </Link>
+
+            <Link href="/diaspora" className="hover:text-[#0A1128] transition-colors flex items-center gap-1.5 text-blue-600 font-bold whitespace-nowrap">
+              <Globe className="w-3.5 h-3.5" />
+              <span>{t('nav_diaspora')}</span>
+            </Link>
+
+            <Link href="/memo/MEMO-2026-9041" className="hover:text-[#0A1128] transition-colors flex items-center gap-1 text-amber-700 font-bold whitespace-nowrap">
+              <FileText className="w-3.5 h-3.5 text-amber-600" />
+              <span>{language === 'am' ? 'የህግ አስተያየት' : 'Legal Memo'}</span>
+              <span className="bg-amber-100 text-amber-900 text-[9px] px-1.5 py-0.5 rounded-full font-black">
+                A4
+              </span>
+            </Link>
+
+            <Link href="/#about" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
+              {t('nav_about')}
+            </Link>
+
+            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors whitespace-nowrap">
+              {t('nav_legaltalk')}
+            </Link>
+          </nav>
+
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
+            <button
+              onClick={toggleLanguage}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 text-xs font-bold text-slate-700 flex items-center gap-1.5 bg-slate-50 shadow-xs cursor-pointer"
+            >
+              <Languages className="w-3.5 h-3.5 text-amber-600" />
+              <span>{language === 'en' ? 'አማርኛ' : 'English'}</span>
+            </button>
+
+            <Link 
+              href="/for-lawyers" 
+              className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-2 py-2 transition-colors whitespace-nowrap hidden lg:block"
+            >
+              {t('nav_for_advocates')}
+            </Link>
+
+            <Link 
+              href="/login" 
+              className="text-xs font-bold text-slate-600 hover:text-[#0A1128] px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors whitespace-nowrap"
+            >
+              {t('nav_sign_in')}
+            </Link>
+
+            <Link 
+              href="/find-a-lawyer" 
+              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 group whitespace-nowrap"
+            >
+              <span>{t('nav_book_consultation')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="flex items-center gap-6 text-xs font-bold">
-            <Link href="/" className="text-slate-500 hover:text-[#0A1128] transition-colors hidden sm:block">
-              Home
-            </Link>
-            <Link href="/practice-areas" className="text-slate-500 hover:text-[#0A1128] transition-colors hidden sm:block">
-              Practice Areas
-            </Link>
-            <Link href="/tools" className="text-slate-500 hover:text-[#0A1128] transition-colors flex items-center gap-1.5">
-              <span>Legal Tools</span>
-              <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-black">
-                FREE
-              </span>
-            </Link>
-            <Link 
-              href="/login" 
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all"
+          <div className="flex xl:hidden items-center gap-2">
+            <button
+              onClick={toggleLanguage}
+              className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold bg-slate-50 text-slate-700 cursor-pointer sm:hidden"
             >
-              Sign In
-            </Link>
+              {language === 'en' ? 'አማ' : 'EN'}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
+              aria-label="Toggle Menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
+
         </div>
       </header>
 
-      {/* Main Booking Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
+      {/* Main Container - Single Level Without Redundant Back Button Row */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
         
-        {/* Breadcrumb Return Link */}
-        <div className="flex items-center justify-between">
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Return to Homepage</span>
-          </Link>
-
-          <span className="text-xs text-slate-400 font-medium">
-            Step {bookingStep} of 4: {
-              bookingStep === 1 ? 'Select Advocate' :
-              bookingStep === 2 ? 'Case Intake' :
-              bookingStep === 3 ? 'Telebirr Escrow' : 'Booking Confirmed'
-            }
-          </span>
-        </div>
-
-        {/* Banner with Escrow Safeguard */}
-        <div className="bg-[#0A1128] text-white p-8 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
-          <div className="space-y-2">
-            <span className="text-amber-400 font-bold uppercase tracking-widest text-[10px]">
+        {/* Prestige Hero Card */}
+        <div className="bg-[#0A1128] text-white p-7 sm:p-9 rounded-3xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block font-mono">
               CONFIDENTIAL CLIENT INTAKE
             </span>
             <h1 className="text-2xl sm:text-3xl font-black">
-              Find Verified Legal Counsel
+              {language === 'am' ? 'የተረጋገጡ የኢትዮጵያ ጠበቆችን ያግኙ' : 'Find Verified Legal Counsel'}
             </h1>
-            <p className="text-xs text-slate-300 max-w-xl leading-relaxed font-normal">
-              Select an accredited advocate, describe your legal matter, and lock your consultation retainer in <strong>Telebirr Escrow</strong>. Retainers are released only after your consultation is complete.
+            <p className="text-xs text-slate-300 font-normal leading-relaxed">
+              {language === 'am'
+                ? 'በፍትህ ሚኒስቴር የተመረመሩ ጠበቆችን ይምረጡ፤ ጉዳይዎን ያስረዱ፤ ክፍያዎን በቴሌብር የዋስትና ሂሳብ ውስጥ ያስቀምጡ። አገልግሎቱ ሲጠናቀቅ ብቻ ክፍያው ይለቀቃል።'
+                : 'Select an accredited advocate, describe your legal matter, and lock your consultation retainer in Telebirr Escrow. Retainers are released only after consultation is complete.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-800/80 px-5 py-4 rounded-2xl border border-slate-700 text-xs">
-            <ShieldCheck className="w-7 h-7 text-emerald-400 shrink-0" />
-            <div>
-              <span className="text-slate-400 block text-[10px] font-bold uppercase">Client Protection</span>
-              <span className="font-black text-white">Commercial Code 1240/2021 Escrow</span>
+          <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl flex items-center gap-3 shrink-0">
+            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+            <div className="text-xs">
+              <span className="text-[10px] text-slate-400 uppercase font-mono block">CLIENT PROTECTION</span>
+              <strong className="text-white text-xs">Commercial Code 1240/2021 Escrow</strong>
             </div>
           </div>
         </div>
 
-        {/* STEP 1: LAWYER SELECTION DIRECTORY */}
-        {bookingStep === 1 && (
-          <div className="space-y-6">
-            
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <input
-                  type="text"
-                  placeholder="Search by legal subject or advocate..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:border-[#0A1128]"
-                />
-              </div>
+        {/* Search & Categories Filter */}
+        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+            <input
+              type="text"
+              placeholder={language === 'am' ? 'በጠበቃ ስም፣ የፍቃድ ቁጥር፣ ወይም የህግ ዘርፍ ይፈልጉ...' : 'Search by legal subject or advocate...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128] transition-colors"
+            />
+          </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 text-xs font-bold">
-                {[
-                  { id: 'all', label: 'All Practice Areas' },
-                  { id: 'corporate', label: 'Corporate & M&A' },
-                  { id: 'property', label: 'Real Estate & Land' },
-                  { id: 'employment', label: 'Labor Law' }
-                ].map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-4 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                      selectedCategory === cat.id
-                        ? 'bg-[#0A1128] text-white shadow-xs'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            {[
+              { id: 'all', label: language === 'am' ? 'ሁሉም ዘርፎች' : 'All Practice Areas' },
+              { id: 'corporate', label: language === 'am' ? 'የንግድና ኩባንያ' : 'Corporate & M&A' },
+              { id: 'property', label: language === 'am' ? 'የመሬትና ይዞታ' : 'Real Estate & Land' },
+              { id: 'employment', label: language === 'am' ? 'የሠራተኛና አሠሪ' : 'Labor Law' }
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-xl whitespace-nowrap font-bold transition-all cursor-pointer ${
+                  selectedCategory === cat.id
+                    ? 'bg-[#0A1128] text-white shadow-xs'
+                    : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {filteredAdvocates.map((adv) => (
-                <div
-                  key={adv.id}
-                  className="bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between space-y-6 shadow-xs hover:border-slate-400 transition-all hover:shadow-md"
-                >
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${adv.badgeColor}`}>
-                        {adv.tier}
-                      </span>
-                      <div className="flex items-center gap-1 text-slate-800 font-bold text-xs">
-                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                        <span>{adv.rating}</span>
-                        <span className="text-slate-400 font-normal">({adv.reviewsCount})</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-black text-[#0A1128]">{adv.name}</h3>
-                      <span className="text-[11px] font-medium text-slate-400 block">{adv.amharic_name}</span>
-                      <span className="text-xs text-slate-600 block mt-1 font-semibold">{adv.role}</span>
-                    </div>
-
-                    <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                      {adv.bio}
-                    </p>
-
-                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5 text-[11px]">
-                      <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{adv.barLicense}</span>
-                      </div>
-                      <div className="text-slate-500">{adv.experience}</div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Fixed Retainer</span>
-                      <strong className="text-sm font-black text-[#0A1128]">ETB {adv.hourlyRate.toLocaleString()}</strong>
-                      <span className="text-[9px] text-emerald-600 block font-semibold">Telebirr Escrow Protected</span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setSelectedAdvocate(adv);
-                        setBookingStep(2);
-                      }}
-                      className="px-5 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
-                    >
-                      <span>Consult</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+        {/* Advocates Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {filteredAdvocates.map((adv) => (
+            <div 
+              key={adv.id}
+              className="card-hover bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between space-y-5 shadow-xs"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase">
+                    {adv.badges[0]}
+                  </span>
+                  <div className="flex items-center gap-1 text-slate-700 font-bold text-xs">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <span>{adv.rating}</span>
+                    <span className="text-slate-400 font-normal">({adv.reviewsCount})</span>
                   </div>
                 </div>
-              ))}
-            </div>
 
-          </div>
-        )}
+                <div>
+                  <h2 className="text-base font-black text-[#0A1128]">
+                    {language === 'am' ? adv.amharicName : adv.name}
+                  </h2>
+                  <span className="text-xs text-slate-500 block">
+                    {language === 'am' ? adv.amharicTitle : adv.title}
+                  </span>
+                </div>
 
-        {/* STEP 2: INTAKE WITH VOICE BRIEF RECORDING */}
-        {bookingStep === 2 && selectedAdvocate && (
-          <div className="max-w-2xl mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
-            
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <button
-                onClick={() => setBookingStep(1)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Change Advocate</span>
-              </button>
-
-              <div className="text-right">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">Selected Advocate</span>
-                <span className="text-xs font-black text-[#0A1128]">{selectedAdvocate.name}</span>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <h2 className="text-xl font-black text-[#0A1128]">Describe Your Legal Situation</h2>
-              <p className="text-xs text-slate-500">Provide details in English or Amharic so counsel can prepare statutory authorities before your session.</p>
-            </div>
-
-            <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setIntakeMode('text')}
-                className={`py-2 rounded-xl transition-all cursor-pointer ${
-                  intakeMode === 'text' ? 'bg-white text-[#0A1128] shadow-xs' : 'text-slate-500'
-                }`}
-              >
-                Written Brief
-              </button>
-              <button
-                type="button"
-                onClick={() => setIntakeMode('voice')}
-                className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  intakeMode === 'voice' ? 'bg-white text-[#0A1128] shadow-xs' : 'text-slate-500'
-                }`}
-              >
-                <Mic className="w-3.5 h-3.5 text-amber-500" />
-                <span>Record Voice Brief (የድምፅ መግለጫ)</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Your Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Dawit Alemu"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                />
-              </div>
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Telebirr Mobile Number *</label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="0911 000 000"
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                />
-              </div>
-            </div>
-
-            {intakeMode === 'text' && (
-              <div className="text-xs space-y-1">
-                <label className="block font-bold text-slate-700">Case Summary / Specific Dispute *</label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Summarize your situation (e.g. Lease dispute in Bole, commercial contract drafting, or employment severance calculation)..."
-                  value={caseDescription}
-                  onChange={(e) => setCaseDescription(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                />
-              </div>
-            )}
-
-            {intakeMode === 'voice' && (
-              <div className="p-6 bg-amber-50/60 border border-amber-200 rounded-2xl text-xs space-y-4 text-center">
-                <span className="font-bold text-amber-950 block">Voice Brief Engine</span>
-                <p className="text-[11px] text-slate-600 max-w-md mx-auto">
-                  Speak comfortably in Amharic or English. Explain what happened and what resolution you seek. Your advocate will listen directly in their workspace.
+                <p className="text-xs text-slate-600 leading-relaxed font-normal line-clamp-3">
+                  {language === 'am' ? adv.amharicBio : adv.bio}
                 </p>
 
-                <div className="flex flex-col items-center justify-center gap-3">
-                  {!audioUrl ? (
-                    isRecording ? (
-                      <button
-                        type="button"
-                        onClick={stopRecording}
-                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl flex items-center gap-2 shadow-md cursor-pointer animate-pulse"
-                      >
-                        <Square className="w-4 h-4 fill-white" />
-                        <span>Stop Recording ({recordingSeconds}s)</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={startRecording}
-                        className="px-6 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-2xl flex items-center gap-2 shadow-md cursor-pointer"
-                      >
-                        <Mic className="w-4 h-4 text-amber-400" />
-                        <span>Start Recording Brief</span>
-                      </button>
-                    )
-                  ) : (
-                    <div className="w-full bg-white p-4 rounded-2xl border border-amber-200 space-y-3">
-                      <audio ref={audioPlayerRef} src={audioUrl} onEnded={() => setIsPlayingPreview(false)} className="hidden" />
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-emerald-800 font-bold">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Voice brief recorded successfully</span>
-                        </div>
-                        <span className="font-mono text-slate-500">{recordingSeconds}s</span>
-                      </div>
-
-                      <div className="flex items-center justify-center gap-3 pt-2">
-                        <button
-                          type="button"
-                          onClick={toggleAudioPreview}
-                          className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
-                        >
-                          {isPlayingPreview ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                          <span>{isPlayingPreview ? 'Pause' : 'Listen Preview'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={resetRecording}
-                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl flex items-center gap-1 cursor-pointer"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Re-record</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1 text-xs">
+                  <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px]">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>{adv.barLicense}</span>
+                  </div>
+                  <div className="text-slate-500 text-[10px]">
+                    {adv.experienceYears} Years ({adv.courtStanding.split('&')[0].trim()})
+                  </div>
                 </div>
               </div>
-            )}
 
-            <button
-              type="button"
-              disabled={!clientName || !clientPhone}
-              onClick={() => setBookingStep(3)}
-              className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-black rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <span>Continue to Telebirr Escrow Payment</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-          </div>
-        )}
-
-        {/* STEP 3: TELEBIRR ESCROW PAYMENT */}
-        {bookingStep === 3 && selectedAdvocate && (
-          <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6">
-            
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <button
-                onClick={() => setBookingStep(2)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Edit Brief</span>
-              </button>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase">
-                Escrow Hold
-              </span>
-            </div>
-
-            <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
-                <Smartphone className="w-6 h-6" />
-              </div>
-              <h2 className="text-xl font-black text-[#0A1128]">Authorize Retainer via Telebirr</h2>
-              <p className="text-xs text-slate-500">
-                Authorized via Ethio Telecom USSD Push. Your funds stay in statutory escrow until the consultation is delivered.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600">
-                <span>Advocate Initial Retainer:</span>
-                <span className="font-mono font-bold text-slate-800">ETB {selectedAdvocate.hourlyRate.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>LegalLink Escrow Custody Fee:</span>
-                <span className="font-mono font-bold text-emerald-700">ETB 0.00 (Free)</span>
-              </div>
-              <div className="pt-2 border-t border-slate-200 flex justify-between font-black text-[#0A1128]">
-                <span>Total Escrow Amount:</span>
-                <span className="font-mono text-sm">ETB {selectedAdvocate.hourlyRate.toLocaleString()}</span>
-              </div>
-            </div>
-
-            {telebirrStatus === 'idle' && (
-              <button
-                type="button"
-                onClick={handleTriggerTelebirrEscrow}
-                className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
-              >
-                <span>Send USSD Push to {clientPhone || 'Your Phone'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
-
-            {telebirrStatus === 'pushing' && (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-center space-y-2">
-                <Clock className="w-5 h-5 text-amber-600 animate-spin mx-auto" />
-                <span className="text-xs font-bold text-amber-950 block">Connecting with Ethio Telecom Gateway...</span>
-                <p className="text-[10px] text-amber-800">Dispatching USSD Prompt *127# to your mobile.</p>
-              </div>
-            )}
-
-            {telebirrStatus === 'pin_pending' && (
-              <form onSubmit={handleConfirmPin} className="space-y-4">
-                <div className="p-4 bg-slate-900 text-white rounded-2xl text-center space-y-2">
-                  <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest block">
-                    TELEBIRR USSD PUSH RECEIVED
-                  </span>
-                  <p className="text-xs">Enter your 4-digit Telebirr PIN to lock ETB {selectedAdvocate.hourlyRate} in escrow.</p>
-                  <input
-                    type="password"
-                    maxLength={4}
-                    required
-                    placeholder="••••"
-                    value={telebirrPin}
-                    onChange={(e) => setTelebirrPin(e.target.value)}
-                    className="w-32 mx-auto text-center py-2 bg-slate-800 border border-slate-700 rounded-xl font-mono text-lg tracking-widest text-white focus:outline-none focus:border-amber-400"
-                  />
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">FIXED RETAINER</span>
+                  <strong className="text-sm font-black text-[#0A1128]">ETB {adv.hourlyRate.toLocaleString()}</strong>
+                  <span className="text-[9px] text-emerald-700 block font-semibold">Telebirr Escrow Protected</span>
                 </div>
 
                 <button
-                  type="submit"
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
+                  onClick={() => handleOpenBooking(adv)}
+                  className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer group"
                 >
-                  Confirm & Lock Escrow
+                  <span>{language === 'am' ? 'ቀጠሮ ይያዙ' : 'Consult'}</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </button>
-              </form>
-            )}
-
-            {telebirrStatus === 'success' && (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-2">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto" />
-                <span className="text-xs font-bold text-emerald-950 block">Telebirr Payment Authorized!</span>
-                <p className="text-[10px] text-emerald-800">Generating escrow custody certificate...</p>
-              </div>
-            )}
-
-          </div>
-        )}
-
-        {/* STEP 4: CONSULTATION CONFIRMED */}
-        {bookingStep === 4 && selectedAdvocate && (
-          <div className="max-w-lg mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-sm space-y-6 text-center">
-            
-            <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
-              <Check className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-widest">
-                ESCROW LOCKED & BRIEF DISPATCHED
-              </span>
-              <h2 className="text-2xl font-black text-[#0A1128]">Consultation Confirmed!</h2>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-normal">
-                Your consultation request and case brief have been placed directly into <strong>{selectedAdvocate.name}&apos;s docket</strong>.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left text-xs space-y-2.5 font-medium">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Advocate:</span>
-                <span className="text-slate-900 font-bold">{selectedAdvocate.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Escrow Hold Reference:</span>
-                <span className="font-mono font-bold text-slate-800">ETH-ESCROW-2026-9041</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Telebirr Retainer:</span>
-                <span className="font-mono font-bold text-emerald-700">ETB {selectedAdvocate.hourlyRate.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Audio Brief Attached:</span>
-                <span className="font-bold text-amber-700">{audioUrl ? 'Yes (Amharic Recording)' : 'Written Brief Only'}</span>
               </div>
             </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/advocate"
-                className="flex-1 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all text-center"
-              >
-                View in Advocate Docket
-              </Link>
-              <Link
-                href="/"
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all text-center"
-              >
-                Return Home
-              </Link>
-            </div>
-
-          </div>
-        )}
+          ))}
+        </div>
 
       </main>
 
+      {/* 3-Step Intake Modal */}
+      {selectedAdvocate && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl space-y-6 text-xs max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block font-mono">
+                  LEGAL CONSULTATION INTAKE
+                </span>
+                <strong className="text-base font-black text-[#0A1128] mt-0.5 block">
+                  {language === 'am' ? selectedAdvocate.amharicName : selectedAdvocate.name}
+                </strong>
+              </div>
+              <button
+                onClick={() => setSelectedAdvocate(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {!bookingSuccess && (
+              <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-100 rounded-2xl text-center text-[10px] font-bold">
+                <div className={`py-1.5 rounded-xl ${modalStep === 1 ? 'bg-white text-[#0A1128] shadow-xs' : 'text-slate-500'}`}>
+                  1. Dossier
+                </div>
+                <div className={`py-1.5 rounded-xl ${modalStep === 2 ? 'bg-white text-[#0A1128] shadow-xs' : 'text-slate-500'}`}>
+                  2. Schedule
+                </div>
+                <div className={`py-1.5 rounded-xl ${modalStep === 3 ? 'bg-white text-[#0A1128] shadow-xs' : 'text-slate-500'}`}>
+                  3. Escrow Hold
+                </div>
+              </div>
+            )}
+
+            {modalStep === 1 && !bookingSuccess && (
+              <form onSubmit={handleNextToSchedule} className="space-y-4">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Full Legal Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dawit Alemu"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Ethiopian Mobile Number (Telebirr) *</label>
+                  <div className="relative">
+                    <Smartphone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="0911 000 000 or 0712 000 000"
+                      value={clientPhone}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+                  {phoneError && (
+                    <div className="flex items-center gap-1.5 text-red-600 text-[11px] font-semibold mt-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>{phoneError}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Brief Situation Summary *</label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="Provide a concise overview for counsel..."
+                    value={matterDetails}
+                    onChange={(e) => setMatterDetails(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <span>Continue to Schedule</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {modalStep === 2 && !bookingSuccess && (
+              <div className="space-y-4">
+                <span className="font-bold text-slate-700 block">Select Consultation Mode</span>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSessionType('video')}
+                    className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                      sessionType === 'video' ? 'bg-[#0A1128] text-white border-[#0A1128]' : 'bg-slate-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <Video className="w-4 h-4" />
+                    <span className="font-bold text-[11px]">Video Call</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSessionType('in_person')}
+                    className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                      sessionType === 'in_person' ? 'bg-[#0A1128] text-white border-[#0A1128]' : 'bg-slate-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span className="font-bold text-[11px]">Office Visit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSessionType('phone')}
+                    className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 text-center cursor-pointer transition-all ${
+                      sessionType === 'phone' ? 'bg-[#0A1128] text-white border-[#0A1128]' : 'bg-slate-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <Phone className="w-4 h-4" />
+                    <span className="font-bold text-[11px]">Phone Call</span>
+                  </button>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                  <label className="block font-bold text-slate-700">Proposed Slot</label>
+                  <select
+                    value={sessionDate}
+                    onChange={(e) => setSessionDate(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 cursor-pointer"
+                  >
+                    <option value="Tomorrow, 10:00 AM EAT">Tomorrow, 10:00 AM EAT</option>
+                    <option value="Tomorrow, 02:30 PM EAT">Tomorrow, 02:30 PM EAT</option>
+                    <option value="Thursday, 09:30 AM EAT">Thursday, 09:30 AM EAT</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalStep(1)}
+                    className="text-slate-500 font-bold hover:text-slate-800 cursor-pointer"
+                  >
+                    ← Back
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalStep(3)}
+                    className="px-6 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <span>Continue to Escrow</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {modalStep === 3 && !bookingSuccess && (
+              <div className="space-y-4">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-emerald-950">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Commercial Code Proclamation 1240/2021 Escrow</span>
+                  </div>
+                  <p className="text-emerald-900 leading-relaxed font-normal text-[11px]">
+                    Retainer fees remain in regulatory escrow. Funds transfer to the advocate only after the consultation is fulfilled and authorized by your confirmation voucher.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 font-mono">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Advocate Initial Retainer:</span>
+                    <span>ETB {selectedAdvocate.hourlyRate.toLocaleString()}</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-200 flex justify-between font-bold text-sm text-[#0A1128]">
+                    <span>Total Escrow Hold:</span>
+                    <span>ETB {selectedAdvocate.hourlyRate.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalStep(2)}
+                    className="text-slate-500 font-bold hover:text-slate-800 cursor-pointer"
+                  >
+                    ← Back
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isAuthorizing}
+                    onClick={handleConfirmEscrowHold}
+                    className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span>{isAuthorizing ? 'Pushing USSD Prompt...' : 'Authorize Escrow Hold via Telebirr'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {bookingSuccess && (
+              <div className="text-center space-y-4 py-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-[#0A1128]">
+                    Consultation Escrow Hold Activated!
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    A Telebirr USSD push prompt has been initiated to {clientPhone}.
+                  </p>
+                </div>
+
+                {telebirrUssdCode && (
+                  <div className="p-3 bg-slate-100 rounded-2xl max-w-xs mx-auto font-mono text-xs font-bold text-slate-800">
+                    <span>Manual USSD Code: </span>
+                    <span className="text-emerald-700">{telebirrUssdCode}</span>
+                  </div>
+                )}
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                  <Link
+                    href="/escrow"
+                    className="px-5 py-2.5 bg-[#0A1128] text-white font-bold rounded-xl text-center"
+                  >
+                    Track on Escrow Desk
+                  </Link>
+                  <button
+                    onClick={() => setSelectedAdvocate(null)}
+                    className="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-        LegalLink Ethiopia • Verified Legal Services Marketplace • Bole Sub-City, Addis Ababa
+      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 mt-auto">
+        LegalLink Ethiopian Bar Directory • Ministry of Justice Regulatory Audit Node • Addis Ababa
       </footer>
 
     </div>
