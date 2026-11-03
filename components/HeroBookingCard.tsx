@@ -19,10 +19,10 @@ export default function HeroBookingCard() {
       {/* Main Glass Booking Card */}
       <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xl shadow-slate-200/60 border border-slate-200 space-y-5 relative">
         
-        {/* Floating Live Indicator Pill */}
+        {/* Floating Live Indicator Pill (Generic Expression) */}
         <div className="absolute -top-3.5 left-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-xs text-[11px] font-bold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{t('widget_online_pill')}</span>
+          <span>{language === 'am' ? 'የተረጋገጡ ጠበቆች በመስመር ላይ' : 'Active Verified Counsel'}</span>
         </div>
 
         {/* Lawyer Profile Header */}
@@ -58,7 +58,7 @@ export default function HeroBookingCard() {
           </div>
           <strong className="font-bold">5.0</strong>
           <span className="text-slate-400 font-normal">
-            • 248 {language === 'am' ? 'ምክክሮች' : 'consultations'}
+            • {language === 'am' ? 'ከፍተኛ የተገልጋይ ግምገማ' : 'Top Verified Rating'}
           </span>
         </div>
 
@@ -100,7 +100,7 @@ export default function HeroBookingCard() {
           </Link>
         </div>
 
-        {/* Floating Seal in Bottom Right Corner */}
+        {/* Floating Seal */}
         <div className="flex justify-end pt-1">
           <div className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

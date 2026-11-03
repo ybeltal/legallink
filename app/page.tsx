@@ -6,7 +6,7 @@ import {
   ArrowRight, ShieldCheck, Star, Sparkles, Building2, 
   Users, Home as HomeIcon, Briefcase, Scale, Globe, 
   CheckCircle2, FileText, ChevronRight, Lock, DollarSign,
-  Languages, Quote, Phone, Mail, MapPin
+  Languages, Quote, Phone, Mail, MapPin, Calendar, Clock
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import HeroBookingCard from '@/components/HeroBookingCard';
@@ -75,7 +75,7 @@ export default function HomePage() {
       location: 'Addis Ababa',
       rating: '5.0',
       reviews: '248',
-      consultations: '438',
+      consultations: 'Senior',
       experience: '12',
       rate: '1,500',
       bio: 'Specializes in company formation, M&A transactions, and corporate governance.',
@@ -89,7 +89,7 @@ export default function HomePage() {
       location: 'Addis Ababa',
       rating: '4.9',
       reviews: '193',
-      consultations: '312',
+      consultations: 'Senior',
       experience: '9',
       rate: '1,200',
       bio: 'Experienced in divorce proceedings, child custody, adoption, and inheritance.',
@@ -103,7 +103,7 @@ export default function HomePage() {
       location: 'Bahir Dar',
       rating: '4.8',
       reviews: '167',
-      consultations: '521',
+      consultations: 'Senior',
       experience: '15',
       rate: '1,800',
       bio: 'Handles land rights, title transfers, lease agreements, and property disputes.',
@@ -117,7 +117,7 @@ export default function HomePage() {
       location: 'Addis Ababa',
       rating: '4.9',
       reviews: '142',
-      consultations: '274',
+      consultations: 'Senior',
       experience: '8',
       rate: '2,000',
       bio: 'Expert in Ethiopian immigration law, diaspora legal matters, and cross-border estates.',
@@ -132,86 +132,139 @@ export default function HomePage() {
       {/* 01. Global Navigation Bar */}
       <Navbar />
 
-      {/* 02. Asymmetric Hero Section with Centered Lady Justice Backdrop */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-white to-[#F8FAFC]">
+      {/* 02. Asymmetric Hero Section with Unobstructed Lady Justice */}
+      <section className="relative pt-14 pb-20 md:pt-24 md:pb-32 overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-[#F8FAFC]">
         
-        {/* Layer: Animated Lady Justice positioned so scales hang in central gap */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden flex items-center justify-center select-none">
-          {/* Ambient Warm Golden Glow directly behind the scales */}
-          <div className="absolute left-[50%] md:left-[54%] top-[46%] -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-amber-400/20 rounded-full blur-3xl animate-pulse-glow" />
+        {/* Layer: Unobstructed Lady Justice on the Right */}
+        <div className="absolute right-[-4%] md:right-[2%] lg:right-[6%] top-1/2 -translate-y-1/2 w-[340px] sm:w-[480px] lg:w-[560px] h-full pointer-events-none z-0 flex items-center justify-center select-none">
+          {/* Ambient Warm Golden Glow */}
+          <div className="absolute w-[380px] h-[380px] bg-amber-400/25 rounded-full blur-3xl animate-pulse-glow" />
           
-          {/* Lady Justice Statue */}
-          <div className="relative w-full h-full flex items-center justify-center translate-x-0 md:translate-x-[6%] lg:translate-x-[10%]">
-            <img 
-              src="/lady-justice.png" 
-              alt="" 
-              aria-hidden="true"
-              className="w-[640px] sm:w-[740px] max-w-none object-contain animate-float-slow mask-radial-fade filter drop-shadow-2xl opacity-22" 
-            />
-          </div>
+          {/* Lady Justice Statue - Fully visible, scales and sword open */}
+          <img 
+            src="/lady-justice.png" 
+            alt="Lady Justice" 
+            aria-hidden="true"
+            className="w-full h-auto object-contain animate-float-slow mask-radial-fade filter drop-shadow-2xl opacity-40 md:opacity-50" 
+          />
         </div>
 
         {/* Foreground Hero Content Container */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="max-w-2xl space-y-6 text-center lg:text-left">
             
-            {/* Hero Left Column */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                <span>{t('hero_badge')}</span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0A1128] tracking-tight leading-tight">
-                {t('hero_title_1')}<br className="hidden sm:inline" />
-                <span className="text-amber-500">{t('hero_title_2')}</span>
-              </h1>
-
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
-                {t('hero_sub')}
-              </p>
-
-              {/* Dual Action CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center lg:justify-start">
-                <Link
-                  href="/find-a-lawyer"
-                  className="px-6 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm group"
-                >
-                  <span>{t('hero_cta_find')}</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  href="/find-a-lawyer"
-                  className="px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs rounded-xl flex items-center justify-center transition-all shadow-xs"
-                >
-                  <span>{t('hero_cta_start')}</span>
-                </Link>
-              </div>
-
-              {/* 4 Credential Stat Badges */}
-              <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto lg:mx-0">
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 text-center shadow-xs">
-                  <div className="text-lg font-black text-[#0A1128] font-mono">500+</div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('hero_stat_lawyers')}</span>
-                </div>
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 text-center shadow-xs">
-                  <div className="text-lg font-black text-[#0A1128] font-mono">12,000+</div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('hero_stat_consultations')}</span>
-                </div>
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 text-center shadow-xs">
-                  <div className="text-lg font-black text-[#0A1128] font-mono">97%</div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('hero_stat_satisfaction')}</span>
-                </div>
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 text-center shadow-xs">
-                  <div className="text-lg font-black text-[#0A1128] font-mono">&lt; 2hrs</div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{t('hero_stat_response')}</span>
-                </div>
-              </div>
-
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span>{t('hero_badge')}</span>
             </div>
 
-            {/* Hero Right Column: Floating Advocate Booking Widget */}
-            <div className="lg:col-span-5 flex justify-center relative z-10">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#0A1128] tracking-tight leading-tight">
+              {t('hero_title_1')}<br className="hidden sm:inline" />
+              <span className="text-amber-500">{t('hero_title_2')}</span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
+              {t('hero_sub')}
+            </p>
+
+            {/* Dual Action CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center lg:justify-start">
+              <Link
+                href="/find-a-lawyer"
+                className="px-7 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm group"
+              >
+                <span>{t('hero_cta_find')}</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <a
+                href="#consultation-spotlight"
+                className="px-7 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs rounded-xl flex items-center justify-center transition-all shadow-xs"
+              >
+                <span>{language === 'am' ? 'ቀጠሮ መያዣን ይመልከቱ' : 'Quick Consultation'}</span>
+              </a>
+            </div>
+
+            {/* 4 Generic & General Trust Badges */}
+            <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto lg:mx-0">
+              <div className="p-3.5 bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 text-center shadow-xs">
+                <div className="text-base sm:text-lg font-black text-[#0A1128]">100%</div>
+                <span className="text-[10px] text-slate-500 font-bold uppercase block mt-0.5">
+                  {language === 'am' ? 'በፍትህ ሚ/ር የተረጋገጠ' : 'MOJ Licensed'}
+                </span>
+              </div>
+
+              <div className="p-3.5 bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 text-center shadow-xs">
+                <div className="text-base sm:text-lg font-black text-emerald-700 font-mono">Escrow</div>
+                <span className="text-[10px] text-slate-500 font-bold uppercase block mt-0.5">
+                  {language === 'am' ? 'ቴሌብር ዋስትና' : 'Telebirr Custody'}
+                </span>
+              </div>
+
+              <div className="p-3.5 bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 text-center shadow-xs">
+                <div className="text-base sm:text-lg font-black text-amber-600 font-mono">Fixed</div>
+                <span className="text-[10px] text-slate-500 font-bold uppercase block mt-0.5">
+                  {language === 'am' ? 'ግልጽ ተመን' : 'Clear Retainers'}
+                </span>
+              </div>
+
+              <div className="p-3.5 bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 text-center shadow-xs">
+                <div className="text-base sm:text-lg font-black text-[#0A1128] font-mono">Direct</div>
+                <span className="text-[10px] text-slate-500 font-bold uppercase block mt-0.5">
+                  {language === 'am' ? 'ባለሁለት ቋንቋ' : 'Bilingual Counsel'}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 03. Dedicated Instant Consultation Spotlight Section (Moved Here Without Overlapping Statue) */}
+      <section id="consultation-spotlight" className="py-16 md:py-20 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            {/* Left Value Info */}
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10px] font-bold uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{language === 'am' ? 'ቀጥተኛ የህግ ማማከር ቀጠሮ' : 'Verified Direct Consultation'}</span>
+              </div>
+
+              <h2 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+                {language === 'am' 
+                  ? 'ከከፍተኛ የኢትዮጵያ ጠበቆች ጋር በቀጥታ ቀጠሮ ይያዙ' 
+                  : 'Book Verified Counsel in Minutes'}
+              </h2>
+
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
+                {language === 'am'
+                  ? 'የተረጋገጡ የከፍተኛና ጠቅላይ ፍርድ ቤት ጠበቆችን የዛሬ ክፍት ሰዓታት ይመልከቱ። እያንዳንዱ ክፍያ በኢትዮጵያ ንግድ ህግ አዋጅ 1240/2021 መሰረት በቴሌብር ዋስትና ሂሳብ ውስጥ አገልግሎቱ እስከሚሰጥ ድረስ በጥንቃቄ ይቀመጣል።'
+                  : 'Review real-time advocate docket openings across corporate, property, and civil disputes. Every fee is safely locked in Telebirr two-party escrow until your consultation is completed.'}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-bold text-slate-700 max-w-lg mx-auto lg:mx-0 text-left">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{language === 'am' ? 'ምንም ያልተጠበቀ ተጨማሪ ወጪ የለም' : 'Transparent fixed consultation rates'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{language === 'am' ? 'በቪዲዮ፣ በስልክ ወይም በቢሮ መገናኘት' : 'Video, phone, or office chamber visit'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{language === 'am' ? 'በቴሌብር USSD ቀጥታ ክፍያ ማጽደቅ' : 'Direct Telebirr USSD authorization'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{language === 'am' ? 'ሙሉ ሚስጥራዊነት የተጠበቀ' : 'End-to-end confidential client intake'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: The Live Booking Card Widget */}
+            <div className="lg:col-span-5 flex justify-center">
               <HeroBookingCard />
             </div>
 
@@ -219,8 +272,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 03. Process Section: How It Works */}
-      <section className="py-16 md:py-24 bg-white border-y border-slate-200">
+      {/* 04. Process Section: How It Works */}
+      <section className="py-16 md:py-24 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -236,7 +289,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card-hover bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+            <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
               <span className="text-3xl font-black text-slate-200 font-mono block">01</span>
               <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step1_title')}</h3>
               <p className="text-xs text-slate-500 leading-relaxed font-normal">
@@ -244,7 +297,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="card-hover bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+            <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
               <span className="text-3xl font-black text-amber-300 font-mono block">02</span>
               <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step2_title')}</h3>
               <p className="text-xs text-slate-500 leading-relaxed font-normal">
@@ -252,7 +305,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="card-hover bg-[#F8FAFC] p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
+            <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-4 shadow-xs">
               <span className="text-3xl font-black text-emerald-300 font-mono block">03</span>
               <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step3_title')}</h3>
               <p className="text-xs text-slate-500 leading-relaxed font-normal">
@@ -264,8 +317,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 04. Practice Areas (8-Card Balanced Grid) */}
-      <section className="py-16 md:py-24 bg-[#F8FAFC]">
+      {/* 05. Practice Areas (8-Card Balanced Grid) */}
+      <section className="py-16 md:py-24 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -297,10 +350,10 @@ export default function HomePage() {
                 <Link
                   key={idx}
                   href={`/find-a-lawyer?category=${area.slug}`}
-                  className="card-hover bg-white p-6 rounded-3xl border border-slate-200 hover:border-slate-300 flex flex-col justify-between space-y-4 shadow-xs group"
+                  className="card-hover bg-[#F8FAFC] p-6 rounded-3xl border border-slate-200 hover:border-slate-300 flex flex-col justify-between space-y-4 shadow-xs group"
                 >
                   <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#0A1128] group-hover:bg-[#0A1128] group-hover:text-white transition-colors">
+                    <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-[#0A1128] group-hover:bg-[#0A1128] group-hover:text-white transition-colors">
                       <Icon className="w-5 h-5" />
                     </div>
                     <h3 className="text-sm font-bold text-[#0A1128]">{area.title}</h3>
@@ -319,8 +372,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 05. Featured Lawyers Carousel Section */}
-      <section className="py-16 md:py-24 bg-white border-y border-slate-200">
+      {/* 06. Featured Lawyers Carousel Section */}
+      <section className="py-16 md:py-24 bg-[#F8FAFC] border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -374,7 +427,7 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-2 gap-2 py-2 border-y border-slate-100 text-center font-mono">
                     <div className="p-1.5 bg-slate-50 rounded-xl">
-                      <span className="text-[9px] text-slate-400 uppercase block">{t('fl_consultations')}</span>
+                      <span className="text-[9px] text-slate-400 uppercase block">{language === 'am' ? 'ደረጃ' : 'Standing'}</span>
                       <strong className="text-xs text-slate-800">{lawyer.consultations}</strong>
                     </div>
                     <div className="p-1.5 bg-slate-50 rounded-xl">
@@ -407,7 +460,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 06. ★ MID-PAGE: ETHIOPIAN DIASPORA LEGAL SERVICES HUB */}
+      {/* 07. ★ MID-PAGE: ETHIOPIAN DIASPORA LEGAL SERVICES HUB */}
       <section className="bg-gradient-to-r from-blue-950 via-[#0A1128] to-slate-950 text-white py-16 md:py-24 border-y border-blue-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -480,7 +533,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 07. "Why LegalLink" Institutional Trust Hub (Dark Section) */}
+      {/* 08. "Why LegalLink" Institutional Trust Hub (Dark Section) */}
       <section id="about" className="bg-[#0A1128] text-white py-20 md:py-28 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           
@@ -494,26 +547,6 @@ export default function HomePage() {
             <p className="text-xs sm:text-sm text-slate-400 font-normal">
               {t('why_sub')}
             </p>
-          </div>
-
-          {/* Big Statistics Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pb-12 border-b border-slate-800">
-            <div>
-              <div className="text-3xl sm:text-5xl font-black text-white font-mono">500+</div>
-              <span className="text-xs text-slate-400 font-medium block mt-1">{t('why_lawyers_stat')}</span>
-            </div>
-            <div>
-              <div className="text-3xl sm:text-5xl font-black text-white font-mono">12,000+</div>
-              <span className="text-xs text-slate-400 font-medium block mt-1">{t('why_consult_stat')}</span>
-            </div>
-            <div>
-              <div className="text-3xl sm:text-5xl font-black text-white font-mono">97%</div>
-              <span className="text-xs text-slate-400 font-medium block mt-1">{t('why_satisfaction_stat')}</span>
-            </div>
-            <div>
-              <div className="text-3xl sm:text-5xl font-black text-white font-mono">18</div>
-              <span className="text-xs text-slate-400 font-medium block mt-1">{t('why_areas_stat')}</span>
-            </div>
           </div>
 
           {/* 4 Trust Feature Pillars */}
@@ -562,7 +595,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 08. LexDraft Document Automation Section */}
+      {/* 09. LexDraft Document Automation Section */}
       <section id="lexdraft" className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -625,7 +658,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 09. LegalTalk Knowledge & Educational Hub */}
+      {/* 10. LegalTalk Knowledge & Educational Hub */}
       <section className="py-20 md:py-28 bg-[#F8FAFC] border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -736,7 +769,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 10. Verified Client Testimonials */}
+      {/* 11. Verified Client Testimonials */}
       <section className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 text-center">
           
@@ -782,12 +815,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 11. Enterprise Footer */}
+      {/* 12. Enterprise Footer */}
       <footer className="bg-[#0A1128] text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             
-            {/* Col 1: Brand & Contact Info */}
             <div className="space-y-4 col-span-2">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
@@ -810,12 +842,11 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Bole Road, Addis Ababa, Ethiopia</span>
+                  <span>{t('footer_address')}</span>
                 </div>
               </div>
             </div>
 
-            {/* Col 2: Platform Links */}
             <div className="space-y-3">
               <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 {t('footer_platform_title')}
@@ -828,7 +859,6 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Col 3: Resources Links */}
             <div className="space-y-3">
               <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 {t('footer_resources_title')}
@@ -841,7 +871,6 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Col 4: Company & Legal */}
             <div className="space-y-3">
               <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 {t('footer_company_title')}
@@ -856,7 +885,6 @@ export default function HomePage() {
 
           </div>
 
-          {/* Footer Disclaimer & Rights */}
           <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
             <p>{t('footer_rights')}</p>
             <p>{t('footer_disclaimer')}</p>
