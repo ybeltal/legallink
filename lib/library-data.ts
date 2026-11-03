@@ -11,7 +11,7 @@ export interface LegalDocumentItem {
   summary: string;
   amharicSummary: string;
   practiceArea: string;
-  fileUrl: string;
+  fileUrl?: string; // Optional direct Supabase storage link
   pages: number;
   badge?: 'Most Downloaded' | 'Essential' | 'Updated 2026';
 }
@@ -31,8 +31,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Essential',
     summary: 'The modernized Commercial Code governing business organizations, Single-Member PLCs, share companies, commercial bankruptcy, and general mercantile contracts.',
     amharicSummary: 'የንግድ ማህበራት ምስረታን፣ ባለአንድ አባል ኃ/የተ/የግ/ማህበርን፣ አክሲዮን ማህበራትንና የንግድ ውሎችን የሚገዛው ዋናው የንግድ ህግ ሰነድ።',
-    practiceArea: 'corporate',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/proclamations/1240-2021.pdf'
+    practiceArea: 'corporate'
   },
   {
     id: 'labour-proclamation-1156-2019',
@@ -48,8 +47,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Most Downloaded',
     summary: 'Comprehensive statutory framework for employment contracts, probation rules (60-day maximum), severance pay calculation, annual leave, and lawful dismissal procedures.',
     amharicSummary: 'የስራ ቅጥር ውልን፣ የሙከራ ጊዜን (እስከ 60 ቀናት)፣ የስንብት ክፍያንና የስራ ሰዓትን የሚደነግገው የሰራተኛና አሰሪ ህግ አዋጅ።',
-    practiceArea: 'employment',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/proclamations/1156-2019.pdf'
+    practiceArea: 'employment'
   },
   {
     id: 'investment-proclamation-1180-2020',
@@ -63,10 +61,9 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     downloadCount: 2980,
     pages: 42,
     badge: 'Updated 2026',
-    summary: 'Governs foreign direct investment (FDI), reserved sectors, joint ventures, capital registration minimums, and dispute resolution mechanisms under the Ethiopian Investment Commission (EIC).',
+    summary: 'Governs foreign direct investment (FDI), reserved sectors, joint ventures, capital registration minimums, and dispute resolution mechanisms under the EIC.',
     amharicSummary: 'የውጭ ኢንቨስትመንት መስፈርቶችን፣ ዝቅተኛ የካፒታል ምዝገባንና ለሀገር ውስጥ ባለሀብቶች ብቻ የተከለሉ ዘርፎችን የሚያብራራ አዋጅ።',
-    practiceArea: 'corporate',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/proclamations/1180-2020.pdf'
+    practiceArea: 'corporate'
   },
   {
     id: 'urban-land-lease-721-2011',
@@ -82,8 +79,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Essential',
     summary: 'Foundational land law detailing municipal lease tenders, landholding certificate (ካርታ) assignments, lease period durations, and expropriation compensation criteria.',
     amharicSummary: 'የከተማ መሬት በሊዝ ጨረታ ስለሚሰጥበት አሰራር፣ የይዞታ ማረጋገጫ (ካርታ) ዝውውርና የካሳ አከፋፈልን የሚደነግግ ህግ።',
-    practiceArea: 'property',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/proclamations/721-2011.pdf'
+    practiceArea: 'property'
   },
   {
     id: 'tax-administration-983-2016',
@@ -98,12 +94,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     pages: 68,
     summary: 'Rules on taxpayer identification numbers (TIN), assessment procedures, tax audits, penalties, administrative appeals, and Ministry of Revenues enforcement powers.',
     amharicSummary: 'የግብር ከፋይ መለያ ቁጥር (TIN) አሰጣጥ፣ የታክስ ኦዲት፣ ቅጣትና ይግባኝ አቀራረብ ስርዓትን የሚደነግግ አዋጅ።',
-    practiceArea: 'tax',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/proclamations/983-2016.pdf'
+    practiceArea: 'tax'
   },
   {
     id: 'civil-code-1960',
-    title: 'Civil Code of the Empire of Ethiopia (Unamended Core)',
+    title: 'Civil Code of the Empire of Ethiopia (Core Proclamation)',
     amharicTitle: 'የኢትዮጵያ ፍትሐብሔር ሕግ (1952 ዓ.ም)',
     category: 'Proclamations',
     amharicCategory: 'አዋጆች',
@@ -115,8 +110,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Essential',
     summary: 'The primary substantive law of contracts, immovable property leases (Art. 2896), obligations, sales of goods, tort liabilities, and general power of attorney mandates.',
     amharicSummary: 'የውል ህግ፣ የቤትና የመሬት ኪራይ (አንቀጽ 2896)፣ የሽያጭ ውሎችና የውክልና ህግጋትን የያዘው ታሪካዊና ዋነኛው የፍትሐብሔር ህግ።',
-    practiceArea: 'general',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/civil_code.pdf'
+    practiceArea: 'general'
   },
   {
     id: 'ecma-directive-1030-2024',
@@ -132,8 +126,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Updated 2026',
     summary: 'Ethiopian Capital Market Authority (ECMA) regulations for licensing investment banks, brokers, digital trading platforms, and securities custodians on the ESX.',
     amharicSummary: 'የኢትዮጵያ ካፒታል ገበያ ባለስልጣን የኢንቨስትመንት ባንኮችና የአክሲዮን ደላሎች ፈቃድ አሰጣጥን በተመለከተ ያወጣው መመሪያ።',
-    practiceArea: 'corporate',
-    fileUrl: 'https://www.lawethiopia.com/images/law/directives/ecma-1030-2024.pdf'
+    practiceArea: 'corporate'
   },
   {
     id: 'nbe-fxd-foreign-exchange-2024',
@@ -149,8 +142,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Updated 2026',
     summary: 'Establishes market-determined foreign exchange rates, foreign currency retention rules for exporters, diaspora bank account limits, and offshore payment clearances.',
     amharicSummary: 'የውጭ ምንዛሪ ገበያ መመሪያ፤ የላኪዎችና የዲያስፖራ የውጭ ምንዛሪ ሂሳብ አጠቃቀምን እና ዓለም አቀፍ ክፍያዎችን የሚገዛ።',
-    practiceArea: 'corporate',
-    fileUrl: 'https://www.nbe.gov.et/directives/fxd-2024.pdf'
+    practiceArea: 'corporate'
   },
   {
     id: 'dara-standard-poa-form',
@@ -166,8 +158,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Most Downloaded',
     summary: 'The standardized Ministry of Justice / DARA form required for executing and notarizing general or special powers of attorney for banking, land, and vehicle transfers.',
     amharicSummary: 'በሰነዶች ምዝገባና ማረጋገጫ ኤጀንሲ ፊት የውክልና ስልጣን ለመስጠትና ለማረጋገጥ የሚያስፈልግ ይፋዊ ማመልከቻ ቅጽ።',
-    practiceArea: 'general',
-    fileUrl: 'https://www.dara.gov.et/forms/poa_standard_form.pdf'
+    practiceArea: 'general'
   },
   {
     id: 'court-statement-of-claim-form',
@@ -182,8 +173,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     pages: 4,
     summary: 'Model civil statement of claim formatted according to the Civil Procedure Code. Includes plaintiff and defendant particulars, cause of action, and remedy claims.',
     amharicSummary: 'በፍትሐብሔር ስነ-ስርዓት ህጉ መሰረት የከሳሽና ተከሳሽ ዝርዝር፣ የክሱ ምክንያትና የዳኝነት ጥያቄ የሚቀርብበት መደበኛ የክስ ማመልከቻ ቅጽ።',
-    practiceArea: 'general',
-    fileUrl: 'https://www.fsc.gov.et/forms/statement_of_claim.pdf'
+    practiceArea: 'general'
   },
   {
     id: 'customs-tariff-regulation-468-2020',
@@ -198,8 +188,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     pages: 140,
     summary: 'Customs duties schedules, HS codes classification, tariff rates, import surtaxes, and exemption categories for capital goods and manufacturing equipment.',
     amharicSummary: 'የጉምሩክ ቀረጥ ተመን፣ የሸቀጦች ታሪፍ ምደባ (HS Code) እና ከቀረጥ ነፃ የሚገቡ የካፒታል እቃዎችን የሚዘረዝር ደንብ።',
-    practiceArea: 'corporate',
-    fileUrl: 'https://www.lawethiopia.com/images/law/regulations/468-2020.pdf'
+    practiceArea: 'corporate'
   },
   {
     id: 'electronic-transactions-1205-2020',
@@ -215,7 +204,6 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     badge: 'Updated 2026',
     summary: 'Legal foundation recognizing digital signatures, electronic contracts, digital receipts, consumer e-commerce rights, and authentication authority regulations in Ethiopia.',
     amharicSummary: 'የዲጂታል ፊርማ ህጋዊ ተቀባይነትን፣ የኤሌክትሮኒክ ውሎችንና የመስመር ላይ ግብይት ደህንነትን የሚያረጋግጥ አዋጅ።',
-    practiceArea: 'corporate',
-    fileUrl: 'https://www.lawethiopia.com/images/law/federal_laws/proclamations/1205-2020.pdf'
+    practiceArea: 'corporate'
   }
 ];
