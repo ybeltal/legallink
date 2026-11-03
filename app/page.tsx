@@ -132,21 +132,23 @@ export default function HomePage() {
       {/* 01. Global Navigation Bar */}
       <Navbar />
 
-      {/* 02. Asymmetric Hero Section with Animated Lady Justice Backdrop */}
+      {/* 02. Asymmetric Hero Section with Centered Lady Justice Backdrop */}
       <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-white to-[#F8FAFC]">
         
-        {/* Layer: Animated Lady Justice Backdrop */}
-        <div className="absolute right-[-6%] top-1/2 -translate-y-1/2 w-full md:w-3/5 h-[130%] pointer-events-none z-0 overflow-hidden flex items-center justify-center opacity-15 select-none">
-          {/* Ambient Warm Golden Glow */}
-          <div className="absolute w-[440px] h-[440px] bg-amber-400/25 rounded-full blur-3xl animate-pulse-glow" />
+        {/* Layer: Animated Lady Justice positioned so scales hang in central gap */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden flex items-center justify-center select-none">
+          {/* Ambient Warm Golden Glow directly behind the scales */}
+          <div className="absolute left-[50%] md:left-[54%] top-[46%] -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-amber-400/20 rounded-full blur-3xl animate-pulse-glow" />
           
-          {/* Floating Lady Justice Statue */}
-          <img 
-            src="/lady-justice.png" 
-            alt="" 
-            aria-hidden="true"
-            className="w-[580px] max-w-none object-contain animate-float-slow mask-radial-fade filter drop-shadow-2xl" 
-          />
+          {/* Lady Justice Statue */}
+          <div className="relative w-full h-full flex items-center justify-center translate-x-0 md:translate-x-[6%] lg:translate-x-[10%]">
+            <img 
+              src="/lady-justice.png" 
+              alt="" 
+              aria-hidden="true"
+              className="w-[640px] sm:w-[740px] max-w-none object-contain animate-float-slow mask-radial-fade filter drop-shadow-2xl opacity-22" 
+            />
+          </div>
         </div>
 
         {/* Foreground Hero Content Container */}
@@ -808,7 +810,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{t('footer_address')}</span>
+                  <span>Bole Road, Addis Ababa, Ethiopia</span>
                 </div>
               </div>
             </div>
