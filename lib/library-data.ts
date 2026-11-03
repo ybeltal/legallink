@@ -30,7 +30,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '2.4 MB',
     downloadCount: 5410,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/docs/ELECTRONIC/109395/135677/F-1440073284/ETH109395.pdf',
+    fileUrl: 'https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/109825/ETH109825.pdf',
     badge: 'Most Downloaded'
   },
   {
@@ -46,7 +46,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '1.1 MB',
     downloadCount: 1320,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=80922'
+    fileUrl: 'https://mols.gov.et/wp-content/uploads/2024/01/Ethiopia_Right_to_Employment_of_Persons_with_Disability_Proclamation.pdf'
   },
   {
     id: 'doc-3',
@@ -61,7 +61,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '1.8 MB',
     downloadCount: 2840,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.byCountry?p_lang=en&p_country=ETH',
+    fileUrl: 'https://mols.gov.et/wp-content/uploads/2025/09/%E1%8B%A8%E1%8B%8D%E1%8C%AD_%E1%88%80%E1%8C%88%E1%88%AD_%E1%88%A5%E1%88%AB_%E1%88%B5%E1%88%9D%E1%88%AA%E1%89%B5_%E1%8A%A0%E1%8B%8B%E1%8C%85_%E1%89%81%E1%8C%A5%E1%88%AD_13892017_.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -77,7 +77,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.6 MB',
     downloadCount: 3410,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://www.ffic.gov.et/Portals/0/______1268.pdf'
   },
   {
     id: 'doc-5',
@@ -92,7 +92,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.7 MB',
     downloadCount: 2280,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1267-2014.pdf'
   },
   {
     id: 'doc-6',
@@ -107,7 +107,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '1.2 MB',
     downloadCount: 1650,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=87884'
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2010/pr_690_2010.pdf'
   },
   {
     id: 'doc-7',
@@ -122,7 +122,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX',
     fileSize: '0.9 MB',
     downloadCount: 910,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth216615.pdf'
   },
 
   // B. Constitution, civil, criminal and family law (8–15)
@@ -139,7 +139,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '3.4 MB',
     downloadCount: 9480,
-    fileUrl: 'https://www.wipo.int/edocs/lexdocs/laws/en/et/et007en.pdf',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1-1987.pdf',
     badge: 'Essential'
   },
   {
@@ -155,7 +155,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '0.8 MB',
     downloadCount: 1420,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8591'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-2-1987.pdf'
   },
   {
     id: 'doc-10',
@@ -170,7 +170,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '9.8 MB',
     downloadCount: 8940,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/docs/ELECTRONIC/85124/95123/F882414761/ETH85124.pdf',
+    fileUrl: 'https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/52399/ETH52399 Eng.pdf',
     badge: 'Essential'
   },
   {
@@ -186,7 +186,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '0.7 MB',
     downloadCount: 2420,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=85125'
+    fileUrl: 'https://natlex.ilo.org/dyn/natlex2/r/natlex/fe/details?p3_isn=52399&utm_source=chatgpt.com'
   },
   {
     id: 'doc-12',
@@ -201,7 +201,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '4.2 MB',
     downloadCount: 5120,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/85142/ETH85142.pdf',
     badge: 'Essential'
   },
   {
@@ -217,7 +217,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '5.6 MB',
     downloadCount: 6180,
-    fileUrl: 'https://www.refworld.org/pdfid/49216b572.pdf',
+    fileUrl: 'https://moe.gov.et/storage/Books/Civil Procedure Code %28English%29.pdf',
     badge: 'Essential'
   },
   {
@@ -233,7 +233,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '2.9 MB',
     downloadCount: 4890,
-    fileUrl: 'https://www.refworld.org/pdfid/4c0cae802.pdf'
+    fileUrl: 'https://www.refworld.org/sites/default/files/legacy-pdf/en/2005-5/49216b572.pdf'
   },
   {
     id: 'doc-15',
@@ -248,7 +248,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '0.8 MB',
     downloadCount: 1980,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://fjli.gov.et/Tedocs/CE/e7.pdf'
   },
 
   // C. Courts, justice, governance and civil society (16–26)
@@ -265,7 +265,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.1 MB',
     downloadCount: 3950,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1070-2010.pdf'
   },
   {
     id: 'doc-17',
@@ -280,7 +280,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.4 MB',
     downloadCount: 1620,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1234-2013.pdf'
   },
   {
     id: 'doc-18',
@@ -295,7 +295,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.9 MB',
     downloadCount: 3820,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/07/1233.pdf',
     badge: 'Essential'
   },
   {
@@ -311,7 +311,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.6 MB',
     downloadCount: 2890,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2021/08/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1249-2013.pdf'
   },
   {
     id: 'doc-20',
@@ -326,7 +326,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'EHRC Official Portal',
     fileSize: '1.2 MB',
     downloadCount: 1490,
-    fileUrl: 'https://ehrc.org/'
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/Administrative procedure proclamation.pdf'
   },
   {
     id: 'doc-21',
@@ -341,7 +341,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.1 MB',
     downloadCount: 1210,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2020/pr_1224_2020.pdf'
   },
   {
     id: 'doc-22',
@@ -356,7 +356,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.7 MB',
     downloadCount: 1840,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://www.ffic.gov.et/Portals/0/1307-2016.pdf'
   },
   {
     id: 'doc-23',
@@ -371,7 +371,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.5 MB',
     downloadCount: 1670,
-    fileUrl: 'https://www.refworld.org/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1236-2013.pdf'
   },
   {
     id: 'doc-24',
@@ -386,7 +386,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNCITRAL / WIPO Lex',
     fileSize: '0.9 MB',
     downloadCount: 2940,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/20275',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1178-2012.pdf',
     badge: 'Essential'
   },
   {
@@ -402,7 +402,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.8 MB',
     downloadCount: 2190,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1184-2012.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -418,7 +418,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAO FAOLEX',
     fileSize: '2.2 MB',
     downloadCount: 3410,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/06/1364.pdf'
   },
 
   // D. Nationality, immigration, refugees and elections (27–34)
@@ -435,7 +435,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.1 MB',
     downloadCount: 3820,
-    fileUrl: 'https://www.refworld.org/docid/409a319f4.html'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth187942.pdf'
   },
   {
     id: 'doc-28',
@@ -450,7 +450,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '1.3 MB',
     downloadCount: 2940,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=65324'
+    fileUrl: 'https://www.refworld.org/sites/default/files/legacy-pdf/en/2003-12/409100414.pdf'
   },
   {
     id: 'doc-29',
@@ -465,7 +465,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.2 MB',
     downloadCount: 2150,
-    fileUrl: 'https://www.refworld.org/',
+    fileUrl: 'https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/85154/ETH85154.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -481,7 +481,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.7 MB',
     downloadCount: 1890,
-    fileUrl: 'https://www.refworld.org/docid/5cb830c74.html'
+    fileUrl: 'https://www.refworld.org/sites/default/files/2026-06/ethiopia_immigration_proclamation_no._354_2003_amended_as_of_2024.pdf'
   },
   {
     id: 'doc-31',
@@ -496,7 +496,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Electoral Board (NEBE)',
     fileSize: '3.1 MB',
     downloadCount: 2450,
-    fileUrl: 'https://www.nebe.org.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1110-2011.pdf'
   },
   {
     id: 'doc-32',
@@ -511,7 +511,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Electoral Board (NEBE)',
     fileSize: '0.9 MB',
     downloadCount: 1120,
-    fileUrl: 'https://www.nebe.org.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1162-2011.pdf'
   },
   {
     id: 'doc-33',
@@ -526,7 +526,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Electoral Board (NEBE)',
     fileSize: '1.1 MB',
     downloadCount: 1560,
-    fileUrl: 'https://www.nebe.org.et/',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2021/03/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1235-2013.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -542,7 +542,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Electoral Board of Ethiopia',
     fileSize: '1.5 MB',
     downloadCount: 1290,
-    fileUrl: 'https://www.nebe.org.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/12/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1394-2017-1.pdf'
   },
 
   // E. Business, investment and trade (35–49)
@@ -559,7 +559,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX',
     fileSize: '4.9 MB',
     downloadCount: 7890,
-    fileUrl: 'https://faolex.fao.org/docs/pdf/eth204646.pdf',
+    fileUrl: 'https://nebe.org.et/sites/default/files/Proc-133-NEBE.pdf',
     badge: 'Essential'
   },
   {
@@ -575,7 +575,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '2.1 MB',
     downloadCount: 5120,
-    fileUrl: 'https://www.investethiopia.gov.et/wp-content/uploads/2021/08/Investment-Proclamation-No.-1180-2020.pdf',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth212017.pdf',
     badge: 'Essential'
   },
   {
@@ -591,7 +591,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '2.3 MB',
     downloadCount: 3210,
-    fileUrl: 'https://www.investethiopia.gov.et/',
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2022/11/Investment-Proclamation-No.-1180_2020-Copy.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -607,7 +607,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.6 MB',
     downloadCount: 3840,
-    fileUrl: 'https://www.investethiopia.gov.et/'
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2024/06/Special_Economic_Zone_Proclamation_No._1322_2024.pdf'
   },
   {
     id: 'doc-39',
@@ -622,7 +622,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.9 MB',
     downloadCount: 1680,
-    fileUrl: 'https://www.investethiopia.gov.et/'
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2022/11/Investment-Regulation-No.-4742020_09-08-2020_0001-2.pdf'
   },
   {
     id: 'doc-40',
@@ -637,7 +637,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.2 MB',
     downloadCount: 1420,
-    fileUrl: 'https://www.investethiopia.gov.et/'
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2022/11/Industrial-Parks-Proclamation-No-886_2015.pdf'
   },
   {
     id: 'doc-41',
@@ -652,7 +652,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.1 MB',
     downloadCount: 1890,
-    fileUrl: 'https://www.investethiopia.gov.et/',
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2022/11/Regualtion_No_313_2014_to_the_Establishment_of_EIC__EIB.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -668,7 +668,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '0.8 MB',
     downloadCount: 1340,
-    fileUrl: 'https://www.investethiopia.gov.et/'
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2025/07/Ethiopian-Investment-Board-Directive-Number-1083-2025-Special-Economic-Zone-Land-Designation-Allocation.pdf'
   },
   {
     id: 'doc-43',
@@ -683,7 +683,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.4 MB',
     downloadCount: 4620,
-    fileUrl: 'https://www.investethiopia.gov.et/',
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2025/06/6_DIRECTIVE_NUMBER_1053_-_2017_%E1%89%A0%E1%8A%A2%E1%89%B5%E1%8B%AE%E1%8C%B5%E1%8B%AB_%E1%8A%A2%E1%8A%95%E1%89%A8%E1%88%B5%E1%89%B5%E1%88%98%E1%8A%95%E1%89%B5_%E1%8A%AE%E1%88%9A%E1%88%BD%E1%8A%95_%E1%88%88%E1%88%9A%E1%88%B0%E1%8C%A1_%E1%8A%A0%E1%8C%88%E1%88%8D%E1%8C%8D%E1%88%8E%E1%89%B6%E1%89%BD_%E1%8B%A8%E1%88%9A%E1%8A%A8%E1%8D%88%E1%88%8D_%E1%8A%AD%E1%8D%8D%E1%8B%AB%E1%8A%95_%E1%88%88%E1%88%98%E1%8B%88%E1%88%B0%E1%8A%95_%E1%8B%A8%E1%8B%88%E1%8C%A3_%E1%8B%A8%E1%8A%A2%E1%89%B5%E1%8B%AE%E1%8C%B5%E1%8B%AB_%E1%8A%A2%E1%8A%95%E1%89%A8%E1%88%B5%E1%89%B5%E1%88%98%E1%8A%95%E1%89%B5_%E1%89%A6%E1%88%AD%E1%8B%B51.pdf',
     badge: 'Essential'
   },
   {
@@ -699,7 +699,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.5 MB',
     downloadCount: 4120,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://investethiopia.gov.et/wp-content/uploads/2025/06/Directive-on-Export-Import-Wholesale-1082-2025.pdf'
   },
   {
     id: 'doc-45',
@@ -714,7 +714,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ECX Portal',
     fileSize: '1.8 MB',
     downloadCount: 2210,
-    fileUrl: 'https://www.ecx.com.et/'
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/980.pdf'
   },
   {
     id: 'doc-46',
@@ -729,7 +729,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ECX Portal',
     fileSize: '0.9 MB',
     downloadCount: 1180,
-    fileUrl: 'https://www.ecx.com.et/'
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/550.ae.pdf'
   },
   {
     id: 'doc-47',
@@ -744,7 +744,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ECX Portal',
     fileSize: '0.8 MB',
     downloadCount: 980,
-    fileUrl: 'https://www.ecx.com.et/'
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/665.pdf'
   },
   {
     id: 'doc-48',
@@ -759,7 +759,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ECX Portal',
     fileSize: '1.2 MB',
     downloadCount: 1350,
-    fileUrl: 'https://www.ecx.com.et/'
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/566.pdf'
   },
   {
     id: 'doc-49',
@@ -774,7 +774,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.3 MB',
     downloadCount: 2980,
-    fileUrl: 'https://www.investethiopia.gov.et/',
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/372.pdf',
     badge: 'Updated 2026'
   },
 
@@ -792,7 +792,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '12.4 MB',
     downloadCount: 6840,
-    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/01/Banking-Business-Proclamation-No.-1360-2025.pdf',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/04/si%E2%96%91seoseN-seusiNse%C2%A1-566-2017.pdf',
     badge: 'Essential'
   },
   {
@@ -808,7 +808,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '14.8 MB',
     downloadCount: 5210,
-    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/01/NBE-Proclamation-No.-1359-2025.pdf',
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/03/Banking-Business-Proclamation-No.-13602025.pdf',
     badge: 'Essential'
   },
   {
@@ -824,7 +824,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.7 MB',
     downloadCount: 2190,
-    fileUrl: 'https://nbe.gov.et/'
+    fileUrl: 'https://nbe.gov.et/files/banking-business-proclamation-2/'
   },
   {
     id: 'doc-53',
@@ -839,7 +839,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '0.9 MB',
     downloadCount: 1820,
-    fileUrl: 'https://nbe.gov.et/'
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/03/National-Bank-of-Ethiopia-Proclamation-13592025.pdf'
   },
   {
     id: 'doc-54',
@@ -854,7 +854,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.0 MB',
     downloadCount: 1980,
-    fileUrl: 'https://nbe.gov.et/'
+    fileUrl: 'https://nbe.gov.et/files/national-bank-of-ethiopia-proclamation-no-1359-2025/'
   },
   {
     id: 'doc-55',
@@ -869,7 +869,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.6 MB',
     downloadCount: 3950,
-    fileUrl: 'https://nbe.gov.et/'
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2023/04/Microfinance-Business-Proclamation.pdf'
   },
   {
     id: 'doc-56',
@@ -884,7 +884,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Capital Market Authority',
     fileSize: '2.8 MB',
     downloadCount: 5890,
-    fileUrl: 'https://ecma.gov.et/wp-content/uploads/2022/08/Capital-Market-Proclamation-No.-1248-2021.pdf',
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2023/04/microfinance-business-proclamation-1164-2019.pdf',
     badge: 'Essential'
   },
   {
@@ -900,7 +900,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Capital Market Authority',
     fileSize: '2.1 MB',
     downloadCount: 3620,
-    fileUrl: 'https://ecma.gov.et/',
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2023/04/insurance-business-proclamation-1163-2019.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -916,7 +916,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Capital Market Authority',
     fileSize: '1.4 MB',
     downloadCount: 2280,
-    fileUrl: 'https://ecma.gov.et/'
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2023/04/nationalpaymentsystem.pdf'
   },
   {
     id: 'doc-59',
@@ -931,7 +931,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '2.3 MB',
     downloadCount: 6410,
-    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2024/07/FXD-01-2024.pdf',
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/Capital-Market-Proclamation-No.1248-2021-unlocked.pdf',
     badge: 'Essential'
   },
   {
@@ -947,7 +947,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.1 MB',
     downloadCount: 3120,
-    fileUrl: 'https://nbe.gov.et/',
+    fileUrl: 'https://ecma.gov.et/wp-content/uploads/2024/11/Directive on Public Offering and Trading of Securities 1030 -2024.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -963,7 +963,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '0.7 MB',
     downloadCount: 1430,
-    fileUrl: 'https://nbe.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2026/01/1047_2017_%E1%88%88%E1%88%85%E1%8B%9D%E1%89%A5_%E1%8B%A8%E1%88%9A%E1%88%B8%E1%8C%A1_%E1%88%B0%E1%8A%90%E1%8B%B0_%E1%88%99%E1%8B%93%E1%88%88_%E1%8A%95%E1%8B%8B%E1%8B%AE%E1%89%BD%E1%8A%95_%E1%8C%8D%E1%8B%91%E1%8B%9D_%E1%8A%A0%E1%88%8D%E1%89%A3_%E1%8B%A8%E1%88%9B%E1%8B%B5%E1%88%A8%E1%8C%8D_%E1%88%98%E1%88%98%E1%88%AA%E1%8B%AB_%E1%89%81%E1%8C%A5%E1%88%AD_1047_2017.pdf'
   },
   {
     id: 'doc-62',
@@ -978,7 +978,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.3 MB',
     downloadCount: 2490,
-    fileUrl: 'https://nbe.gov.et/',
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2024/07/FXD012024-FOREIGN-EXCHANGE-.pdf',
     badge: 'Updated 2026'
   },
 
@@ -996,7 +996,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '3.6 MB',
     downloadCount: 7120,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2026/05/DIRECTIVE-NO.-FXD-05-2026-AMENDMENT-TO-FOREIGN-EXCHANGE-DIRECTIVE-NO.-FXD-01-2024-.pdf',
     badge: 'Essential'
   },
   {
@@ -1012,7 +1012,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.5 MB',
     downloadCount: 2680,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/12/DIRECTIVE-NO.-SBB982025-INVESTMENT-ON-DBE-BONDS-REPEALING-.pdf'
   },
   {
     id: 'doc-65',
@@ -1027,7 +1027,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'EthioData / ECC',
     fileSize: '3.8 MB',
     downloadCount: 4230,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2026/01/DIRECTIVE-NO.-SBB992026-REQUIREMENTS-FOR-LICENSING-A-BANK-BRANCH-TO-OPERATE-IN-SPECIAL-ECONOMIC-ZONE-1-1.pdf'
   },
   {
     id: 'doc-66',
@@ -1042,7 +1042,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Accounting and Auditing Board of Ethiopia',
     fileSize: '1.9 MB',
     downloadCount: 2540,
-    fileUrl: 'https://www.aabe.gov.et/',
+    fileUrl: 'https://lawethiopia.com/images/federal_proclamation/proclamations_by_number/979.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1058,7 +1058,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Accounting & Auditing Board',
     fileSize: '1.4 MB',
     downloadCount: 2890,
-    fileUrl: 'https://www.aabe.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8B%B0%E1%8A%95%E1%89%A5-%E1%89%81%E1%8C%A5%E1%88%AD-485-2014.pdf'
   },
   {
     id: 'doc-68',
@@ -1073,7 +1073,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Accounting and Auditing Board of Ethiopia',
     fileSize: '0.9 MB',
     downloadCount: 1310,
-    fileUrl: 'https://www.aabe.gov.et/'
+    fileUrl: 'https://ethiodata.et/wp-content/uploads/2026/06/Ethiopia-Customs-Proclamation-No.-859_2014.pdf'
   },
 
   // H. Digital services, media and intellectual property (69–81)
@@ -1090,7 +1090,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.4 MB',
     downloadCount: 4680,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://aabe.gov.et/wp-content/uploads/2025/05/Proclamation-No.-1372.2017.pdf',
     badge: 'Essential'
   },
   {
@@ -1106,7 +1106,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'INSA',
     fileSize: '1.4 MB',
     downloadCount: 3120,
-    fileUrl: 'https://www.insa.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8B%B0%E1%8A%95%E1%89%A5-%E1%89%81%E1%8C%A5%E1%88%AD-332-2007.pdf'
   },
   {
     id: 'doc-71',
@@ -1121,7 +1121,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National ID Program (NID)',
     fileSize: '1.9 MB',
     downloadCount: 3840,
-    fileUrl: 'https://id.gov.et/'
+    fileUrl: 'https://aabe.gov.et/wp-content/uploads/2025/06/Federal-Negarit-Gazeta-Regulation-No.-565.2025.pdf'
   },
   {
     id: 'doc-72',
@@ -1136,7 +1136,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.6 MB',
     downloadCount: 2450,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/04/seasiisia-seusiNse%C2%A1-1321-2016.pdf'
   },
   {
     id: 'doc-73',
@@ -1151,7 +1151,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.1 MB',
     downloadCount: 1670,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2018/pr_1072_2018.pdf'
   },
   {
     id: 'doc-74',
@@ -1166,7 +1166,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ethiopian Communications Authority (ECA)',
     fileSize: '2.3 MB',
     downloadCount: 3190,
-    fileUrl: 'https://eca.et/'
+    fileUrl: 'https://www.refworld.org/sites/default/files/2026-04/digital_id_proclamation_1284.pdf'
   },
   {
     id: 'doc-75',
@@ -1181,7 +1181,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.3 MB',
     downloadCount: 2180,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1238-2013.pdf'
   },
   {
     id: 'doc-76',
@@ -1196,7 +1196,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Information Network Security Administration (INSA)',
     fileSize: '2.1 MB',
     downloadCount: 2840,
-    fileUrl: 'https://www.insa.gov.et/',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/08/1374.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1212,7 +1212,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.5 MB',
     downloadCount: 1620,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2019/pr_1148_2019.pdf'
   },
   {
     id: 'doc-78',
@@ -1227,7 +1227,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '1.8 MB',
     downloadCount: 4210,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8592',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1185-2012.pdf',
     badge: 'Essential'
   },
   {
@@ -1243,7 +1243,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '2.0 MB',
     downloadCount: 3120,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8593'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2026/08/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-1426-2018.pdf'
   },
   {
     id: 'doc-80',
@@ -1258,7 +1258,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '1.1 MB',
     downloadCount: 1740,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/15632'
+    fileUrl: 'https://www.lawethiopia.com/images/federal_proclamation/proclamations_by_number/759.pdf'
   },
   {
     id: 'doc-81',
@@ -1273,7 +1273,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '1.7 MB',
     downloadCount: 2280,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8594'
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/05/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-501-1998.pdf'
   },
 
   // I. Land, buildings and transport (82–90)
@@ -1290,7 +1290,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.5 MB',
     downloadCount: 3890,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://justice.gov.et/wp-content/uploads/2025/02/%E1%8A%A0%E1%8B%8B%E1%8C%85-%E1%89%81%E1%8C%A5%E1%88%AD-410-1996.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1306,7 +1306,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.4 MB',
     downloadCount: 6840,
-    fileUrl: 'https://faolex.fao.org/docs/pdf/eth108226.pdf',
+    fileUrl: 'https://eipa.gov.et/wp-content/uploads/2021/09/proclamation-no-872-2014-copyright-and-neighbouring-rights-protection-1.pdf',
     badge: 'Essential'
   },
   {
@@ -1322,7 +1322,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.1 MB',
     downloadCount: 4210,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://ampeid.org/static/6c51897a6b671cf7e874112853c4eed0/ETH_Inventions..pdf',
     badge: 'Essential'
   },
   {
@@ -1338,7 +1338,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '2.9 MB',
     downloadCount: 3410,
-    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=81832'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth230232.pdf'
   },
   {
     id: 'doc-86',
@@ -1353,7 +1353,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.0 MB',
     downloadCount: 2510,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth169468.pdf'
   },
   {
     id: 'doc-87',
@@ -1368,7 +1368,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.9 MB',
     downloadCount: 3120,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth204436.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1384,7 +1384,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ESLSE Official Portal',
     fileSize: '1.5 MB',
     downloadCount: 1840,
-    fileUrl: 'https://www.eslse.et/'
+    fileUrl: 'https://natlex.ilo.org/dyn/natlex2/natlex2/files/download/85146/ETH85146.pdf'
   },
   {
     id: 'doc-89',
@@ -1399,7 +1399,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX',
     fileSize: '1.8 MB',
     downloadCount: 1120,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2022/pr_1274_2022.pdf'
   },
   {
     id: 'doc-90',
@@ -1414,7 +1414,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.4 MB',
     downloadCount: 3980,
-    fileUrl: 'https://nbe.gov.et/',
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2024/re_557_2024.pdf',
     badge: 'Essential'
   },
 
@@ -1432,7 +1432,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ministry of Agriculture',
     fileSize: '2.1 MB',
     downloadCount: 1840,
-    fileUrl: 'https://moa.gov.et/',
+    fileUrl: 'https://www.metaappz.com/pdf/ethiopian_laws/federal/2007/pr_548_2007.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1448,7 +1448,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.7 MB',
     downloadCount: 1420,
-    fileUrl: 'https://moa.gov.et/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth95241.pdf'
   },
   {
     id: 'doc-93',
@@ -1463,7 +1463,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.1 MB',
     downloadCount: 1190,
-    fileUrl: 'https://moa.gov.et/'
+    fileUrl: 'https://chilot.files.wordpress.com/2014/09/proclamation-no-799-2013-vehicle-insurance-against-third-party-risks-proclamation.pdf'
   },
   {
     id: 'doc-94',
@@ -1478,7 +1478,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.6 MB',
     downloadCount: 1350,
-    fileUrl: 'https://moa.gov.et/'
+    fileUrl: 'https://eaa.gov.et/wp-content/uploads/2026/02/Proc.1376-Animal-Health-and-Welfair.pdf'
   },
   {
     id: 'doc-95',
@@ -1493,7 +1493,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.7 MB',
     downloadCount: 1280,
-    fileUrl: 'https://moa.gov.et/'
+    fileUrl: 'https://eaa.gov.et/wp-content/uploads/2024/12/Seed-proclamation-1288_2023.pdf'
   },
   {
     id: 'doc-96',
@@ -1508,7 +1508,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'WIPO Lex',
     fileSize: '1.4 MB',
     downloadCount: 1540,
-    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/17498'
+    fileUrl: 'https://eaa.gov.et/wp-content/uploads/2024/12/proc_no._137-1998_fertilizer_manufacturing_and_trade.pdf'
   },
   {
     id: 'doc-97',
@@ -1523,7 +1523,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.2 MB',
     downloadCount: 1610,
-    fileUrl: 'https://moa.gov.et/'
+    fileUrl: 'https://eaa.gov.et/wp-content/uploads/2024/12/Proc_no_674_2010_pesticide_registration_and_control_proclamation.pdf'
   },
   {
     id: 'doc-98',
@@ -1538,7 +1538,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.8 MB',
     downloadCount: 2410,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://eaa.gov.et/wp-content/uploads/2024/12/Veterinary_Drug_and_Feed_Administration_and_Control_Pro_No_728_2011.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1554,7 +1554,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.9 MB',
     downloadCount: 1720,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://eaa.gov.et/wp-content/uploads/2025/05/plant-breeding-proclamation.pdf'
   },
   {
     id: 'doc-100',
@@ -1569,7 +1569,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.5 MB',
     downloadCount: 1490,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://ldi.gov.et/wp-content/uploads/2026/04/Proc-No.-488-2006-Ethiopian-Organic-Agriculture-Sys.pdf'
   },
 
   // K. Water and environmental protection (101–116)
@@ -1586,7 +1586,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.0 MB',
     downloadCount: 3120,
-    fileUrl: 'https://faolex.fao.org/docs/pdf/eth23377.pdf',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth229749.pdf',
     badge: 'Essential'
   },
   {
@@ -1602,7 +1602,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.6 MB',
     downloadCount: 1840,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth182203.pdf'
   },
   {
     id: 'doc-103',
@@ -1617,7 +1617,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.7 MB',
     downloadCount: 1620,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth95249.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1633,7 +1633,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.4 MB',
     downloadCount: 1210,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth44004.pdf'
   },
   {
     id: 'doc-105',
@@ -1648,7 +1648,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.5 MB',
     downloadCount: 1140,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth121808.pdf'
   },
   {
     id: 'doc-106',
@@ -1663,7 +1663,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.4 MB',
     downloadCount: 3890,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth243223.pdf',
     badge: 'Essential'
   },
   {
@@ -1679,7 +1679,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.8 MB',
     downloadCount: 1470,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth183180.pdf'
   },
   {
     id: 'doc-108',
@@ -1694,7 +1694,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.6 MB',
     downloadCount: 1180,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth204275.pdf'
   },
   {
     id: 'doc-109',
@@ -1709,7 +1709,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Food and Agriculture Organization',
     fileSize: '1.1 MB',
     downloadCount: 1060,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth240594.pdf'
   },
   {
     id: 'doc-110',
@@ -1724,7 +1724,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Eco-justice Ethiopia / FAOLEX',
     fileSize: '1.9 MB',
     downloadCount: 2840,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth195394.pdf',
     badge: 'Essential'
   },
   {
@@ -1740,7 +1740,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.5 MB',
     downloadCount: 1590,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth95180.pdf'
   },
   {
     id: 'doc-112',
@@ -1755,7 +1755,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.2 MB',
     downloadCount: 920,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://www.fao.org/fileadmin/user_upload/gmfp/docs/Proclamation-no-896-2015-biosafety-amendment-proclamation.pdf'
   },
   {
     id: 'doc-113',
@@ -1770,7 +1770,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Eco-justice Ethiopia / UN Treaty',
     fileSize: '0.8 MB',
     downloadCount: 840,
-    fileUrl: 'https://treaties.un.org/'
+    fileUrl: 'https://ecojusticeethiopia.org/resources/item/download/12_0e4747055fd86249b34b3deccfd67563'
   },
   {
     id: 'doc-114',
@@ -1785,7 +1785,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Eco-justice Ethiopia / UN Treaty',
     fileSize: '0.7 MB',
     downloadCount: 890,
-    fileUrl: 'https://treaties.un.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth165348.pdf'
   },
   {
     id: 'doc-115',
@@ -1800,7 +1800,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.4 MB',
     downloadCount: 1620,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth152191.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1816,7 +1816,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.7 MB',
     downloadCount: 1740,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://ecojusticeethiopia.org/resources/item/download/8_50d8a6d75644aad9351b3174ffd43353'
   },
 
   // L. Mining and energy (117–119)
@@ -1833,7 +1833,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '3.1 MB',
     downloadCount: 4210,
-    fileUrl: 'https://faolex.fao.org/docs/pdf/eth98151.pdf',
+    fileUrl: 'https://ecojusticeethiopia.org/resources/item/download/13_a8fc1c2bcb72bb1c0d1bb450d8af4f91',
     badge: 'Essential'
   },
   {
@@ -1849,7 +1849,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.8 MB',
     downloadCount: 1890,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth240515.pdf'
   },
   {
     id: 'doc-119',
@@ -1864,7 +1864,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.5 MB',
     downloadCount: 3120,
-    fileUrl: 'https://faolex.fao.org/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth121674.pdf',
     badge: 'Essential'
   },
 
@@ -1882,7 +1882,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.8 MB',
     downloadCount: 3840,
-    fileUrl: 'https://www.fsc.gov.et/'
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth183181.pdf'
   },
   {
     id: 'doc-121',
@@ -1897,7 +1897,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.5 MB',
     downloadCount: 2680,
-    fileUrl: 'https://www.fsc.gov.et/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth183187.pdf',
     badge: 'Updated 2026'
   },
   {
@@ -1913,7 +1913,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'EFDA Official Portal',
     fileSize: '3.2 MB',
     downloadCount: 4120,
-    fileUrl: 'https://www.efda.gov.et/',
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth170216.pdf',
     badge: 'Essential'
   }
 ];
