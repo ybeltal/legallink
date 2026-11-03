@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { LEXDRAFT_TEMPLATES, LegalTemplate } from '@/lib/lexdraft-templates';
+import { generateContractPDF } from '@/lib/pdf-generator';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function LexDraftGeneratorClient({ templateId }: { templateId: string }) {
@@ -19,7 +20,7 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
   const template: LegalTemplate = 
     LEXDRAFT_TEMPLATES.find((t) => t.id === templateId) || LEXDRAFT_TEMPLATES[0];
 
-  // 6 Stepper Wizard: 1 (Employer/Party A) -> 2 (Employee/Party B) -> 3 (Terms) -> 4 (Preview) -> 5 (Signature) -> 6 (Submit)
+  // 6 Stepper Wizard: 1 (Party A) -> 2 (Party B) -> 3 (Terms) -> 4 (Preview) -> 5 (Signature) -> 6 (Submit)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
 
   // Form input values map
@@ -44,13 +45,58 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
     }
   };
 
+  const contractParagraphs = template.generateContractText(formData, language as any);
+
+  const getFirstPartyName = () => {
+    return (
+      formData.employerName ||
+      formData.landlordName ||
+      formData.discloserName ||
+      formData.ownerName ||
+      formData.firstParty ||
+      formData.sellerName ||
+      formData.lenderName ||
+      formData.companyName ||
+      formData.clientName ||
+      formData.principalName ||
+      'First Party'
+    );
+  };
+
+  const getSecondPartyName = () => {
+    return (
+      formData.employeeName ||
+      formData.tenantName ||
+      formData.recipientName ||
+      formData.agentName ||
+      formData.secondParty ||
+      formData.buyerName ||
+      formData.borrowerName ||
+      formData.consultantName ||
+      'Second Party'
+    );
+  };
+
+  const handleDownloadPDF = () => {
+    generateContractPDF({
+      title: template.title,
+      statute: template.statute,
+      paragraphs: contractParagraphs,
+      firstPartyName: getFirstPartyName(),
+      secondPartyName: getSecondPartyName(),
+      signatureText: signatureText.trim() || undefined,
+      fileName: `${template.id}_${Date.now()}.pdf`
+    });
+  };
+
   const handleSaveToMyDocuments = () => {
     setIsExporting(true);
     setTimeout(() => {
+      const firstParty = getFirstPartyName();
       const newDoc = {
         id: `DOC-${Date.now()}`,
         templateId: template.id,
-        title: formData.employerName ? `${template.title} - ${formData.employerName}` : template.title,
+        title: firstParty !== 'First Party' ? `${template.title} - ${firstParty}` : template.title,
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         data: formData
       };
@@ -59,15 +105,13 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
         const existing = JSON.parse(localStorage.getItem('legallink_my_documents') || '[]');
         localStorage.setItem('legallink_my_documents', JSON.stringify([newDoc, ...existing]));
       } catch {
-        // Ignore
+        // Ignore local storage errors
       }
 
       setIsExporting(false);
       setIsSavedSuccess(true);
-    }, 1000);
+    }, 800);
   };
-
-  const contractParagraphs = template.generateContractText(formData, language as any);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
@@ -75,7 +119,7 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
       {/* 01. Global Unified Navigation */}
       <Navbar />
 
-      {/* 02. Header Section (matches image_f86d5d.png) */}
+      {/* 02. Header Section */}
       <div className="bg-white border-b border-slate-200 py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-1">
           <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
@@ -87,7 +131,7 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
         </div>
       </div>
 
-      {/* 03. Stepper Progress Bar (6 Steps matching image_f86d5d.png) */}
+      {/* 03. Stepper Progress Bar (6 Steps) */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 w-full">
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="grid grid-cols-6 gap-1 text-center text-[11px] font-bold">
@@ -124,10 +168,10 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
         </div>
       </div>
 
-      {/* 04. Main Form Canvas */}
+      {/* 04. Main Wizard Canvas */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
         
-        {/* STEPS 1 to 3: Bespoke Form Questions */}
+        {/* STEPS 1 to 3: Bespoke Form Inputs */}
         {currentStep <= 3 && (
           <div className="bg-white p-7 sm:p-9 rounded-3xl border border-slate-200 shadow-xs space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -182,7 +226,7 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
                 ))}
               </div>
 
-              {/* Action Bar (matches image_f86d5d.png) */}
+              {/* Navigation Action Bar */}
               <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
                 {currentStep === 1 ? (
                   <Link href="/lexdraft" className="text-xs font-bold text-slate-400 hover:text-slate-700">
@@ -235,12 +279,12 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
 
               <div className="pt-8 border-t border-slate-200 grid grid-cols-2 gap-8 text-center font-mono text-[11px]">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-slate-400 block text-[9px] uppercase">First Party Signature</span>
-                  <strong className="text-slate-800 block mt-1">{formData.employerName || formData.landlordName || formData.firstParty || '[Party A]'}</strong>
+                  <span className="text-slate-400 block text-[9px] uppercase">First Party Execution</span>
+                  <strong className="text-slate-800 block mt-1">{getFirstPartyName()}</strong>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-slate-400 block text-[9px] uppercase">Second Party Signature</span>
-                  <strong className="text-slate-800 block mt-1">{formData.employeeName || formData.tenantName || formData.secondParty || '[Party B]'}</strong>
+                  <span className="text-slate-400 block text-[9px] uppercase">Second Party Execution</span>
+                  <strong className="text-slate-800 block mt-1">{getSecondPartyName()}</strong>
                 </div>
               </div>
             </div>
@@ -336,31 +380,31 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
               </p>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons with True PDF Download */}
             <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
               <button
                 type="button"
-                onClick={() => window.print()}
-                className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                onClick={handleDownloadPDF}
+                className="px-6 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
               >
-                <Printer className="w-4 h-4" />
-                <span>Print A4 PDF</span>
+                <Download className="w-4 h-4 text-amber-400" />
+                <span>Download A4 PDF</span>
               </button>
 
               <button
                 type="button"
                 disabled={isExporting}
                 onClick={handleSaveToMyDocuments}
-                className="px-6 py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
               >
-                <Download className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
                 <span>{isExporting ? 'Saving Draft...' : 'Save to My Documents'}</span>
               </button>
             </div>
 
             {isSavedSuccess && (
               <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-xs font-bold inline-block">
-                ✓ Saved to "My Documents". Redirecting to LexDraft Hub...
+                ✓ Saved to "My Documents". You can view it anytime in the LexDraft hub.
               </div>
             )}
 
