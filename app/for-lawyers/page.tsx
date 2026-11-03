@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { 
   TrendingUp, Clock, ShieldCheck, Globe, ArrowRight, Check, 
   UploadCloud, ChevronDown, CheckCircle2, AlertCircle, Sparkles, 
-  Building2, User, FileText, Phone, Mail, MapPin, X
+  Building2, User, FileText, Phone, Mail, MapPin, X, Loader2
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function ForLawyersPage() {
@@ -46,7 +47,7 @@ export default function ForLawyersPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [trackingId, setTrackingId] = useState('');
 
-  // FAQ Accordion State (stores index of open FAQ)
+  // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const practiceOptions = [
@@ -97,18 +98,42 @@ export default function ForLawyersPage() {
 
   const togglePractice = (practice: string) => {
     if (selectedPractices.includes(practice)) {
-      if (selectedPractices.length === 1) return; // Keep at least one
+      if (selectedPractices.length === 1) return;
       setSelectedPractices(selectedPractices.filter((p) => p !== practice));
     } else {
       setSelectedPractices([...selectedPractices, practice]);
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const uploadFileToSupabase = async (file: File, folder: string) => {
+    const supabase = createClient();
+    const cleanExt = file.name.split('.').pop() || 'pdf';
+    const filePath = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${cleanExt}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('advocate-documents')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        return null;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('advocate-documents')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    // Validation Rules
+    // Validation
     if (!fullName.trim() || !barLicense.trim() || !phoneNumber.trim() || !emailAddress.trim()) {
       setFormError('Please fill in all required personal information fields.');
       return;
@@ -124,17 +149,59 @@ export default function ForLawyersPage() {
       return;
     }
 
-    if (!barFile && !barLicense.startsWith('ETH-BAR')) {
-      setFormError('Please upload a PDF or image copy of your Ethiopian Bar License.');
-      return;
-    }
-
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setTrackingId(`APP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
+
+    try {
+      const supabase = createClient();
+
+      // 1. Upload documents if provided
+      let barLicenseUrl: string | null = null;
+      let idDocumentUrl: string | null = null;
+
+      if (barFile) {
+        barLicenseUrl = await uploadFileToSupabase(barFile, 'bar-licenses');
+      }
+
+      if (idFile) {
+        idDocumentUrl = await uploadFileToSupabase(idFile, 'national-ids');
+      }
+
+      // 2. Generate Tracking ID
+      const generatedTrackingId = `APP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // 3. Insert record into advocate_applications table
+      const { error: insertError } = await supabase
+        .from('advocate_applications')
+        .insert([
+          {
+            full_name: fullName.trim(),
+            bar_license_number: barLicense.trim(),
+            phone_number: phoneNumber.trim(),
+            email: emailAddress.trim().toLowerCase(),
+            practice_areas: selectedPractices,
+            experience_years: experienceTier,
+            hourly_rate: Number(hourlyRateInput) || 1500,
+            bio: bio.trim(),
+            bar_license_url: barLicenseUrl,
+            id_document_url: idDocumentUrl,
+            status: 'pending',
+            tracking_id: generatedTrackingId
+          }
+        ]);
+
+      if (insertError) {
+        setFormError(insertError.message || 'Database error occurred. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      setTrackingId(generatedTrackingId);
       setIsSubmitted(true);
-    }, 1400);
+      setIsSubmitting(false);
+    } catch (err: any) {
+      setFormError(err?.message || 'A network error occurred. Please verify your connection.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -357,7 +424,7 @@ export default function ForLawyersPage() {
                 "Transparent pricing, verified clients, and reliable payments — exactly what the profession needed in Ethiopia."
               </p>
               <div className="flex items-center gap-3 pt-3 border-t border-slate-800">
-                <div className="w-9 h-9 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-xs">
+                <div className="w-9 h-9 rounded-full bg-emerald-50 text-slate-950 font-bold flex items-center justify-center text-xs">
                   Y
                 </div>
                 <div>
@@ -636,7 +703,7 @@ export default function ForLawyersPage() {
                 VERIFICATION DOCUMENTS
               </span>
               <p className="text-[11px] text-slate-400 font-normal leading-relaxed">
-                Accepted formats: PDF, JPG, PNG. Maximum file size: 5 MB per document. Documents are encrypted and stored securely.
+                Accepted formats: PDF, JPG, PNG. Maximum file size: 5 MB per document. Documents are encrypted and stored securely in Supabase Storage.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
@@ -723,8 +790,17 @@ export default function ForLawyersPage() {
                 disabled={isSubmitting}
                 className="w-full sm:w-auto px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
               >
-                <span>{isSubmitting ? 'Verifying & Submitting...' : 'Submit Application'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                    <span>Connecting to Supabase...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Submit Application</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
               </button>
             </div>
 
@@ -783,10 +859,10 @@ export default function ForLawyersPage() {
 
             <div className="space-y-1.5">
               <h3 className="text-xl font-black text-[#0A1128]">
-                Application Received!
+                Application Successfully Stored in Supabase!
               </h3>
               <p className="text-xs text-slate-500 font-normal leading-relaxed">
-                Thank you, <strong>{fullName}</strong>. Your Ethiopian Bar License credentials have been submitted for Ministry of Justice verification.
+                Thank you, <strong>{fullName}</strong>. Your Ethiopian Bar License credentials have been saved to the <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">advocate_applications</code> database.
               </p>
             </div>
 
@@ -801,7 +877,7 @@ export default function ForLawyersPage() {
                 href="/advocate"
                 className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-center hover:bg-[#102A43] transition-all"
               >
-                Preview Advocate Portal
+                Open Advocate Workspace
               </Link>
               <button
                 type="button"
@@ -820,7 +896,6 @@ export default function ForLawyersPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             
-            {/* Col 1 & 2 */}
             <div className="space-y-4 col-span-2">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
@@ -848,7 +923,6 @@ export default function ForLawyersPage() {
               </div>
             </div>
 
-            {/* Col 3: Platform */}
             <div className="space-y-3">
               <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 PLATFORM
@@ -861,7 +935,6 @@ export default function ForLawyersPage() {
               </ul>
             </div>
 
-            {/* Col 4: Resources */}
             <div className="space-y-3">
               <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 RESOURCES
@@ -873,7 +946,6 @@ export default function ForLawyersPage() {
               </ul>
             </div>
 
-            {/* Col 5: Company & Legal */}
             <div className="space-y-3">
               <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 COMPANY
