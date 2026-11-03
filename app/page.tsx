@@ -137,10 +137,7 @@ export default function HomePage() {
         
         {/* Layer: Unobstructed Lady Justice on the Right */}
         <div className="absolute right-[-4%] md:right-[2%] lg:right-[6%] top-1/2 -translate-y-1/2 w-[340px] sm:w-[480px] lg:w-[560px] h-full pointer-events-none z-0 flex items-center justify-center select-none">
-          {/* Ambient Warm Golden Glow */}
           <div className="absolute w-[380px] h-[380px] bg-amber-400/25 rounded-full blur-3xl animate-pulse-glow" />
-          
-          {/* Lady Justice Statue - Fully visible, scales and sword open */}
           <img 
             src="/lady-justice.png" 
             alt="Lady Justice" 
@@ -167,7 +164,6 @@ export default function HomePage() {
               {t('hero_sub')}
             </p>
 
-            {/* Dual Action CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center lg:justify-start">
               <Link
                 href="/find-a-lawyer"
@@ -184,7 +180,6 @@ export default function HomePage() {
               </a>
             </div>
 
-            {/* 4 Generic & General Trust Badges */}
             <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto lg:mx-0">
               <div className="p-3.5 bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 text-center shadow-xs">
                 <div className="text-base sm:text-lg font-black text-[#0A1128]">100%</div>
@@ -219,12 +214,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 03. Dedicated Instant Consultation Spotlight Section (Moved Here Without Overlapping Statue) */}
+      {/* 03. Dedicated Instant Consultation Spotlight Section */}
       <section id="consultation-spotlight" className="py-16 md:py-20 bg-white border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            {/* Left Value Info */}
             <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10px] font-bold uppercase tracking-wider">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -263,7 +257,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: The Live Booking Card Widget */}
             <div className="lg:col-span-5 flex justify-center">
               <HeroBookingCard />
             </div>
@@ -317,7 +310,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 05. Practice Areas (8-Card Balanced Grid) */}
+      {/* 05. Practice Areas */}
       <section className="py-16 md:py-24 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -372,7 +365,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 06. Featured Lawyers Carousel Section */}
+      {/* 06. Featured Lawyers */}
       <section className="py-16 md:py-24 bg-[#F8FAFC] border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -460,7 +453,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 07. ★ MID-PAGE: ETHIOPIAN DIASPORA LEGAL SERVICES HUB */}
+      {/* 07. Diaspora Hub */}
       <section className="bg-gradient-to-r from-blue-950 via-[#0A1128] to-slate-950 text-white py-16 md:py-24 border-y border-blue-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -533,74 +526,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 08. "Why LegalLink" Institutional Trust Hub (Dark Section) */}
-      <section id="about" className="bg-[#0A1128] text-white py-20 md:py-28 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-          
-          <div className="space-y-2">
-            <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest font-bold block">
-              {t('why_tag')}
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight">
-              {t('why_title')}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 font-normal">
-              {t('why_sub')}
-            </p>
-          </div>
-
-          {/* 4 Trust Feature Pillars */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-white">{t('why_c1_title')}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                {t('why_c1_desc')}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center">
-                <Lock className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-white">{t('why_c2_title')}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                {t('why_c2_desc')}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center">
-                <DollarSign className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-white">{t('why_c3_title')}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                {t('why_c3_desc')}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 text-blue-400 flex items-center justify-center">
-                <Languages className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-white">{t('why_c4_title')}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                {t('why_c4_desc')}
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 09. LexDraft Document Automation Section */}
+      {/* 08. LexDraft Document Automation Section (Fixed links to /lexdraft) */}
       <section id="lexdraft" className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Left Column: Value Props & Checklist */}
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase tracking-wider">
                 <Sparkles className="w-3 h-3 text-amber-600" />
@@ -615,7 +545,6 @@ export default function HomePage() {
                 {t('lex_sub')}
               </p>
 
-              {/* 6 Contract Checklist Items */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {[
                   t('lex_item1'),
@@ -633,23 +562,23 @@ export default function HomePage() {
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-3">
+                {/* Fixed: Routes directly to /lexdraft library */}
                 <Link
-                  href="/tools"
+                  href="/lexdraft"
                   className="px-6 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm group"
                 >
                   <span>{t('lex_cta_btn')}</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
-                  href="/memo/MEMO-2026-9041"
+                  href="/lexdraft"
                   className="px-6 py-3.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs rounded-xl flex items-center justify-center transition-all"
                 >
-                  <span>View Sample A4 PDF Opinion</span>
+                  <span>Browse All 12 Templates</span>
                 </Link>
               </div>
             </div>
 
-            {/* Right Column: Interactive Contract Mockup */}
             <div className="lg:col-span-5 flex justify-center">
               <LexDraftPreview />
             </div>
@@ -658,7 +587,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 10. LegalTalk Knowledge & Educational Hub */}
+      {/* 09. LegalTalk Knowledge */}
       <section className="py-20 md:py-28 bg-[#F8FAFC] border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -685,8 +614,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Article 1 */}
             <Link
               href="/legaltalk/starting-a-business-ethiopia-2026"
               className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
@@ -712,7 +639,6 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* Article 2 */}
             <Link
               href="/legaltalk/wrongful-termination-ethiopia"
               className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
@@ -738,7 +664,6 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* Article 3 */}
             <Link
               href="/legaltalk/ethiopian-diaspora-property-ownership"
               className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
@@ -763,16 +688,14 @@ export default function HomePage() {
                 </div>
               </div>
             </Link>
-
           </div>
 
         </div>
       </section>
 
-      {/* 11. Verified Client Testimonials */}
+      {/* 10. Verified Client Testimonials */}
       <section className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 text-center">
-          
           <div className="space-y-2">
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest block font-mono">
               {t('test_tag')}
@@ -785,7 +708,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Testimonial Quote Card */}
           <div className="bg-[#F8FAFC] border border-slate-200 rounded-3xl p-8 sm:p-12 space-y-6 shadow-xs text-left relative">
             <span className="text-4xl font-serif text-amber-400 block -mb-2">“</span>
             
@@ -811,11 +733,10 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* 12. Enterprise Footer */}
+      {/* 11. Enterprise Footer (Fixed LexDraft link to /lexdraft) */}
       <footer className="bg-[#0A1128] text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
@@ -855,7 +776,7 @@ export default function HomePage() {
                 <li><Link href="/find-a-lawyer" className="hover:text-white">{t('nav_find_lawyer')}</Link></li>
                 <li><Link href="/for-lawyers" className="hover:text-white">{t('nav_for_lawyers')}</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-white">{t('nav_legaltalk')}</Link></li>
-                <li><Link href="/#lexdraft" className="hover:text-white">{t('nav_lexdraft')}</Link></li>
+                <li><Link href="/lexdraft" className="hover:text-white">{t('nav_lexdraft')}</Link></li>
               </ul>
             </div>
 
