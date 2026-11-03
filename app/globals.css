@@ -34,3 +34,38 @@ a:active:not(:disabled) {
   transform: translateY(-4px) scale(1.008);
   box-shadow: 0 16px 36px -12px rgba(10, 17, 40, 0.1);
 }
+
+/* Lady Justice Subtle Float & Breathing Keyframes */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.012);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.18;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.32;
+    transform: scale(1.08);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+/* Soft Radial Fade for Edge Seamlessness */
+.mask-radial-fade {
+  mask-image: radial-gradient(circle at center, black 55%, transparent 95%);
+  -webkit-mask-image: radial-gradient(circle at center, black 55%, transparent 95%);
+}

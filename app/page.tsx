@@ -132,9 +132,25 @@ export default function HomePage() {
       {/* 01. Global Navigation Bar */}
       <Navbar />
 
-      {/* 02. Asymmetric Hero Section */}
+      {/* 02. Asymmetric Hero Section with Animated Lady Justice Backdrop */}
       <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-white to-[#F8FAFC]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Layer: Animated Lady Justice Backdrop */}
+        <div className="absolute right-[-6%] top-1/2 -translate-y-1/2 w-full md:w-3/5 h-[130%] pointer-events-none z-0 overflow-hidden flex items-center justify-center opacity-15 select-none">
+          {/* Ambient Warm Golden Glow */}
+          <div className="absolute w-[440px] h-[440px] bg-amber-400/25 rounded-full blur-3xl animate-pulse-glow" />
+          
+          {/* Floating Lady Justice Statue */}
+          <img 
+            src="/lady-justice.png" 
+            alt="" 
+            aria-hidden="true"
+            className="w-[580px] max-w-none object-contain animate-float-slow mask-radial-fade filter drop-shadow-2xl" 
+          />
+        </div>
+
+        {/* Foreground Hero Content Container */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Hero Left Column */}
@@ -193,7 +209,7 @@ export default function HomePage() {
             </div>
 
             {/* Hero Right Column: Floating Advocate Booking Widget */}
-            <div className="lg:col-span-5 flex justify-center">
+            <div className="lg:col-span-5 flex justify-center relative z-10">
               <HeroBookingCard />
             </div>
 
@@ -637,7 +653,7 @@ export default function HomePage() {
             
             {/* Article 1 */}
             <Link
-              href="/legaltalk"
+              href="/legaltalk/starting-a-business-ethiopia-2026"
               className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
             >
               <div className="h-44 bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center p-6 text-white text-center">
@@ -656,44 +672,18 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="pt-2 text-[10px] text-slate-400 font-mono">
-                  Jan 12, 2026 • 7 min read
+                  May 28, 2026 • 8 min read
                 </div>
               </div>
             </Link>
 
             {/* Article 2 */}
             <Link
-              href="/legaltalk"
+              href="/legaltalk/wrongful-termination-ethiopia"
               className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
             >
               <div className="h-44 bg-gradient-to-br from-blue-900 to-slate-900 flex items-center justify-center p-6 text-white text-center">
-                <span className="font-mono text-xs font-bold text-slate-400">Revised Family Code</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest font-mono">
-                    {t('lt_art2_tag')}
-                  </span>
-                  <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-amber-600 transition-colors">
-                    {t('lt_art2_title')}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed font-normal">
-                    {t('lt_art2_desc')}
-                  </p>
-                </div>
-                <div className="pt-2 text-[10px] text-slate-400 font-mono">
-                  Jan 8, 2026 • 9 min read
-                </div>
-              </div>
-            </Link>
-
-            {/* Article 3 */}
-            <Link
-              href="/legaltalk"
-              className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
-            >
-              <div className="h-44 bg-gradient-to-br from-emerald-950 to-slate-900 flex items-center justify-center p-6 text-white text-center">
-                <span className="font-mono text-xs font-bold text-slate-400">Labor Proclamation 1156/2019</span>
+                <span className="font-mono text-xs font-bold text-slate-400">Labour Proclamation 1156/2019</span>
               </div>
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div className="space-y-2">
@@ -708,7 +698,33 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="pt-2 text-[10px] text-slate-400 font-mono">
-                  Dec 29, 2025 • 6 min read
+                  June 15, 2026 • 6 min read
+                </div>
+              </div>
+            </Link>
+
+            {/* Article 3 */}
+            <Link
+              href="/legaltalk/ethiopian-diaspora-property-ownership"
+              className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
+            >
+              <div className="h-44 bg-gradient-to-br from-emerald-950 to-slate-900 flex items-center justify-center p-6 text-white text-center">
+                <span className="font-mono text-xs font-bold text-slate-400">Proclamation No. 270/2002</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest font-mono">
+                    {t('diaspora_tag')}
+                  </span>
+                  <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-amber-600 transition-colors">
+                    Can the Ethiopian Diaspora Own Property in Ethiopia?
+                  </h3>
+                  <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                    Understanding yellow card property rights, municipal land lease transfers, and succession rules.
+                  </p>
+                </div>
+                <div className="pt-2 text-[10px] text-slate-400 font-mono">
+                  March 22, 2026 • 5 min read
                 </div>
               </div>
             </Link>
