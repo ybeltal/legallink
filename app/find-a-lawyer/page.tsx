@@ -6,7 +6,8 @@ import {
   Building2, Users, Home as HomeIcon, Sparkles, Briefcase, 
   Scale, Globe, ShieldCheck, Check, ArrowRight, Mic, MicOff, 
   Play, Pause, Trash2, Clock, MapPin, Languages, CheckCircle2, 
-  AlertCircle, Phone, Video, ChevronRight, Lock, RotateCcw
+  AlertCircle, Phone, Video, ChevronRight, Lock, RotateCcw,
+  Star
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useLanguage } from '@/context/LanguageContext';
@@ -17,7 +18,7 @@ interface CategoryItem {
   amharicTitle: string;
   desc: string;
   amharicDesc: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 interface AdvocateMatch {
@@ -241,7 +242,6 @@ export default function FindLawyerWizardPage() {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Find Selected Category and Lawyer Objects for Step 4
   const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory) || CATEGORIES[0];
   const activeLawyerObj = MATCHED_LAWYERS.find((l) => l.id === selectedLawyerId) || MATCHED_LAWYERS[0];
 
@@ -260,7 +260,7 @@ export default function FindLawyerWizardPage() {
       {/* 1. Global Unified Navigation */}
       <Navbar />
 
-      {/* 2. Top Stepper Header matching reference screens */}
+      {/* 2. Top Stepper Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           
@@ -331,7 +331,7 @@ export default function FindLawyerWizardPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
         
         {/* ========================================================
-            STEP 1: CATEGORY SELECTION (matches image_04bea5.png)
+            STEP 1: CATEGORY SELECTION
             ======================================================== */}
         {currentStep === 1 && (
           <div className="space-y-8 animate-fadeIn">
@@ -409,7 +409,7 @@ export default function FindLawyerWizardPage() {
         )}
 
         {/* ========================================================
-            STEP 2: PREFERENCES + VOICE RECORDER (matches image_04bb9f.png)
+            STEP 2: PREFERENCES + VOICE RECORDER
             ======================================================== */}
         {currentStep === 2 && (
           <div className="space-y-8 animate-fadeIn">
@@ -480,10 +480,10 @@ export default function FindLawyerWizardPage() {
 
               </div>
 
-              {/* Row 2: Replaced Budget with Judicial Standing + Consultation Mode */}
+              {/* Row 2: Court Standing + Consultation Mode */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-7 pt-4 border-t border-slate-100">
                 
-                {/* Replacement 1: Court Standing / Judicial Tier */}
+                {/* Court Standing / Judicial Tier */}
                 <div className="space-y-2.5">
                   <label className="font-bold text-slate-800 block flex items-center justify-between">
                     <span>Court Standing / Judicial Tier</span>
@@ -515,7 +515,7 @@ export default function FindLawyerWizardPage() {
                   </div>
                 </div>
 
-                {/* Replacement 2: Consultation Format Mode */}
+                {/* Consultation Format Mode */}
                 <div className="space-y-2.5">
                   <label className="font-bold text-slate-800 block">Consultation Mode</label>
                   <div className="flex flex-wrap gap-2">
@@ -678,7 +678,7 @@ export default function FindLawyerWizardPage() {
         )}
 
         {/* ========================================================
-            STEP 3: MATCHED LAWYERS (matches image_04b841.png)
+            STEP 3: MATCHED LAWYERS
             ======================================================== */}
         {currentStep === 3 && (
           <div className="space-y-8 animate-fadeIn">
@@ -730,7 +730,7 @@ export default function FindLawyerWizardPage() {
                         </div>
                       </div>
 
-                      {/* Rating */}
+                      {/* Rating with imported Star icon */}
                       <div className="flex items-center gap-1 text-xs text-slate-700">
                         <div className="flex items-center text-amber-500">
                           {[...Array(5)].map((_, i) => (
@@ -813,7 +813,7 @@ export default function FindLawyerWizardPage() {
         )}
 
         {/* ========================================================
-            STEP 4: CONFIRMATION & REVIEW (matches image_04b7e4.png)
+            STEP 4: CONFIRMATION & REVIEW
             ======================================================== */}
         {currentStep === 4 && (
           <div className="space-y-8 animate-fadeIn">
