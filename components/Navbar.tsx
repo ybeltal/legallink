@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Scale, Globe, Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function Navbar() {
@@ -15,7 +15,8 @@ export default function Navbar() {
     { label: t('nav_find_lawyer'), href: '/find-a-lawyer' },
     { label: t('nav_for_lawyers'), href: '/for-lawyers' },
     { label: t('nav_legaltalk'), href: '/legaltalk' },
-    { label: t('nav_lexdraft'), href: '/lexdraft' }, // Fixed to /lexdraft
+    { label: t('nav_lexdraft'), href: '/lexdraft' },
+    { label: language === 'am' ? 'የህግ ማውጫ' : 'Library', href: '/library' },
     { label: t('nav_about'), href: '/#about' },
   ];
 
@@ -24,7 +25,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Logo */}
+          {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 group cursor-pointer">
             <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
             <span className="font-black text-xl tracking-tight text-[#0A1128]">
@@ -33,7 +34,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-slate-600">
+          <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-xs font-bold text-slate-600">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
