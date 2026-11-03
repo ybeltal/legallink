@@ -43,10 +43,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 568/2008',
     year: 2008,
     summary: 'Equal employment opportunities, reasonable accommodation and protection against disability discrimination.',
-    sourceAuthority: 'Ministry of Labor and Skills',
+    sourceAuthority: 'ILO NATLEX',
     fileSize: '1.1 MB',
     downloadCount: 1320,
-    fileUrl: 'https://mols.gov.et/'
+    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=80922'
   },
   {
     id: 'doc-3',
@@ -58,10 +58,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1389/2025',
     year: 2025,
     summary: 'Overseas recruitment, employment agencies and protection of Ethiopian migrant workers.',
-    sourceAuthority: 'Ministry of Labor and Skills',
+    sourceAuthority: 'ILO NATLEX',
     fileSize: '1.8 MB',
     downloadCount: 2840,
-    fileUrl: 'https://mols.gov.et/',
+    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.byCountry?p_lang=en&p_country=ETH',
     badge: 'Updated 2026'
   },
   {
@@ -74,7 +74,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1268/2022',
     year: 2022,
     summary: 'Pension contributions, retirement benefits and survivors benefits for private-sector employees.',
-    sourceAuthority: 'Federal First Instance Court',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.6 MB',
     downloadCount: 3410,
     fileUrl: 'https://www.fsc.gov.et/'
@@ -89,10 +89,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1267/2022',
     year: 2022,
     summary: 'Pension registration, contributions and benefits for public servants.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.7 MB',
     downloadCount: 2280,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-6',
@@ -104,10 +104,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 690/2010',
     year: 2010,
     summary: 'Social health insurance coverage, contributions and administration.',
-    sourceAuthority: 'MetaAppz legal repository',
+    sourceAuthority: 'ILO NATLEX',
     fileSize: '1.2 MB',
     downloadCount: 1650,
-    fileUrl: 'https://www.moh.gov.et/'
+    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=87884'
   },
   {
     id: 'doc-7',
@@ -136,7 +136,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1/1995',
     year: 1995,
     summary: 'Fundamental rights, federal government institutions and constitutional principles.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '3.4 MB',
     downloadCount: 9480,
     fileUrl: 'https://www.wipo.int/edocs/lexdocs/laws/en/et/et007en.pdf',
@@ -152,10 +152,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 2/1995',
     year: 1995,
     summary: 'Formal establishment of the Federal Democratic Republic of Ethiopia.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '0.8 MB',
     downloadCount: 1420,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8591'
   },
   {
     id: 'doc-10',
@@ -186,7 +186,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '0.7 MB',
     downloadCount: 2420,
-    fileUrl: 'https://www.ilo.org/'
+    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=85125'
   },
   {
     id: 'doc-12',
@@ -198,7 +198,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Decree No. 52/1965',
     year: 1965,
     summary: 'Filing civil cases, jurisdiction, hearings, appeals and enforcement.',
-    sourceAuthority: 'Ethiopian Ministry of Education',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '4.2 MB',
     downloadCount: 5120,
     fileUrl: 'https://www.fsc.gov.et/',
@@ -230,7 +230,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 213/2000',
     year: 2000,
     summary: 'Marriage, divorce, family relations, children, adoption and guardianship.',
-    sourceAuthority: 'Federal Justice and Law Institute',
+    sourceAuthority: 'UNHCR Refworld',
     fileSize: '2.9 MB',
     downloadCount: 4890,
     fileUrl: 'https://www.refworld.org/pdfid/4c0cae802.pdf'
@@ -245,10 +245,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1070/2018',
     year: 2018,
     summary: 'Amends the Revised Family Code provisions on adoption.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '0.8 MB',
     downloadCount: 1980,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
 
   // C. Courts, justice, governance and civil society (16–26)
@@ -262,10 +262,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1234/2021',
     year: 2021,
     summary: 'Federal courts, jurisdiction, judicial powers and court administration.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.1 MB',
     downloadCount: 3950,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-17',
@@ -277,10 +277,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1233/2021',
     year: 2021,
     summary: 'Administration of federal judges and the Judicial Administration Council.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.4 MB',
     downloadCount: 1620,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-18',
@@ -292,10 +292,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1249/2021',
     year: 2021,
     summary: 'Licensing, professional standards and administration of advocacy services.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.9 MB',
     downloadCount: 3820,
-    fileUrl: 'https://www.eag.gov.et/',
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Essential'
   },
   {
@@ -308,10 +308,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1183/2020',
     year: 2020,
     summary: 'Administrative rulemaking, decisions, hearings and judicial review.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.6 MB',
     downloadCount: 2890,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-20',
@@ -323,7 +323,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1224/2020',
     year: 2020,
     summary: "Revises the Commission's mandate, independence and institutional arrangements.",
-    sourceAuthority: 'MetaAppz Ethiopian laws repository',
+    sourceAuthority: 'EHRC Official Portal',
     fileSize: '1.2 MB',
     downloadCount: 1490,
     fileUrl: 'https://ehrc.org/'
@@ -338,7 +338,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1307/2023',
     year: 2023,
     summary: "Strengthens the Ombudsman's powers to investigate and remedy maladministration.",
-    sourceAuthority: 'Federal First Instance Court',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.1 MB',
     downloadCount: 1210,
     fileUrl: 'https://www.fsc.gov.et/'
@@ -353,10 +353,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1236/2021',
     year: 2021,
     summary: "Establishes the Commission's anti-corruption responsibilities and institutional framework.",
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.7 MB',
     downloadCount: 1840,
-    fileUrl: 'https://feacc.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-23',
@@ -368,10 +368,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1178/2020',
     year: 2020,
     summary: 'Human trafficking and smuggling offences, prevention and victim protection.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.5 MB',
     downloadCount: 1670,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.refworld.org/'
   },
   {
     id: 'doc-24',
@@ -383,10 +383,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1184/2020',
     year: 2020,
     summary: 'Ratifies the New York Convention on foreign arbitral awards.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'UNCITRAL / WIPO Lex',
     fileSize: '0.9 MB',
     downloadCount: 2940,
-    fileUrl: 'https://www.eag.gov.et/',
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/20275',
     badge: 'Essential'
   },
   {
@@ -399,10 +399,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1364/2025',
     year: 2025,
     summary: 'Tracing, freezing, confiscation and recovery of assets connected to unlawful activity.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.8 MB',
     downloadCount: 2190,
-    fileUrl: 'https://www.eag.gov.et/',
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -450,7 +450,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '1.3 MB',
     downloadCount: 2940,
-    fileUrl: 'https://www.ilo.org/'
+    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=65324'
   },
   {
     id: 'doc-29',
@@ -478,7 +478,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1110/2019',
     year: 2019,
     summary: 'Refugee recognition, protection, rights and responsibilities.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.7 MB',
     downloadCount: 1890,
     fileUrl: 'https://www.refworld.org/docid/5cb830c74.html'
@@ -493,7 +493,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1162/2019',
     year: 2019,
     summary: 'Election procedures, political party registration and electoral conduct.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'National Electoral Board (NEBE)',
     fileSize: '3.1 MB',
     downloadCount: 2450,
     fileUrl: 'https://www.nebe.org.et/'
@@ -508,7 +508,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1235/2021',
     year: 2021,
     summary: "Amends the electoral law's political party and election provisions.",
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'National Electoral Board (NEBE)',
     fileSize: '0.9 MB',
     downloadCount: 1120,
     fileUrl: 'https://www.nebe.org.et/'
@@ -523,7 +523,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1394/2025',
     year: 2025,
     summary: "Further amendments to Ethiopia's electoral and political party framework.",
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'National Electoral Board (NEBE)',
     fileSize: '1.1 MB',
     downloadCount: 1560,
     fileUrl: 'https://www.nebe.org.et/',
@@ -696,10 +696,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 980/2016',
     year: 2016,
     summary: 'Business registration, trade licences and licensing administration.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.5 MB',
     downloadCount: 4120,
-    fileUrl: 'https://www.motri.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-45',
@@ -711,7 +711,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 550/2007',
     year: 2007,
     summary: 'Establishment, operation and governance of the commodity exchange.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'ECX Portal',
     fileSize: '1.8 MB',
     downloadCount: 2210,
     fileUrl: 'https://www.ecx.com.et/'
@@ -726,7 +726,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 665/2010',
     year: 2010,
     summary: "Amendments to the commodity exchange's legal framework.",
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'ECX Portal',
     fileSize: '0.9 MB',
     downloadCount: 1180,
     fileUrl: 'https://www.ecx.com.et/'
@@ -741,7 +741,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 566/2008',
     year: 2008,
     summary: "Amendments to the commodity exchange supervisory authority's framework.",
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'ECX Portal',
     fileSize: '0.8 MB',
     downloadCount: 980,
     fileUrl: 'https://www.ecx.com.et/'
@@ -756,7 +756,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 372/2003',
     year: 2003,
     summary: 'Warehouse receipts, storage arrangements and related commercial rights.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'ECX Portal',
     fileSize: '1.2 MB',
     downloadCount: 1350,
     fileUrl: 'https://www.ecx.com.et/'
@@ -771,7 +771,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Reg. No. 566/2025',
     year: 2025,
     summary: 'Amendments to the investment incentives regulation.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.3 MB',
     downloadCount: 2980,
     fileUrl: 'https://www.investethiopia.gov.et/',
@@ -881,7 +881,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1248/2021',
     year: 2021,
     summary: 'Securities markets, public offerings, intermediaries and investor protection.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'Ethiopian Capital Market Authority',
     fileSize: '2.8 MB',
     downloadCount: 5890,
     fileUrl: 'https://ecma.gov.et/wp-content/uploads/2022/08/Capital-Market-Proclamation-No.-1248-2021.pdf',
@@ -913,7 +913,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Directive No. 1047/2025',
     year: 2025,
     summary: 'Conversion of paper securities into electronic securities records.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Ethiopian Capital Market Authority',
     fileSize: '1.4 MB',
     downloadCount: 2280,
     fileUrl: 'https://ecma.gov.et/'
@@ -993,10 +993,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 979/2016',
     year: 2016,
     summary: 'Income taxation, taxable income and taxpayer obligations.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '3.6 MB',
     downloadCount: 7120,
-    fileUrl: 'https://www.mor.gov.et/',
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Essential'
   },
   {
@@ -1009,10 +1009,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Reg. No. 485/2021',
     year: 2021,
     summary: 'Amendments to the federal income tax implementing regulation.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.5 MB',
     downloadCount: 2680,
-    fileUrl: 'https://www.mor.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-65',
@@ -1024,10 +1024,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 859/2014',
     year: 2014,
     summary: 'Customs procedures, import and export controls, duties and enforcement.',
-    sourceAuthority: 'EthioData',
+    sourceAuthority: 'EthioData / ECC',
     fileSize: '3.8 MB',
     downloadCount: 4230,
-    fileUrl: 'https://www.ecc.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-66',
@@ -1055,7 +1055,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Reg. No. 332/2014',
     year: 2014,
     summary: 'Establishment, responsibilities and procedures of the accounting and auditing board.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Accounting & Auditing Board',
     fileSize: '1.4 MB',
     downloadCount: 2890,
     fileUrl: 'https://www.aabe.gov.et/'
@@ -1087,10 +1087,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1321/2024',
     year: 2024,
     summary: 'Personal information, data-processing obligations and individuals privacy rights.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.4 MB',
     downloadCount: 4680,
-    fileUrl: 'https://www.eag.gov.et/',
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Essential'
   },
   {
@@ -1103,7 +1103,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1072/2018',
     year: 2018,
     summary: 'Legal recognition of electronic signatures and electronic authentication.',
-    sourceAuthority: 'MetaAppz legal repository',
+    sourceAuthority: 'INSA',
     fileSize: '1.4 MB',
     downloadCount: 3120,
     fileUrl: 'https://www.insa.gov.et/'
@@ -1118,7 +1118,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1284/2023',
     year: 2023,
     summary: 'Digital identity registration, authentication and administration of national identification system.',
-    sourceAuthority: 'UNHCR Refworld',
+    sourceAuthority: 'National ID Program (NID)',
     fileSize: '1.9 MB',
     downloadCount: 3840,
     fileUrl: 'https://id.gov.et/'
@@ -1133,10 +1133,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1238/2021',
     year: 2021,
     summary: 'Media services, licensing, regulation and freedom of expression.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.6 MB',
     downloadCount: 2450,
-    fileUrl: 'https://www.ema.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-73',
@@ -1148,10 +1148,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1374/2025',
     year: 2025,
     summary: "Amendments to the media authority's governance and administrative arrangements.",
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.1 MB',
     downloadCount: 1670,
-    fileUrl: 'https://www.ema.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-74',
@@ -1163,7 +1163,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1148/2019',
     year: 2019,
     summary: 'Telecommunications regulation, licensing and the Ethiopian Communications Authority.',
-    sourceAuthority: 'MetaAppz legal repository',
+    sourceAuthority: 'Ethiopian Communications Authority (ECA)',
     fileSize: '2.3 MB',
     downloadCount: 3190,
     fileUrl: 'https://eca.et/'
@@ -1178,10 +1178,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1185/2020',
     year: 2020,
     summary: 'Addresses hate speech, disinformation, prohibited conduct and penalties.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.3 MB',
     downloadCount: 2180,
-    fileUrl: 'https://www.eag.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-76',
@@ -1193,7 +1193,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1426/2026',
     year: 2026,
     summary: 'Cybersecurity obligations for critical infrastructure and its protection.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Information Network Security Administration (INSA)',
     fileSize: '2.1 MB',
     downloadCount: 2840,
     fileUrl: 'https://www.insa.gov.et/',
@@ -1209,10 +1209,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 759/2012',
     year: 2012,
     summary: 'Advertising activities and obligations of advertisers and advertising agents.',
-    sourceAuthority: 'LawEthiopia',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.5 MB',
     downloadCount: 1620,
-    fileUrl: 'https://www.ema.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-78',
@@ -1224,10 +1224,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 501/2006',
     year: 2006,
     summary: 'Registration, ownership, protection and enforcement of trademarks.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '1.8 MB',
     downloadCount: 4210,
-    fileUrl: 'https://www.eipa.gov.et/',
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8592',
     badge: 'Essential'
   },
   {
@@ -1240,10 +1240,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 410/2004',
     year: 2004,
     summary: 'Protection of creative works, performances, recordings and related rights.',
-    sourceAuthority: 'Ministry of Justice',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '2.0 MB',
     downloadCount: 3120,
-    fileUrl: 'https://www.eipa.gov.et/'
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8593'
   },
   {
     id: 'doc-80',
@@ -1255,10 +1255,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 872/2014',
     year: 2014,
     summary: 'Amendments covering copyright protection, collective administration and enforcement.',
-    sourceAuthority: 'Ethiopian Intellectual Property Authority',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '1.1 MB',
     downloadCount: 1740,
-    fileUrl: 'https://www.eipa.gov.et/'
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/15632'
   },
   {
     id: 'doc-81',
@@ -1270,10 +1270,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 123/1995',
     year: 1995,
     summary: 'Patent protection, minor inventions and industrial-design rights.',
-    sourceAuthority: 'AMP EID legal repository',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '1.7 MB',
     downloadCount: 2280,
-    fileUrl: 'https://www.eipa.gov.et/'
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/8594'
   },
 
   // I. Land, buildings and transport (82–90)
@@ -1338,7 +1338,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     sourceAuthority: 'ILO NATLEX',
     fileSize: '2.9 MB',
     downloadCount: 3410,
-    fileUrl: 'https://www.ilo.org/'
+    fileUrl: 'https://www.ilo.org/dyn/natlex/natlex4.detail?p_lang=en&p_isn=81832'
   },
   {
     id: 'doc-86',
@@ -1350,10 +1350,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1274/2022',
     year: 2022,
     summary: 'Administration, regulation and safety of road transport services.',
-    sourceAuthority: 'MetaAppz legal repository',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.0 MB',
     downloadCount: 2510,
-    fileUrl: 'https://www.motl.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-87',
@@ -1365,10 +1365,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Reg. No. 557/2024',
     year: 2024,
     summary: 'Road-use rules, driving conduct, traffic control and enforcement.',
-    sourceAuthority: 'MetaAppz legal repository',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.9 MB',
     downloadCount: 3120,
-    fileUrl: 'https://www.motl.gov.et/',
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -1381,7 +1381,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 548/2007',
     year: 2007,
     summary: 'Goods transported through multiple modes, transport documents and carrier liability.',
-    sourceAuthority: 'MetaAppz legal repository',
+    sourceAuthority: 'ESLSE Official Portal',
     fileSize: '1.5 MB',
     downloadCount: 1840,
     fileUrl: 'https://www.eslse.et/'
@@ -1411,7 +1411,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 799/2013',
     year: 2013,
     summary: 'Compulsory motor insurance and compensation for third-party accident victims.',
-    sourceAuthority: 'Ethiopian Legal Brief',
+    sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.4 MB',
     downloadCount: 3980,
     fileUrl: 'https://nbe.gov.et/',
@@ -1429,7 +1429,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1376/2025',
     year: 2025,
     summary: 'Animal disease control, veterinary services, traceability and animal welfare.',
-    sourceAuthority: 'Ethiopian Agricultural Authority',
+    sourceAuthority: 'Ministry of Agriculture',
     fileSize: '2.1 MB',
     downloadCount: 1840,
     fileUrl: 'https://moa.gov.et/',
@@ -1445,7 +1445,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1288/2023',
     year: 2023,
     summary: 'Seed varieties, production, quality certification and seed marketing.',
-    sourceAuthority: 'Ethiopian Agricultural Authority',
+    sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.7 MB',
     downloadCount: 1420,
     fileUrl: 'https://moa.gov.et/'
@@ -1460,7 +1460,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 137/1998',
     year: 1998,
     summary: 'Manufacturing, importing, distributing and trading fertilizers.',
-    sourceAuthority: 'Ethiopian Agricultural Authority',
+    sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.1 MB',
     downloadCount: 1190,
     fileUrl: 'https://moa.gov.et/'
@@ -1475,7 +1475,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 674/2010',
     year: 2010,
     summary: 'Registration, handling, distribution and safe use of pesticides.',
-    sourceAuthority: 'Ethiopian Agricultural Authority',
+    sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.6 MB',
     downloadCount: 1350,
     fileUrl: 'https://moa.gov.et/'
@@ -1490,7 +1490,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 728/2011',
     year: 2011,
     summary: 'Veterinary medicines, animal feed, product quality and regulatory controls.',
-    sourceAuthority: 'Ethiopian Agricultural Authority',
+    sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.7 MB',
     downloadCount: 1280,
     fileUrl: 'https://moa.gov.et/'
@@ -1505,10 +1505,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1068/2017',
     year: 2017,
     summary: 'Protection and registration of rights over new plant varieties.',
-    sourceAuthority: 'Ethiopian Agricultural Authority',
+    sourceAuthority: 'WIPO Lex',
     fileSize: '1.4 MB',
     downloadCount: 1540,
-    fileUrl: 'https://www.eipa.gov.et/'
+    fileUrl: 'https://www.wipo.int/wipolex/en/legislation/details/17498'
   },
   {
     id: 'doc-97',
@@ -1520,7 +1520,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 488/2006',
     year: 2006,
     summary: 'Organic agricultural production, certification and related controls.',
-    sourceAuthority: 'Livestock Development Institute',
+    sourceAuthority: 'Ministry of Agriculture',
     fileSize: '1.2 MB',
     downloadCount: 1610,
     fileUrl: 'https://moa.gov.et/'
@@ -1721,7 +1721,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 300/2002',
     year: 2002,
     summary: 'Prevention and control of pollution and associated responsibilities.',
-    sourceAuthority: 'Eco-justice Ethiopia',
+    sourceAuthority: 'Eco-justice Ethiopia / FAOLEX',
     fileSize: '1.9 MB',
     downloadCount: 2840,
     fileUrl: 'https://faolex.fao.org/',
@@ -1767,10 +1767,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 656/2009',
     year: 2009,
     summary: 'Ratification of amendments to the Montreal Protocol on ozone-depleting substances.',
-    sourceAuthority: 'Eco-justice Ethiopia',
+    sourceAuthority: 'Eco-justice Ethiopia / UN Treaty',
     fileSize: '0.8 MB',
     downloadCount: 840,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://treaties.un.org/'
   },
   {
     id: 'doc-114',
@@ -1782,10 +1782,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 362/2003',
     year: 2003,
     summary: 'Ratification of the Cartagena Protocol on biosafety.',
-    sourceAuthority: 'Eco-justice Ethiopia',
+    sourceAuthority: 'Eco-justice Ethiopia / UN Treaty',
     fileSize: '0.7 MB',
     downloadCount: 890,
-    fileUrl: 'https://faolex.fao.org/'
+    fileUrl: 'https://treaties.un.org/'
   },
   {
     id: 'doc-115',
@@ -1879,10 +1879,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1152/2019',
     year: 2019,
     summary: 'Higher education institutions, governance, academic programmes and quality.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '2.8 MB',
     downloadCount: 3840,
-    fileUrl: 'https://www.moe.gov.et/'
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-121',
@@ -1894,10 +1894,10 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1294/2023',
     year: 2023,
     summary: 'University autonomy, governance and institutional responsibilities.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'Federal Supreme Court (FSC)',
     fileSize: '1.5 MB',
     downloadCount: 2680,
-    fileUrl: 'https://www.moe.gov.et/',
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -1910,7 +1910,7 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     proclamationNumber: 'Proc. No. 1112/2019',
     year: 2019,
     summary: 'Food, medicines, medical devices, cosmetics and tobacco regulation.',
-    sourceAuthority: 'Ethiopian Ministry of Justice',
+    sourceAuthority: 'EFDA Official Portal',
     fileSize: '3.2 MB',
     downloadCount: 4120,
     fileUrl: 'https://www.efda.gov.et/',
