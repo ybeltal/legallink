@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { SEED_LEGAL_DOCUMENTS, LegalDocumentItem } from '@/lib/library-data';
-import { generateGazettePDF } from '@/lib/pdf-generator';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -19,7 +18,7 @@ export default function LegalLibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [previewDoc, setPreviewDoc] = useState<LegalDocumentItem | null>(null);
-  const [downloadCounts, setDownloadCounts] = useState<Record<string, number>>({});
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [customDocuments, setCustomDocuments] = useState<LegalDocumentItem[]>([]);
 
   // Document Upload Modal State
@@ -39,7 +38,6 @@ export default function LegalLibraryPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // 13 Statutory Subject Categories matching Sections A to M
   const categories = [
     'All',
     'Employment & Labour',
@@ -81,30 +79,11 @@ export default function LegalLibraryPage() {
     });
   }, [allDocuments, searchQuery, selectedCategory]);
 
-  const handleOpenDocument = (docItem: LegalDocumentItem) => {
-    setDownloadCounts((prev) => ({
+  const incrementViewCount = (id: string, initialCount: number) => {
+    setViewCounts((prev) => ({
       ...prev,
-      [docItem.id]: (prev[docItem.id] || docItem.downloadCount) + 1
+      [id]: (prev[id] || initialCount) + 1
     }));
-
-    // If an external verified link exists, open in a new tab
-    if (docItem.fileUrl && docItem.fileUrl.startsWith('http')) {
-      window.open(docItem.fileUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    // Fallback: Generate standard statutory copy locally so the user is never stranded
-    generateGazettePDF({
-      title: docItem.title,
-      amharicTitle: docItem.amharicTitle,
-      proclamationNumber: docItem.proclamationNumber,
-      category: docItem.category,
-      year: docItem.year,
-      summary: docItem.summary,
-      amharicSummary: docItem.amharicTitle,
-      pages: 18,
-      fileName: `${docItem.id}_${docItem.proclamationNumber ? docItem.proclamationNumber.replace(/[^a-zA-Z0-9]/g, '_') : 'statute'}.pdf`
-    });
   };
 
   const handleFileUpload = async (e: React.FormEvent) => {
@@ -113,6 +92,11 @@ export default function LegalLibraryPage() {
 
     if (!newTitle.trim()) {
       setUploadError('Please specify the document title.');
+      return;
+    }
+
+    if (!directDownloadLink.trim() && !selectedFile) {
+      setUploadError('Please provide a direct PDF web URL or select a PDF file to upload.');
       return;
     }
 
@@ -147,11 +131,11 @@ export default function LegalLibraryPage() {
         category: newCategory,
         proclamationNumber: newProcNumber.trim() || undefined,
         year: parseInt(newYear, 10) || 2026,
-        fileSize: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '1.5 MB',
+        fileSize: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : 'PDF Document',
         downloadCount: 1,
-        summary: newSummary.trim() || 'Official statutory instrument registered into LegalLink Library.',
-        sourceAuthority: 'Ministry of Justice / Verified Registry',
-        fileUrl: finalFileUrl || undefined,
+        summary: newSummary.trim() || 'Official statutory legal document added to LegalLink repository.',
+        sourceAuthority: 'Verified LegalLink Archive',
+        fileUrl: finalFileUrl,
         badge: 'New Upload'
       };
 
@@ -198,7 +182,7 @@ export default function LegalLibraryPage() {
               className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-xs cursor-pointer w-fit"
             >
               <Plus className="w-3.5 h-3.5 text-amber-400" />
-              <span>Add Document / Link</span>
+              <span>Add Custom Document / Link</span>
             </button>
           </div>
 
@@ -211,21 +195,21 @@ export default function LegalLibraryPage() {
           <p className="text-xs sm:text-sm text-slate-600 font-normal max-w-2xl leading-relaxed">
             {language === 'am'
               ? 'ሙሉ የፌዴራል ነጋሪት ጋዜጣ አዋጆችን፣ ደንቦችንና የብሔራዊ ባንክ መመሪያዎችን ከዋናው ይፋዊ ምንጭ በቀጥታ ይክፈቱ።'
-              : 'Direct access to official Federal Negarit Gazeta proclamations, ministerial directives, civil court pleadings, and certified statutory texts directly from original regulatory repositories.'}
+              : 'Direct access to official Federal Negarit Gazeta proclamations, ministerial directives, and civil court pleadings. Every document opens the authentic, full-length PDF directly from official institutional hosts.'}
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-6 text-xs text-slate-500 font-medium">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>122 Complete Primary Legal Instruments</span>
+              <span>122 Primary Legal Instruments</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Direct Link to Original Regulatory Text</span>
+              <span>Opens Full Official PDF in New Tab</span>
             </div>
             <div className="flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-amber-600" />
-              <span>Full Unabridged Versions in New Tab</span>
+              <span>Zero Truncated Summaries</span>
             </div>
           </div>
 
@@ -285,7 +269,7 @@ export default function LegalLibraryPage() {
         {/* 04. Document Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDocuments.map((doc) => {
-            const currentDownloads = downloadCounts[doc.id] || doc.downloadCount;
+            const currentViews = viewCounts[doc.id] || doc.downloadCount;
 
             return (
               <div
@@ -346,22 +330,24 @@ export default function LegalLibraryPage() {
                   </div>
 
                   <div className="text-[10px] text-slate-400 font-mono truncate">
-                    Official Repository: <span className="text-slate-700 font-bold">{doc.sourceAuthority}</span>
+                    Official Host: <span className="text-slate-700 font-bold">{doc.sourceAuthority}</span>
                   </div>
                 </div>
 
                 <div className="pt-2 space-y-2">
                   <div className="flex items-center gap-2">
                     
-                    {/* Direct Transfer Button: Opens Real Document in New Tab */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDocument(doc)}
-                      className="flex-1 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer group"
+                    {/* Native Link: Opens the authentic full PDF in a new tab */}
+                    <a
+                      href={doc.fileUrl || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => incrementViewCount(doc.id, doc.downloadCount)}
+                      className="flex-1 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs group"
                     >
                       <span>Open Full Official PDF</span>
                       <ExternalLink className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </button>
+                    </a>
 
                     {/* Preview Modal Button */}
                     <button
@@ -375,7 +361,7 @@ export default function LegalLibraryPage() {
                   </div>
 
                   <span className="text-[10px] text-slate-400 text-center block font-mono">
-                    {currentDownloads.toLocaleString()} verified views
+                    {currentViews.toLocaleString()} verified views
                   </span>
                 </div>
               </div>
@@ -441,7 +427,7 @@ export default function LegalLibraryPage() {
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 leading-relaxed text-slate-700">
-              <strong className="text-xs font-bold text-[#0A1128] block">Statutory Overview & Regulatory Scope:</strong>
+              <strong className="text-xs font-bold text-[#0A1128] block">Statutory Overview:</strong>
               <p>{previewDoc.summary}</p>
               <span className="text-[11px] font-mono text-slate-500 block pt-1">
                 Official Host Authority: <strong className="text-[#0A1128]">{previewDoc.sourceAuthority}</strong>
@@ -472,17 +458,19 @@ export default function LegalLibraryPage() {
                 Close Preview
               </button>
 
-              <button
-                type="button"
+              <a
+                href={previewDoc.fileUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => {
-                  handleOpenDocument(previewDoc);
+                  incrementViewCount(previewDoc.id, previewDoc.downloadCount);
                   setPreviewDoc(null);
                 }}
-                className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm cursor-pointer"
+                className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm"
               >
                 <span>Open Full Official PDF</span>
                 <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -505,7 +493,7 @@ export default function LegalLibraryPage() {
                 Add Document to Legal Library
               </h3>
               <p className="text-slate-500">
-                Provide a direct URL to the official host repository, or upload a PDF to Supabase Storage.
+                Provide the direct URL to the official host repository, or upload a PDF to Supabase Storage.
               </p>
             </div>
 

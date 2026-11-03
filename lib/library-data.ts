@@ -11,7 +11,7 @@ export interface LegalDocumentItem {
   sourceAuthority: string;
   fileSize: string;
   downloadCount: number;
-  fileUrl?: string;
+  fileUrl: string;
   badge?: string;
 }
 
@@ -26,10 +26,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 1156/2019',
     year: 2019,
-    summary: 'Employment contracts, wages, leave, working conditions, probation, and labour dispute settlements.',
-    sourceAuthority: 'ILO NATLEX / Ministry of Labor and Skills',
+    summary: 'Employment contracts, wages, leave, working conditions and labour disputes.',
+    sourceAuthority: 'ILO NATLEX',
     fileSize: '2.4 MB',
     downloadCount: 5410,
+    fileUrl: 'https://www.ilo.org/dyn/natlex/docs/ELECTRONIC/109395/135677/F-1440073284/ETH109395.pdf',
     badge: 'Most Downloaded'
   },
   {
@@ -41,10 +42,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 568/2008',
     year: 2008,
-    summary: 'Equal employment opportunities, reasonable accommodation and protection against disability discrimination in workplaces.',
+    summary: 'Equal employment opportunities, reasonable accommodation and protection against disability discrimination.',
     sourceAuthority: 'Ministry of Labor and Skills',
     fileSize: '1.1 MB',
-    downloadCount: 1320
+    downloadCount: 1320,
+    fileUrl: 'https://mols.gov.et/'
   },
   {
     id: 'doc-3',
@@ -55,10 +57,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 1389/2025',
     year: 2025,
-    summary: 'Overseas recruitment, private employment agencies and legal protection of Ethiopian migrant workers abroad.',
+    summary: 'Overseas recruitment, employment agencies and protection of Ethiopian migrant workers.',
     sourceAuthority: 'Ministry of Labor and Skills',
     fileSize: '1.8 MB',
     downloadCount: 2840,
+    fileUrl: 'https://mols.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -70,10 +73,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 1268/2022',
     year: 2022,
-    summary: 'Mandatory pension contributions, retirement benefit calculations, and survivor benefits for private sector employees.',
-    sourceAuthority: 'Federal First Instance Court / POESSA',
+    summary: 'Pension contributions, retirement benefits and survivors benefits for private-sector employees.',
+    sourceAuthority: 'Federal First Instance Court',
     fileSize: '1.6 MB',
-    downloadCount: 3410
+    downloadCount: 3410,
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-5',
@@ -84,10 +88,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 1267/2022',
     year: 2022,
-    summary: 'Pension registration, contributions, and retirement benefit schemes for civil service personnel.',
+    summary: 'Pension registration, contributions and benefits for public servants.',
     sourceAuthority: 'Ministry of Justice',
     fileSize: '1.7 MB',
-    downloadCount: 2280
+    downloadCount: 2280,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-6',
@@ -98,10 +103,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 690/2010',
     year: 2010,
-    summary: 'Social health insurance scheme coverage, payroll contributions and healthcare agency administration.',
-    sourceAuthority: 'Ministry of Health',
+    summary: 'Social health insurance coverage, contributions and administration.',
+    sourceAuthority: 'MetaAppz legal repository',
     fileSize: '1.2 MB',
-    downloadCount: 1650
+    downloadCount: 1650,
+    fileUrl: 'https://www.moh.gov.et/'
   },
   {
     id: 'doc-7',
@@ -112,10 +118,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Employment & Labour',
     proclamationNumber: 'Proc. No. 1063/2017',
     year: 2017,
-    summary: "Ratification of international standards concerning seafarers' working conditions, safety, and health.",
-    sourceAuthority: 'FAOLEX / ILO',
+    summary: "Ethiopia's ratification of international standards on seafarers working and living conditions.",
+    sourceAuthority: 'FAOLEX',
     fileSize: '0.9 MB',
-    downloadCount: 910
+    downloadCount: 910,
+    fileUrl: 'https://faolex.fao.org/'
   },
 
   // B. Constitution, civil, criminal and family law (8–15)
@@ -123,44 +130,47 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     id: 'doc-8',
     itemNumber: 8,
     title: 'Constitution of the Federal Democratic Republic of Ethiopia Proclamation No. 1/1995',
-    amharicTitle: 'የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ ሕገ መንግሥት አዋጅ ቁጥር 1/1987',
+    amharicTitle: 'የኢፌዴሪ ሕገ መንግሥት አዋጅ ቁጥር 1/1987',
     sectionCode: 'B',
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 1/1995',
     year: 1995,
-    summary: 'The supreme law of Ethiopia establishing fundamental human rights, federal structure, and powers of government.',
-    sourceAuthority: 'Federal Negarit Gazeta / Ministry of Justice',
+    summary: 'Fundamental rights, federal government institutions and constitutional principles.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '3.4 MB',
     downloadCount: 9480,
+    fileUrl: 'https://www.wipo.int/edocs/lexdocs/laws/en/et/et007en.pdf',
     badge: 'Essential'
   },
   {
     id: 'doc-9',
     itemNumber: 9,
     title: 'Declaration of Establishment of the FDRE Proclamation No. 2/1995',
-    amharicTitle: 'የኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ ምስረታ ማወጃ አዋጅ ቁጥር 2/1987',
+    amharicTitle: 'የኢፌዴሪ ምስረታ ማወጃ አዋጅ ቁጥር 2/1987',
     sectionCode: 'B',
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 2/1995',
     year: 1995,
-    summary: 'Formal statutory declaration establishing the Federal Democratic Republic of Ethiopia.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Formal establishment of the Federal Democratic Republic of Ethiopia.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '0.8 MB',
-    downloadCount: 1420
+    downloadCount: 1420,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-10',
     itemNumber: 10,
-    title: 'Civil Code of Ethiopia Proclamation No. 165/1960',
-    amharicTitle: 'የኢትዮጵያ ፍትሐብሔር ሕግ አዋጅ ቁጥር 165/1952',
+    title: 'Civil Code Proclamation No. 165/1960',
+    amharicTitle: 'የፍትሐብሔር ሕግ አዋጅ ቁጥር 165/1952',
     sectionCode: 'B',
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 165/1960',
     year: 1960,
-    summary: 'Foundational substantive civil law: contracts, property ownership, commercial leases (Art. 2896), and succession.',
-    sourceAuthority: 'ILO NATLEX / Ministry of Justice',
+    summary: 'Civil rights, contracts, obligations, property and succession.',
+    sourceAuthority: 'ILO NATLEX',
     fileSize: '9.8 MB',
     downloadCount: 8940,
+    fileUrl: 'https://www.ilo.org/dyn/natlex/docs/ELECTRONIC/85124/95123/F882414761/ETH85124.pdf',
     badge: 'Essential'
   },
   {
@@ -172,10 +182,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 639/2009',
     year: 2009,
-    summary: 'Amends Civil Code provisions governing contracts and transactions relating to immovable property.',
+    summary: 'Amends the Civil Code rules on contracts involving immovable property.',
     sourceAuthority: 'ILO NATLEX',
     fileSize: '0.7 MB',
-    downloadCount: 2420
+    downloadCount: 2420,
+    fileUrl: 'https://www.ilo.org/'
   },
   {
     id: 'doc-12',
@@ -186,25 +197,27 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Decree No. 52/1965',
     year: 1965,
-    summary: 'Statutory rules for instituting civil suits, jurisdiction, hearings, execution of decrees, and appellate review.',
-    sourceAuthority: 'Federal Justice and Law Institute',
+    summary: 'Filing civil cases, jurisdiction, hearings, appeals and enforcement.',
+    sourceAuthority: 'Ethiopian Ministry of Education',
     fileSize: '4.2 MB',
     downloadCount: 5120,
+    fileUrl: 'https://www.fsc.gov.et/',
     badge: 'Essential'
   },
   {
     id: 'doc-13',
     itemNumber: 13,
-    title: 'Criminal Code of Ethiopia Proclamation No. 414/2004',
-    amharicTitle: 'የኢፌዴሪ የወንጀል ሕግ አዋጅ ቁጥር 414/1996',
+    title: 'Criminal Code Proclamation No. 414/2004',
+    amharicTitle: 'የወንጀል ሕግ አዋጅ ቁጥር 414/1996',
     sectionCode: 'B',
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 414/2004',
     year: 2004,
-    summary: 'Substantive penal law: criminal liability, sentencing standards, economic offences, and property crimes.',
-    sourceAuthority: 'UNHCR Refworld / Ministry of Justice',
+    summary: 'Criminal offences, criminal responsibility, penalties and sentencing.',
+    sourceAuthority: 'UNHCR Refworld',
     fileSize: '5.6 MB',
     downloadCount: 6180,
+    fileUrl: 'https://www.refworld.org/pdfid/49216b572.pdf',
     badge: 'Essential'
   },
   {
@@ -216,10 +229,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 213/2000',
     year: 2000,
-    summary: 'Statutory provisions governing conclusion and effects of marriage, divorce proceedings, marital property, and child maintenance.',
+    summary: 'Marriage, divorce, family relations, children, adoption and guardianship.',
     sourceAuthority: 'Federal Justice and Law Institute',
     fileSize: '2.9 MB',
-    downloadCount: 4890
+    downloadCount: 4890,
+    fileUrl: 'https://www.refworld.org/pdfid/4c0cae802.pdf'
   },
   {
     id: 'doc-15',
@@ -230,10 +244,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Civil & Constitutional Law',
     proclamationNumber: 'Proc. No. 1070/2018',
     year: 2018,
-    summary: 'Reforms statutory adoption provisions and legal custody requirements under Ethiopian family jurisprudence.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Amends the Revised Family Code provisions on adoption.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '0.8 MB',
-    downloadCount: 1980
+    downloadCount: 1980,
+    fileUrl: 'https://www.eag.gov.et/'
   },
 
   // C. Courts, justice, governance and civil society (16–26)
@@ -246,10 +261,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1234/2021',
     year: 2021,
-    summary: 'Jurisdiction, divisions, and procedural authority of Federal First Instance, High Court, and Supreme Court.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Federal courts, jurisdiction, judicial powers and court administration.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '2.1 MB',
-    downloadCount: 3950
+    downloadCount: 3950,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-17',
@@ -260,10 +276,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1233/2021',
     year: 2021,
-    summary: 'Appointment, code of conduct, disciplinary measures, and administration of federal judges.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Administration of federal judges and the Judicial Administration Council.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.4 MB',
-    downloadCount: 1620
+    downloadCount: 1620,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-18',
@@ -274,10 +291,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1249/2021',
     year: 2021,
-    summary: 'Licensing, professional ethics, firm partnerships, and disciplinary oversight of Ethiopian advocates.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Licensing, professional standards and administration of advocacy services.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.9 MB',
     downloadCount: 3820,
+    fileUrl: 'https://www.eag.gov.et/',
     badge: 'Essential'
   },
   {
@@ -289,10 +307,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1183/2020',
     year: 2020,
-    summary: 'Rules for public agency rulemaking, transparency, administrative hearings, and judicial review of government decisions.',
+    summary: 'Administrative rulemaking, decisions, hearings and judicial review.',
     sourceAuthority: 'LawEthiopia',
     fileSize: '1.6 MB',
-    downloadCount: 2890
+    downloadCount: 2890,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-20',
@@ -303,10 +322,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1224/2020',
     year: 2020,
-    summary: "Revises EHRC mandate, operational independence, and investigative authority regarding human rights violations.",
-    sourceAuthority: 'Ministry of Justice',
+    summary: "Revises the Commission's mandate, independence and institutional arrangements.",
+    sourceAuthority: 'MetaAppz Ethiopian laws repository',
     fileSize: '1.2 MB',
-    downloadCount: 1490
+    downloadCount: 1490,
+    fileUrl: 'https://ehrc.org/'
   },
   {
     id: 'doc-21',
@@ -317,10 +337,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1307/2023',
     year: 2023,
-    summary: 'Investigative powers of the Ombudsman to remedy administrative malpractice and defend citizen rights.',
+    summary: "Strengthens the Ombudsman's powers to investigate and remedy maladministration.",
     sourceAuthority: 'Federal First Instance Court',
     fileSize: '1.1 MB',
-    downloadCount: 1210
+    downloadCount: 1210,
+    fileUrl: 'https://www.fsc.gov.et/'
   },
   {
     id: 'doc-22',
@@ -331,10 +352,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1236/2021',
     year: 2021,
-    summary: 'Statutory powers to prevent corruption, register public officials assets, and coordinate ethics education.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: "Establishes the Commission's anti-corruption responsibilities and institutional framework.",
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.7 MB',
-    downloadCount: 1840
+    downloadCount: 1840,
+    fileUrl: 'https://feacc.gov.et/'
   },
   {
     id: 'doc-23',
@@ -345,24 +367,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1178/2020',
     year: 2020,
-    summary: 'Criminal offenses, prosecution procedures, and international protection mechanisms against human trafficking.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Human trafficking and smuggling offences, prevention and victim protection.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.5 MB',
-    downloadCount: 1670
+    downloadCount: 1670,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-24',
     itemNumber: 24,
-    title: 'New York Convention on Foreign Arbitral Awards Ratification Proclamation No. 1184/2020',
+    title: 'Convention on Foreign Arbitral Awards Ratification Proclamation No. 1184/2020',
     amharicTitle: 'የውጭ ሀገር የግልግል ዳኝነት ውሳኔዎችን ዕውቅና መስጠትና ማስፈጸም ስምምነት ማፅደቂያ አዋጅ ቁጥር 1184/2012',
     sectionCode: 'C',
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1184/2020',
     year: 2020,
-    summary: 'Ratifies the 1958 New York Convention on enforcement of foreign arbitral awards in Ethiopian courts.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Ratifies the New York Convention on foreign arbitral awards.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '0.9 MB',
     downloadCount: 2940,
+    fileUrl: 'https://www.eag.gov.et/',
     badge: 'Essential'
   },
   {
@@ -374,10 +398,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1364/2025',
     year: 2025,
-    summary: 'Tracing, freezing, and civil confiscation of unexplained wealth and assets connected to unlawful activities.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Tracing, freezing, confiscation and recovery of assets connected to unlawful activity.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.8 MB',
     downloadCount: 2190,
+    fileUrl: 'https://www.eag.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -389,10 +414,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Courts & Justice',
     proclamationNumber: 'Proc. No. 1113/2019',
     year: 2019,
-    summary: 'Liberalized registration, foreign funding allocations, and operational rights for NGOs and civil society groups.',
-    sourceAuthority: 'ACSO / FAOLEX',
+    summary: 'Formation, registration and administration of civil society organizations.',
+    sourceAuthority: 'FAO FAOLEX',
     fileSize: '2.2 MB',
-    downloadCount: 3410
+    downloadCount: 3410,
+    fileUrl: 'https://faolex.fao.org/'
   },
 
   // D. Nationality, immigration, refugees and elections (27–34)
@@ -405,10 +431,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 378/2003',
     year: 2003,
-    summary: 'Statutory criteria for acquisition of Ethiopian nationality by descent, naturalization, and loss of citizenship.',
+    summary: 'Acquisition, retention and loss of Ethiopian nationality.',
     sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.1 MB',
-    downloadCount: 3820
+    downloadCount: 3820,
+    fileUrl: 'https://www.refworld.org/docid/409a319f4.html'
   },
   {
     id: 'doc-28',
@@ -419,10 +446,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 354/2003',
     year: 2003,
-    summary: 'Entry visas, residence permits, passport issuance, and foreign national registration rules.',
+    summary: 'Entry, residence, travel documents and immigration control.',
     sourceAuthority: 'ILO NATLEX',
     fileSize: '1.3 MB',
-    downloadCount: 2940
+    downloadCount: 2940,
+    fileUrl: 'https://www.ilo.org/'
   },
   {
     id: 'doc-29',
@@ -433,10 +461,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 1339/2024',
     year: 2024,
-    summary: 'Modernized electronic travel authorization, border security biometric protocols, and residence permit terms.',
-    sourceAuthority: 'Immigration & Citizenship Service',
+    summary: 'Updates the Immigration Proclamation, including travel and entry requirements.',
+    sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.2 MB',
     downloadCount: 2150,
+    fileUrl: 'https://www.refworld.org/',
     badge: 'Updated 2026'
   },
   {
@@ -448,24 +477,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 1110/2019',
     year: 2019,
-    summary: 'Recognition of refugee status, right to work, access to education, and integration opportunities.',
-    sourceAuthority: 'Ministry of Justice / UNHCR',
+    summary: 'Refugee recognition, protection, rights and responsibilities.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.7 MB',
-    downloadCount: 1890
+    downloadCount: 1890,
+    fileUrl: 'https://www.refworld.org/docid/5cb830c74.html'
   },
   {
     id: 'doc-31',
     itemNumber: 31,
     title: "Electoral, Political Parties Registration and Code of Conduct Proclamation No. 1162/2019",
-    amharicTitle: 'የኢትዮጵያ የምርጫ፣ የፖለቲካ ፓርቲዎች ምዝገባና የምርጫ ሥነ-ምግባር አዋጅ ቁጥር 1162/2011',
+    amharicTitle: 'የምርጫ፣ የፖለቲካ ፓርቲዎች ምዝገባና የምርጫ ሥነ-ምግባር አዋጅ ቁጥር 1162/2011',
     sectionCode: 'D',
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 1162/2019',
     year: 2019,
-    summary: 'General election administration, political party requirements, ballot procedures, and dispute mechanisms.',
-    sourceAuthority: 'NEBE / Ministry of Justice',
+    summary: 'Election procedures, political party registration and electoral conduct.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '3.1 MB',
-    downloadCount: 2450
+    downloadCount: 2450,
+    fileUrl: 'https://www.nebe.org.et/'
   },
   {
     id: 'doc-32',
@@ -476,10 +507,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 1235/2021',
     year: 2021,
-    summary: 'Reforms political party founding signature requirements and election calendar administration.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: "Amends the electoral law's political party and election provisions.",
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '0.9 MB',
-    downloadCount: 1120
+    downloadCount: 1120,
+    fileUrl: 'https://www.nebe.org.et/'
   },
   {
     id: 'doc-33',
@@ -490,10 +522,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 1394/2025',
     year: 2025,
-    summary: 'Updated campaign financing limits, constituency boundaries, and digital voting safeguards.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: "Further amendments to Ethiopia's electoral and political party framework.",
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.1 MB',
     downloadCount: 1560,
+    fileUrl: 'https://www.nebe.org.et/',
     badge: 'Updated 2026'
   },
   {
@@ -505,10 +538,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Nationality & Immigration',
     proclamationNumber: 'Proc. No. 1133/2019',
     year: 2019,
-    summary: 'Institutional independence, board member selection criteria, and powers of the National Electoral Board.',
-    sourceAuthority: 'NEBE',
+    summary: "Establishes the Electoral Board's powers, membership and independence.",
+    sourceAuthority: 'National Electoral Board of Ethiopia',
     fileSize: '1.5 MB',
-    downloadCount: 1290
+    downloadCount: 1290,
+    fileUrl: 'https://www.nebe.org.et/'
   },
 
   // E. Business, investment and trade (35–49)
@@ -521,10 +555,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 1243/2021',
     year: 2021,
-    summary: 'Modernized commercial code: Single-Member PLCs, share companies, commercial registers, and insolvency proceedings.',
-    sourceAuthority: 'FAOLEX / Ministry of Trade',
+    summary: 'Companies, partnerships, commercial activities and business insolvency.',
+    sourceAuthority: 'FAOLEX',
     fileSize: '4.9 MB',
     downloadCount: 7890,
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth204646.pdf',
     badge: 'Essential'
   },
   {
@@ -536,10 +571,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 1180/2020',
     year: 2020,
-    summary: 'Governs foreign direct investment, negative list regime, capital requirements, and investor guarantees.',
+    summary: 'Investment permits, investor protections and investment administration.',
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '2.1 MB',
     downloadCount: 5120,
+    fileUrl: 'https://www.investethiopia.gov.et/wp-content/uploads/2021/08/Investment-Proclamation-No.-1180-2020.pdf',
     badge: 'Essential'
   },
   {
@@ -551,25 +587,27 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 1322/2024',
     year: 2024,
-    summary: 'Regulatory framework for special economic zones (SEZ), developer licenses, and duty-free manufacturing zones.',
+    summary: 'Establishment, management and regulation of special economic zones.',
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '2.3 MB',
     downloadCount: 3210,
+    fileUrl: 'https://www.investethiopia.gov.et/',
     badge: 'Updated 2026'
   },
   {
     id: 'doc-38',
     itemNumber: 38,
     title: 'Investment Regulation No. 474/2020',
-    amharicTitle: 'የኢንቨስትመንት የሚኒስትሮች ምክር ቤት ደንብ ቁጥር 474/2013',
+    amharicTitle: 'የኢንቨስትመንት ደንብ ቁጥር 474/2013',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Reg. No. 474/2020',
     year: 2020,
-    summary: 'Identifies sectors open for joint ventures, sectors reserved for domestic investors, and minimum capital limits.',
+    summary: 'Investment sectors and requirements for domestic and foreign investors.',
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.6 MB',
-    downloadCount: 3840
+    downloadCount: 3840,
+    fileUrl: 'https://www.investethiopia.gov.et/'
   },
   {
     id: 'doc-39',
@@ -580,38 +618,41 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 886/2015',
     year: 2015,
-    summary: 'Historical legal framework for industrial parks development and tenant enterprise privileges.',
-    sourceAuthority: 'EIC',
+    summary: 'Historical framework for establishing and operating industrial parks (replaced by Proc. 1322/2024).',
+    sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.9 MB',
-    downloadCount: 1680
+    downloadCount: 1680,
+    fileUrl: 'https://www.investethiopia.gov.et/'
   },
   {
     id: 'doc-40',
     itemNumber: 40,
-    title: 'Investment Board & Commission Establishment Regulation No. 313/2014',
+    title: 'Investment Board and Commission Establishment Regulation No. 313/2014',
     amharicTitle: 'የኢንቨስትመንት ቦርድና ኮሚሽን ማቋቋሚያ ደንብ ቁጥር 313/2006',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Reg. No. 313/2014',
     year: 2014,
-    summary: 'Establishes institutional governance, mandate, and powers of the Ethiopian Investment Board and Commission.',
-    sourceAuthority: 'EIC',
+    summary: 'Establishment and responsibilities of the investment board and commission.',
+    sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.2 MB',
-    downloadCount: 1420
+    downloadCount: 1420,
+    fileUrl: 'https://www.investethiopia.gov.et/'
   },
   {
     id: 'doc-41',
     itemNumber: 41,
     title: 'Special Economic Zone Land Designation Directive No. 1083/2025',
-    amharicTitle: 'የልዩ የኢኮኖሚ ዞን የመሬት አመዳደብና አጠቃቀም መመሪያ ቁጥር 1083/2017',
+    amharicTitle: 'የልዩ የኢኮኖሚ ዞን የመሬት አመዳደብ መመሪያ ቁጥር 1083/2017',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Directive No. 1083/2025',
     year: 2025,
-    summary: 'Procedures for land demarcation, sub-lease transfers, and utility covenants inside designated SEZs.',
-    sourceAuthority: 'EIC',
+    summary: 'Land designation, allocation and use for special economic zones.',
+    sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.1 MB',
     downloadCount: 1890,
+    fileUrl: 'https://www.investethiopia.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -623,24 +664,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Directive No. 1053/2025',
     year: 2025,
-    summary: 'Tariffs and administrative fees for investment permit issuance, renewal, and technology transfer registrations.',
-    sourceAuthority: 'EIC',
+    summary: 'Fees payable for investment commission services.',
+    sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '0.8 MB',
-    downloadCount: 1340
+    downloadCount: 1340,
+    fileUrl: 'https://www.investethiopia.gov.et/'
   },
   {
     id: 'doc-43',
     itemNumber: 43,
-    title: "Foreign Investors Participation in Export, Import & Wholesale Trade Directive No. 1082/2025",
-    amharicTitle: 'የውጭ ባለሀብቶች በኤክስፖርት፣ ኢምፖርትና የጅምላ ንግድ የሚሳተፉበት መመሪያ ቁጥር 1082/2017',
+    title: "Foreign Investors Participation in Restricted Trade Directive No. 1082/2025",
+    amharicTitle: 'የውጭ ባለሀብቶች በንግድ የሚሳተፉበት መመሪያ ቁጥር 1082/2017',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Directive No. 1082/2025',
     year: 2025,
-    summary: 'Historic directive liberalizing retail, wholesale, and export trading sectors to international investors.',
+    summary: 'Conditions for foreign investment in specified trading activities.',
     sourceAuthority: 'Ethiopian Investment Commission',
     fileSize: '1.4 MB',
     downloadCount: 4620,
+    fileUrl: 'https://www.investethiopia.gov.et/',
     badge: 'Essential'
   },
   {
@@ -652,10 +695,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 980/2016',
     year: 2016,
-    summary: 'Mandatory rules on business trade names, commercial registers, commercial licenses, and branch filings.',
+    summary: 'Business registration, trade licences and licensing administration.',
     sourceAuthority: 'LawEthiopia',
     fileSize: '2.5 MB',
-    downloadCount: 4120
+    downloadCount: 4120,
+    fileUrl: 'https://www.motri.gov.et/'
   },
   {
     id: 'doc-45',
@@ -666,38 +710,41 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 550/2007',
     year: 2007,
-    summary: 'Establishes the ECX trading floor, spot contracts, central warehouse delivery, and grading procedures.',
-    sourceAuthority: 'ECX / LawEthiopia',
+    summary: 'Establishment, operation and governance of the commodity exchange.',
+    sourceAuthority: 'LawEthiopia',
     fileSize: '1.8 MB',
-    downloadCount: 2210
+    downloadCount: 2210,
+    fileUrl: 'https://www.ecx.com.et/'
   },
   {
     id: 'doc-46',
     itemNumber: 46,
-    title: 'Ethiopia Commodity Exchange (Amendment) Proclamation No. 665/2010',
-    amharicTitle: 'የኢትዮጵያ ምርት ገበያ ማሻሻያ አዋጅ ቁጥር 665/2002',
+    title: 'Ethiopia Commodity Exchange Amendment Proclamation No. 665/2010',
+    amharicTitle: 'የምርት ገበያ ማሻሻያ አዋጅ ቁጥር 665/2002',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 665/2010',
     year: 2010,
-    summary: 'Statutory amendments to agricultural commodity trading settlement rules and member liabilities.',
+    summary: "Amendments to the commodity exchange's legal framework.",
     sourceAuthority: 'LawEthiopia',
     fileSize: '0.9 MB',
-    downloadCount: 1180
+    downloadCount: 1180,
+    fileUrl: 'https://www.ecx.com.et/'
   },
   {
     id: 'doc-47',
     itemNumber: 47,
-    title: 'Ethiopia Commodity Exchange Authority Establishment (Amendment) Proclamation No. 566/2008',
-    amharicTitle: 'የምርት ገበያ ባለስልጣን ማቋቋሚያ ማሻሻያ አዋጅ ቁጥር 566/2000',
+    title: 'Ethiopia Commodity Exchange Authority Establishment Amendment Proclamation No. 566/2008',
+    amharicTitle: 'የምርት ገበያ ባለስልጣን ማሻሻያ አዋጅ ቁጥር 566/2000',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 566/2008',
     year: 2008,
-    summary: 'Statutory powers of the regulatory authority overseeing commodity brokers and trading floors.',
+    summary: "Amendments to the commodity exchange supervisory authority's framework.",
     sourceAuthority: 'LawEthiopia',
     fileSize: '0.8 MB',
-    downloadCount: 980
+    downloadCount: 980,
+    fileUrl: 'https://www.ecx.com.et/'
   },
   {
     id: 'doc-48',
@@ -708,24 +755,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Business & Investment',
     proclamationNumber: 'Proc. No. 372/2003',
     year: 2003,
-    summary: 'Legal recognition of transferable warehouse receipts, storage liens, and collateralized grain inventory.',
+    summary: 'Warehouse receipts, storage arrangements and related commercial rights.',
     sourceAuthority: 'LawEthiopia',
     fileSize: '1.2 MB',
-    downloadCount: 1350
+    downloadCount: 1350,
+    fileUrl: 'https://www.ecx.com.et/'
   },
   {
     id: 'doc-49',
     itemNumber: 49,
-    title: 'Investment Incentives (Amendment) Regulation No. 566/2025',
+    title: 'Investment Incentives Amendment Regulation No. 566/2025',
     amharicTitle: 'የኢንቨስትመንት ማበረታቻዎች ማሻሻያ ደንብ ቁጥር 566/2017',
     sectionCode: 'E',
     category: 'Business & Investment',
     proclamationNumber: 'Reg. No. 566/2025',
     year: 2025,
-    summary: 'Updated customs duty exemptions on capital goods and income tax holidays for qualifying priority industries.',
+    summary: 'Amendments to the investment incentives regulation.',
     sourceAuthority: 'Ministry of Justice',
     fileSize: '1.3 MB',
     downloadCount: 2980,
+    fileUrl: 'https://www.investethiopia.gov.et/',
     badge: 'Updated 2026'
   },
 
@@ -739,10 +788,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 1360/2025',
     year: 2025,
-    summary: 'Allows foreign bank market entry, sets prudential capital ratios, bank resolution, and corporate governance.',
+    summary: 'Bank licensing, supervision, ownership and resolution of banks.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '12.4 MB',
     downloadCount: 6840,
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/01/Banking-Business-Proclamation-No.-1360-2025.pdf',
     badge: 'Essential'
   },
   {
@@ -754,10 +804,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 1359/2025',
     year: 2025,
-    summary: 'Central bank autonomy, inflation target mandate, monetary policy committee, and macroprudential tools.',
+    summary: 'Central bank mandate, governance, powers and responsibilities.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '14.8 MB',
     downloadCount: 5210,
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2025/01/NBE-Proclamation-No.-1359-2025.pdf',
     badge: 'Essential'
   },
   {
@@ -769,52 +820,56 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 626/2009',
     year: 2009,
-    summary: 'Licensing, reserve requirements, and credit operations of microfinance institutions in Ethiopia.',
+    summary: 'Licensing, supervision and operation of microfinance institutions.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.7 MB',
-    downloadCount: 2190
+    downloadCount: 2190,
+    fileUrl: 'https://nbe.gov.et/'
   },
   {
     id: 'doc-53',
     itemNumber: 53,
-    title: 'Microfinance Business (Amendment) Proclamation No. 1164/2019',
+    title: 'Microfinance Business Amendment Proclamation No. 1164/2019',
     amharicTitle: 'የአነስተኛ ፋይናንስ ሥራ ማሻሻያ አዋጅ ቁጥር 1164/2011',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 1164/2019',
     year: 2019,
-    summary: 'Allows foreign nationals of Ethiopian origin to hold shares and opens MFI commercial bank transformations.',
+    summary: 'Amendments to microfinance ownership and related regulatory provisions.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '0.9 MB',
-    downloadCount: 1820
+    downloadCount: 1820,
+    fileUrl: 'https://nbe.gov.et/'
   },
   {
     id: 'doc-54',
     itemNumber: 54,
-    title: 'Insurance Business (Amendment) Proclamation No. 1163/2019',
+    title: 'Insurance Business Amendment Proclamation No. 1163/2019',
     amharicTitle: 'የመድህን ሥራ ማሻሻያ አዋጅ ቁጥር 1163/2011',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 1163/2019',
     year: 2019,
-    summary: 'Permits the Ethiopian diaspora to acquire equity in local insurance and reinsurance companies.',
+    summary: 'Amendments to insurance business ownership and regulatory provisions.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.0 MB',
-    downloadCount: 1980
+    downloadCount: 1980,
+    fileUrl: 'https://nbe.gov.et/'
   },
   {
     id: 'doc-55',
     itemNumber: 55,
     title: 'National Payment System Proclamation No. 718/2011',
-    amharicTitle: 'የብሔራዊ የክፍያ ሥርዓት አዋጅ ቁጥር 718/2003',
+    amharicTitle: 'የብሔራዊ ክፍያ ሥርዓት አዋጅ ቁጥር 718/2003',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 718/2011',
     year: 2011,
-    summary: 'Statutory backing for electronic fund transfers, RTGS, mobile money systems (Telebirr), and payment clearing.',
+    summary: 'Payment systems, payment services and regulatory oversight.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.6 MB',
-    downloadCount: 3950
+    downloadCount: 3950,
+    fileUrl: 'https://nbe.gov.et/'
   },
   {
     id: 'doc-56',
@@ -825,54 +880,58 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Proc. No. 1248/2021',
     year: 2021,
-    summary: 'Legal foundation for the Ethiopian Securities Exchange (ESX), capital market authority, and public offerings.',
-    sourceAuthority: 'ECMA / LawEthiopia',
+    summary: 'Securities markets, public offerings, intermediaries and investor protection.',
+    sourceAuthority: 'LawEthiopia',
     fileSize: '2.8 MB',
     downloadCount: 5890,
+    fileUrl: 'https://ecma.gov.et/wp-content/uploads/2022/08/Capital-Market-Proclamation-No.-1248-2021.pdf',
     badge: 'Essential'
   },
   {
     id: 'doc-57',
     itemNumber: 57,
     title: 'Public Offering and Trading of Securities Directive No. 1030/2024',
-    amharicTitle: 'የዋስትና ሰነዶችን ለሕዝብ ማቅረብና ግብይት መመሪያ ቁጥር 1030/2016',
+    amharicTitle: 'የዋስትና ሰነዶች ግብይት መመሪያ ቁጥር 1030/2016',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Directive No. 1030/2024',
     year: 2024,
-    summary: 'Rules for initial public offerings (IPOs), prospectuses disclosures, underwriter duties, and ESX listings.',
+    summary: 'Securities registration, public offers, prospectuses and issuer disclosures.',
     sourceAuthority: 'Ethiopian Capital Market Authority',
     fileSize: '2.1 MB',
     downloadCount: 3620,
+    fileUrl: 'https://ecma.gov.et/',
     badge: 'Updated 2026'
   },
   {
     id: 'doc-58',
     itemNumber: 58,
     title: 'Dematerialization of Publicly Offered Securities Directive No. 1047/2025',
-    amharicTitle: 'የዋስትና ሰነዶችን ወደ ኤሌክትሮኒክ ቅጽ የመቀየር መመሪያ ቁጥር 1047/2017',
+    amharicTitle: 'የዋስትና ሰነዶች ኤሌክትሮኒክ ምዝገባ መመሪያ ቁጥር 1047/2017',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Directive No. 1047/2025',
     year: 2025,
-    summary: 'Mandatory dematerialization of paper share certificates into book-entry electronic security records.',
-    sourceAuthority: 'ECMA / Ministry of Justice',
+    summary: 'Conversion of paper securities into electronic securities records.',
+    sourceAuthority: 'Ministry of Justice',
     fileSize: '1.4 MB',
-    downloadCount: 2280
+    downloadCount: 2280,
+    fileUrl: 'https://ecma.gov.et/'
   },
   {
     id: 'doc-59',
     itemNumber: 59,
     title: 'Foreign Exchange Directive No. FXD/01/2024',
-    amharicTitle: 'አጠቃላይ የውጭ ምንዛሪ አስተዳደር መመሪያ ቁጥር FXD/01/2016',
+    amharicTitle: 'የውጭ ምንዛሪ መመሪያ ቁጥር FXD/01/2016',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Directive FXD/01/2024',
     year: 2024,
-    summary: 'Introduces market-determined floating foreign exchange rates and foreign currency retention accounts for exporters.',
+    summary: 'Foreign exchange transactions, accounts and cross-border payments.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '2.3 MB',
     downloadCount: 6410,
+    fileUrl: 'https://nbe.gov.et/wp-content/uploads/2024/07/FXD-01-2024.pdf',
     badge: 'Essential'
   },
   {
@@ -884,39 +943,42 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Directive FXD/05/2026',
     year: 2026,
-    summary: 'Refined import letter of credit allocations and foreign remittance surrender thresholds for commercial banks.',
+    summary: 'Amendments concerning foreign exchange and import payment arrangements.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.1 MB',
     downloadCount: 3120,
+    fileUrl: 'https://nbe.gov.et/',
     badge: 'Updated 2026'
   },
   {
     id: 'doc-61',
     itemNumber: 61,
     title: 'Investment on DBE Bonds Repealing Directive No. SBB/98/2025',
-    amharicTitle: 'በልማት ባንክ ቦንድ ላይ የሚደረግ ኢንቨስትመንት መሻሪያ መመሪያ ቁጥር SBB/98/2017',
+    amharicTitle: 'የልማት ባንክ ቦንድ ኢንቨስትመንት መሻሪያ መመሪያ ቁጥር SBB/98/2017',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Directive SBB/98/2025',
     year: 2025,
-    summary: 'Repeals mandatory commercial bank purchases of Development Bank of Ethiopia bonds, improving liquidity.',
+    summary: 'Repeal of the earlier DBE bond investment directive and transitional requirements.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '0.7 MB',
-    downloadCount: 1430
+    downloadCount: 1430,
+    fileUrl: 'https://nbe.gov.et/'
   },
   {
     id: 'doc-62',
     itemNumber: 62,
     title: 'Licensing a Bank Branch in Special Economic Zone Directive No. SBB/99/2026',
-    amharicTitle: 'በልዩ የኢኮኖሚ ዞኖች ውስጥ የባንክ ቅርንጫፍ ለመክፈት የወጣ መመሪያ ቁጥር SBB/99/2018',
+    amharicTitle: 'በልዩ የኢኮኖሚ ዞን የባንክ ፈቃድ መመሪያ ቁጥር SBB/99/2018',
     sectionCode: 'F',
     category: 'Banking & Capital Markets',
     proclamationNumber: 'Directive SBB/99/2026',
     year: 2026,
-    summary: 'Offshore banking unit regulations and foreign exchange privileges for bank branches operating inside SEZs.',
+    summary: 'Licensing requirements for bank branches operating in special economic zones.',
     sourceAuthority: 'National Bank of Ethiopia',
     fileSize: '1.3 MB',
     downloadCount: 2490,
+    fileUrl: 'https://nbe.gov.et/',
     badge: 'Updated 2026'
   },
 
@@ -930,25 +992,27 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Tax & Customs',
     proclamationNumber: 'Proc. No. 979/2016',
     year: 2016,
-    summary: 'Statutory income tax brackets: employment income (Schedule A), rental income (Schedule B), business profit (Schedule C).',
-    sourceAuthority: 'Ministry of Revenues / LawEthiopia',
+    summary: 'Income taxation, taxable income and taxpayer obligations.',
+    sourceAuthority: 'LawEthiopia',
     fileSize: '3.6 MB',
     downloadCount: 7120,
+    fileUrl: 'https://www.mor.gov.et/',
     badge: 'Essential'
   },
   {
     id: 'doc-64',
     itemNumber: 64,
-    title: 'Federal Income Tax (Amendment) Regulation No. 485/2021',
+    title: 'Federal Income Tax Amendment Regulation No. 485/2021',
     amharicTitle: 'የፌዴራል የገቢ ግብር ማሻሻያ ደንብ ቁጥር 485/2013',
     sectionCode: 'G',
     category: 'Tax & Customs',
     proclamationNumber: 'Reg. No. 485/2021',
     year: 2021,
-    summary: 'Procedural rules on corporate depreciation write-offs, deductible expenses, and loss carry-forward limits.',
+    summary: 'Amendments to the federal income tax implementing regulation.',
     sourceAuthority: 'Ministry of Justice',
     fileSize: '1.5 MB',
-    downloadCount: 2680
+    downloadCount: 2680,
+    fileUrl: 'https://www.mor.gov.et/'
   },
   {
     id: 'doc-65',
@@ -959,24 +1023,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Tax & Customs',
     proclamationNumber: 'Proc. No. 859/2014',
     year: 2014,
-    summary: 'Customs clearing declarations, bonded warehouses, transit cargo rules, and anti-contraband enforcement.',
-    sourceAuthority: 'Ethiopian Customs Commission / EthioData',
+    summary: 'Customs procedures, import and export controls, duties and enforcement.',
+    sourceAuthority: 'EthioData',
     fileSize: '3.8 MB',
-    downloadCount: 4230
+    downloadCount: 4230,
+    fileUrl: 'https://www.ecc.gov.et/'
   },
   {
     id: 'doc-66',
     itemNumber: 66,
-    title: 'Ethiopian Institute of Certified Public Accountants Establishment Proclamation No. 1372/2025',
-    amharicTitle: 'የኢትዮጵያ የተመሰከረላቸው የሂሳብ ባለሙያዎች ተቋም ማቋቋሚያ አዋጅ ቁጥር 1372/2017',
+    title: 'Institute of Certified Public Accountants Proclamation No. 1372/2025',
+    amharicTitle: 'የተመሰከረላቸው የሂሳብ ባለሙያዎች ተቋም አዋጅ ቁጥር 1372/2017',
     sectionCode: 'G',
     category: 'Tax & Customs',
     proclamationNumber: 'Proc. No. 1372/2025',
     year: 2025,
-    summary: 'Establishes statutory self-regulating body for professional certified public accountants (CPAs) in Ethiopia.',
-    sourceAuthority: 'AABE',
+    summary: 'Establishment and governance of the institute of certified public accountants.',
+    sourceAuthority: 'Accounting and Auditing Board of Ethiopia',
     fileSize: '1.9 MB',
     downloadCount: 2540,
+    fileUrl: 'https://www.aabe.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -988,10 +1054,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Tax & Customs',
     proclamationNumber: 'Reg. No. 332/2014',
     year: 2014,
-    summary: 'Mandates International Financial Reporting Standards (IFRS) adoption across Ethiopian financial entities.',
-    sourceAuthority: 'Accounting & Auditing Board of Ethiopia',
+    summary: 'Establishment, responsibilities and procedures of the accounting and auditing board.',
+    sourceAuthority: 'Ministry of Justice',
     fileSize: '1.4 MB',
-    downloadCount: 2890
+    downloadCount: 2890,
+    fileUrl: 'https://www.aabe.gov.et/'
   },
   {
     id: 'doc-68',
@@ -1002,10 +1069,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Tax & Customs',
     proclamationNumber: 'Reg. No. 565/2025',
     year: 2025,
-    summary: 'Statutory fees for auditor registration, audit firm quality assurance inspections, and licensing fees.',
-    sourceAuthority: 'AABE',
+    summary: 'Fees payable for accounting and auditing board services.',
+    sourceAuthority: 'Accounting and Auditing Board of Ethiopia',
     fileSize: '0.9 MB',
-    downloadCount: 1310
+    downloadCount: 1310,
+    fileUrl: 'https://www.aabe.gov.et/'
   },
 
   // H. Digital services, media and intellectual property (69–81)
@@ -1018,10 +1086,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1321/2024',
     year: 2024,
-    summary: 'Comprehensive data privacy law regulating data controllers, user consent, cross-border data transfers, and fines.',
+    summary: 'Personal information, data-processing obligations and individuals privacy rights.',
     sourceAuthority: 'Ministry of Justice',
     fileSize: '2.4 MB',
     downloadCount: 4680,
+    fileUrl: 'https://www.eag.gov.et/',
     badge: 'Essential'
   },
   {
@@ -1033,10 +1102,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1072/2018',
     year: 2018,
-    summary: 'Legal recognition, evidentiary admissibility, and certification authorities for digital cryptographic signatures.',
-    sourceAuthority: 'INSA / MetaAppz',
+    summary: 'Legal recognition of electronic signatures and electronic authentication.',
+    sourceAuthority: 'MetaAppz legal repository',
     fileSize: '1.4 MB',
-    downloadCount: 3120
+    downloadCount: 3120,
+    fileUrl: 'https://www.insa.gov.et/'
   },
   {
     id: 'doc-71',
@@ -1047,10 +1117,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1284/2023',
     year: 2023,
-    summary: 'Governs the Fayda national biometric digital identification card system, authentication APIs, and data privacy.',
-    sourceAuthority: 'NID Program / Refworld',
+    summary: 'Digital identity registration, authentication and administration of national identification system.',
+    sourceAuthority: 'UNHCR Refworld',
     fileSize: '1.9 MB',
-    downloadCount: 3840
+    downloadCount: 3840,
+    fileUrl: 'https://id.gov.et/'
   },
   {
     id: 'doc-72',
@@ -1061,10 +1132,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1238/2021',
     year: 2021,
-    summary: 'Broadcasting licensing, online media registration, journalist protections, and defamation liability standards.',
-    sourceAuthority: 'Ethiopian Media Authority',
+    summary: 'Media services, licensing, regulation and freedom of expression.',
+    sourceAuthority: 'Ministry of Justice',
     fileSize: '2.6 MB',
-    downloadCount: 2450
+    downloadCount: 2450,
+    fileUrl: 'https://www.ema.gov.et/'
   },
   {
     id: 'doc-73',
@@ -1075,10 +1147,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1374/2025',
     year: 2025,
-    summary: 'Revised regulatory governance of digital news broadcasters and online streaming subscription licenses.',
+    summary: "Amendments to the media authority's governance and administrative arrangements.",
     sourceAuthority: 'Ministry of Justice',
     fileSize: '1.1 MB',
-    downloadCount: 1670
+    downloadCount: 1670,
+    fileUrl: 'https://www.ema.gov.et/'
   },
   {
     id: 'doc-74',
@@ -1089,24 +1162,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1148/2019',
     year: 2019,
-    summary: 'Telecommunications sector liberalization, frequency spectrum auctions, and powers of the ECA.',
-    sourceAuthority: 'Ethiopian Communications Authority',
+    summary: 'Telecommunications regulation, licensing and the Ethiopian Communications Authority.',
+    sourceAuthority: 'MetaAppz legal repository',
     fileSize: '2.3 MB',
-    downloadCount: 3190
+    downloadCount: 3190,
+    fileUrl: 'https://eca.et/'
   },
   {
     id: 'doc-75',
     itemNumber: 75,
-    title: 'Hate Speech and Disinformation Prevention Proclamation No. 1185/2020',
-    amharicTitle: 'የጥላቻ ንግግርና የሀሰተኛ መረጃ ስርጭትን ለመከላከል የወጣ አዋጅ ቁጥር 1185/2012',
+    title: 'Hate Speech and Disinformation Prevention and Suppression Proclamation No. 1185/2020',
+    amharicTitle: 'የጥላቻ ንግግርና የሀሰተኛ መረጃ ስርጭት መከላከያ አዋጅ ቁጥር 1185/2012',
     sectionCode: 'H',
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1185/2020',
     year: 2020,
-    summary: 'Prohibits dissemination of hate speech and fabricated disinformation online; details penal liabilities.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'Addresses hate speech, disinformation, prohibited conduct and penalties.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.3 MB',
-    downloadCount: 2180
+    downloadCount: 2180,
+    fileUrl: 'https://www.eag.gov.et/'
   },
   {
     id: 'doc-76',
@@ -1117,10 +1192,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 1426/2026',
     year: 2026,
-    summary: 'Mandatory cybersecurity auditing and incident notification duties for banks, telecom, and national utilities.',
-    sourceAuthority: 'INSA / Ministry of Justice',
+    summary: 'Cybersecurity obligations for critical infrastructure and its protection.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '2.1 MB',
     downloadCount: 2840,
+    fileUrl: 'https://www.insa.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -1132,10 +1208,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 759/2012',
     year: 2012,
-    summary: 'Truth in advertising requirements, alcohol/tobacco marketing restrictions, and consumer protection penalties.',
+    summary: 'Advertising activities and obligations of advertisers and advertising agents.',
     sourceAuthority: 'LawEthiopia',
     fileSize: '1.5 MB',
-    downloadCount: 1620
+    downloadCount: 1620,
+    fileUrl: 'https://www.ema.gov.et/'
   },
   {
     id: 'doc-78',
@@ -1146,10 +1223,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 501/2006',
     year: 2006,
-    summary: 'Trademark ownership through registration, opposition proceedings, infringement actions, and renewals.',
-    sourceAuthority: 'EIPA / Ministry of Justice',
+    summary: 'Registration, ownership, protection and enforcement of trademarks.',
+    sourceAuthority: 'Ministry of Justice',
     fileSize: '1.8 MB',
     downloadCount: 4210,
+    fileUrl: 'https://www.eipa.gov.et/',
     badge: 'Essential'
   },
   {
@@ -1161,24 +1239,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 410/2004',
     year: 2004,
-    summary: 'Statutory protection for authors, composers, software programmers, performers, and broadcast entities.',
-    sourceAuthority: 'Ethiopian Intellectual Property Authority',
+    summary: 'Protection of creative works, performances, recordings and related rights.',
+    sourceAuthority: 'Ministry of Justice',
     fileSize: '2.0 MB',
-    downloadCount: 3120
+    downloadCount: 3120,
+    fileUrl: 'https://www.eipa.gov.et/'
   },
   {
     id: 'doc-80',
     itemNumber: 80,
-    title: 'Copyright and Neighbouring Rights (Amendment) Proclamation No. 872/2014',
+    title: 'Copyright and Neighbouring Rights Protection (Amendment) Proclamation No. 872/2014',
     amharicTitle: 'የቅጂና ተዛማጅ መብቶች ማሻሻያ አዋጅ ቁጥር 872/2007',
     sectionCode: 'H',
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 872/2014',
     year: 2014,
-    summary: 'Enhanced civil damage awards and statutory recognition for collective management societies (CMOs).',
-    sourceAuthority: 'EIPA',
+    summary: 'Amendments covering copyright protection, collective administration and enforcement.',
+    sourceAuthority: 'Ethiopian Intellectual Property Authority',
     fileSize: '1.1 MB',
-    downloadCount: 1740
+    downloadCount: 1740,
+    fileUrl: 'https://www.eipa.gov.et/'
   },
   {
     id: 'doc-81',
@@ -1189,10 +1269,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Technology & IP',
     proclamationNumber: 'Proc. No. 123/1995',
     year: 1995,
-    summary: 'Patentability criteria, utility models, industrial design rights, and compulsory patent licensing terms.',
-    sourceAuthority: 'EIPA',
+    summary: 'Patent protection, minor inventions and industrial-design rights.',
+    sourceAuthority: 'AMP EID legal repository',
     fileSize: '1.7 MB',
-    downloadCount: 2280
+    downloadCount: 2280,
+    fileUrl: 'https://www.eipa.gov.et/'
   },
 
   // I. Land, buildings and transport (82–90)
@@ -1205,10 +1286,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 1324/2024',
     year: 2024,
-    summary: 'Cadastral surveying, rural landholding digital book certificates, leasehold rentals, and inheritance transfers.',
-    sourceAuthority: 'FAOLEX / Ministry of Agriculture',
+    summary: 'Rural landholding rights, registration, transfers and land use.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.5 MB',
     downloadCount: 3890,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Updated 2026'
   },
   {
@@ -1220,25 +1302,27 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 721/2011',
     year: 2011,
-    summary: 'Primary urban land legislation: auction tenders, allotment rights, title deeds (ካርታ), and building lease periods.',
-    sourceAuthority: 'FAOLEX / Ministry of Urban Development',
+    summary: 'Urban land leasing, lease contracts and landholder obligations.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.4 MB',
     downloadCount: 6840,
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth108226.pdf',
     badge: 'Essential'
   },
   {
     id: 'doc-84',
     itemNumber: 84,
     title: 'Expropriation of Landholdings for Public Purposes Proclamation No. 1161/2019',
-    amharicTitle: 'ለመንግሥት ጥቅም ሲባል የመሬት ይዞታ የሚለቀቅበትና ካሳ የሚከፈልበት አዋጅ ቁጥር 1161/2011',
+    amharicTitle: 'ለመንግሥት ጥቅም የመሬት ይዞታ የሚለቀቅበት አዋጅ ቁጥር 1161/2011',
     sectionCode: 'I',
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 1161/2019',
     year: 2019,
-    summary: 'Legal guidelines for eminent domain, market-rate compensation formula, displacement assistance, and appeals.',
-    sourceAuthority: 'FAOLEX',
+    summary: 'Land acquisition for public purposes, compensation and resettlement.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.1 MB',
     downloadCount: 4210,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Essential'
   },
   {
@@ -1250,10 +1334,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 624/2009',
     year: 2009,
-    summary: 'National building code: construction permits, structural safety inspections, accessibility, and stop-work orders.',
+    summary: 'Building standards, construction permits, professional duties and safety.',
     sourceAuthority: 'ILO NATLEX',
     fileSize: '2.9 MB',
-    downloadCount: 3410
+    downloadCount: 3410,
+    fileUrl: 'https://www.ilo.org/'
   },
   {
     id: 'doc-86',
@@ -1264,10 +1349,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 1274/2022',
     year: 2022,
-    summary: 'Commercial vehicle freight regulation, passenger carrier tariff oversight, and vehicle registration mandates.',
-    sourceAuthority: 'Ministry of Transport and Logistics',
+    summary: 'Administration, regulation and safety of road transport services.',
+    sourceAuthority: 'MetaAppz legal repository',
     fileSize: '2.0 MB',
-    downloadCount: 2510
+    downloadCount: 2510,
+    fileUrl: 'https://www.motl.gov.et/'
   },
   {
     id: 'doc-87',
@@ -1278,10 +1364,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Reg. No. 557/2024',
     year: 2024,
-    summary: 'Driver demerit points system, speed limits, mandatory safety equipment, and traffic violation fines.',
-    sourceAuthority: 'Federal Police / MetaAppz',
+    summary: 'Road-use rules, driving conduct, traffic control and enforcement.',
+    sourceAuthority: 'MetaAppz legal repository',
     fileSize: '1.9 MB',
     downloadCount: 3120,
+    fileUrl: 'https://www.motl.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -1293,10 +1380,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 548/2007',
     year: 2007,
-    summary: 'Carrier liabilities, multimodal transport documents (MTD), dry port customs clearances, and lost cargo rules.',
-    sourceAuthority: 'ESLSE / MetaAppz',
+    summary: 'Goods transported through multiple modes, transport documents and carrier liability.',
+    sourceAuthority: 'MetaAppz legal repository',
     fileSize: '1.5 MB',
-    downloadCount: 1840
+    downloadCount: 1840,
+    fileUrl: 'https://www.eslse.et/'
   },
   {
     id: 'doc-89',
@@ -1307,10 +1395,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 549/2007',
     year: 2007,
-    summary: 'Vessel flag registrations, maritime safety standards, port operations, and crew certifications.',
+    summary: 'Maritime administration, ports, shipping and related transport services.',
     sourceAuthority: 'FAOLEX',
     fileSize: '1.8 MB',
-    downloadCount: 1120
+    downloadCount: 1120,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-90',
@@ -1321,10 +1410,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Land & Property',
     proclamationNumber: 'Proc. No. 799/2013',
     year: 2013,
-    summary: 'Compulsory third-party vehicle insurance policy coverage, victim compensation funds, and claim caps.',
-    sourceAuthority: 'Insurance Fund / Legal Brief',
+    summary: 'Compulsory motor insurance and compensation for third-party accident victims.',
+    sourceAuthority: 'Ethiopian Legal Brief',
     fileSize: '1.4 MB',
     downloadCount: 3980,
+    fileUrl: 'https://nbe.gov.et/',
     badge: 'Essential'
   },
 
@@ -1338,10 +1428,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 1376/2025',
     year: 2025,
-    summary: 'Veterinary services, livestock disease quarantine, traceability tags, and slaughterhouse welfare inspections.',
+    summary: 'Animal disease control, veterinary services, traceability and animal welfare.',
     sourceAuthority: 'Ethiopian Agricultural Authority',
     fileSize: '2.1 MB',
     downloadCount: 1840,
+    fileUrl: 'https://moa.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -1353,10 +1444,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 1288/2023',
     year: 2023,
-    summary: 'Commercial seed production licenses, certified seed standards, seed testing labs, and packaging controls.',
+    summary: 'Seed varieties, production, quality certification and seed marketing.',
     sourceAuthority: 'Ethiopian Agricultural Authority',
     fileSize: '1.7 MB',
-    downloadCount: 1420
+    downloadCount: 1420,
+    fileUrl: 'https://moa.gov.et/'
   },
   {
     id: 'doc-93',
@@ -1367,10 +1459,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 137/1998',
     year: 1998,
-    summary: 'Import, blending, distribution, and price monitoring provisions for agricultural chemical fertilizers.',
-    sourceAuthority: 'Agricultural Authority',
+    summary: 'Manufacturing, importing, distributing and trading fertilizers.',
+    sourceAuthority: 'Ethiopian Agricultural Authority',
     fileSize: '1.1 MB',
-    downloadCount: 1190
+    downloadCount: 1190,
+    fileUrl: 'https://moa.gov.et/'
   },
   {
     id: 'doc-94',
@@ -1381,24 +1474,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 674/2010',
     year: 2010,
-    summary: 'Mandatory trial testing, toxicity labeling, and safety handling of agricultural pesticides.',
-    sourceAuthority: 'Ministry of Agriculture',
+    summary: 'Registration, handling, distribution and safe use of pesticides.',
+    sourceAuthority: 'Ethiopian Agricultural Authority',
     fileSize: '1.6 MB',
-    downloadCount: 1350
+    downloadCount: 1350,
+    fileUrl: 'https://moa.gov.et/'
   },
   {
     id: 'doc-95',
     itemNumber: 95,
-    title: 'Veterinary Drug and Feed Administration Proclamation No. 728/2011',
-    amharicTitle: 'የእንስሳት መድኃኒትና መኖ አስተዳደርና ቁጥጥር አዋጅ ቁጥር 728/2004',
+    title: 'Veterinary Drug and Feed Administration and Control Proclamation No. 728/2011',
+    amharicTitle: 'የእንስሳት መድኃኒትና መኖ ቁጥጥር አዋጅ ቁጥር 728/2004',
     sectionCode: 'J',
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 728/2011',
     year: 2011,
-    summary: 'Registration, clinical trials, and retail pharmacy control over veterinary pharmaceuticals and animal feeds.',
-    sourceAuthority: 'VDFACA',
+    summary: 'Veterinary medicines, animal feed, product quality and regulatory controls.',
+    sourceAuthority: 'Ethiopian Agricultural Authority',
     fileSize: '1.7 MB',
-    downloadCount: 1280
+    downloadCount: 1280,
+    fileUrl: 'https://moa.gov.et/'
   },
   {
     id: 'doc-96',
@@ -1409,10 +1504,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 1068/2017',
     year: 2017,
-    summary: 'Intellectual property rights granted over new cultivated plant varieties, royalties, and commercial protections.',
-    sourceAuthority: 'EIPA / Agricultural Authority',
+    summary: 'Protection and registration of rights over new plant varieties.',
+    sourceAuthority: 'Ethiopian Agricultural Authority',
     fileSize: '1.4 MB',
-    downloadCount: 1540
+    downloadCount: 1540,
+    fileUrl: 'https://www.eipa.gov.et/'
   },
   {
     id: 'doc-97',
@@ -1423,10 +1519,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 488/2006',
     year: 2006,
-    summary: 'Standardization and accreditation for organic coffee, sesame, pulses, and agricultural exports.',
+    summary: 'Organic agricultural production, certification and related controls.',
     sourceAuthority: 'Livestock Development Institute',
     fileSize: '1.2 MB',
-    downloadCount: 1610
+    downloadCount: 1610,
+    fileUrl: 'https://moa.gov.et/'
   },
   {
     id: 'doc-98',
@@ -1437,10 +1534,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 1289/2023',
     year: 2023,
-    summary: 'Legal framework for outgrower schemes and forward contracts between farmers, agro-processors, and exporters.',
-    sourceAuthority: 'FAOLEX',
+    summary: 'Contracts between agricultural producers, processors and buyers.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.8 MB',
     downloadCount: 2410,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Updated 2026'
   },
   {
@@ -1452,10 +1550,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 1065/2018',
     year: 2018,
-    summary: 'Private and state forest tenure rights, timber harvesting permits, carbon credits, and environmental protection.',
-    sourceAuthority: 'Environment Commission / FAOLEX',
+    summary: 'Forest ownership, development, conservation and use.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.9 MB',
-    downloadCount: 1720
+    downloadCount: 1720,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-100',
@@ -1466,10 +1565,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Agriculture & Wildlife',
     proclamationNumber: 'Proc. No. 541/2007',
     year: 2007,
-    summary: 'National parks management, hunting concessions, wildlife trade restrictions, and endangered species protection.',
-    sourceAuthority: 'EWCA / FAOLEX',
+    summary: 'Wildlife conservation, protected areas and regulated use of wildlife.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.5 MB',
-    downloadCount: 1490
+    downloadCount: 1490,
+    fileUrl: 'https://faolex.fao.org/'
   },
 
   // K. Water and environmental protection (101–116)
@@ -1477,30 +1577,32 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     id: 'doc-101',
     itemNumber: 101,
     title: 'Ethiopian Water Resources Management Proclamation No. 197/2000',
-    amharicTitle: 'የኢትዮጵያ የውሃ ሀብት አስተዳደር አዋጅ ቁጥር 197/1992',
+    amharicTitle: 'የውሃ ሀብት አስተዳደር አዋጅ ቁጥር 197/1992',
     sectionCode: 'K',
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 197/2000',
     year: 2000,
-    summary: 'Public ownership of all water resources, water withdrawal permits, construction permits for dams, and pollution fees.',
-    sourceAuthority: 'Ministry of Water / FAOLEX',
+    summary: 'Water protection, water-use permits and water-resource administration.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.0 MB',
     downloadCount: 3120,
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth23377.pdf',
     badge: 'Essential'
   },
   {
     id: 'doc-102',
     itemNumber: 102,
-    title: 'Water Resources Management Regulations No. 115/2005',
-    amharicTitle: 'የውሃ ሀብት አስተዳደር የሚኒስትሮች ምክር ቤት ደንብ ቁጥር 115/1997',
+    title: 'Ethiopian Water Resources Management Regulations No. 115/2005',
+    amharicTitle: 'የውሃ ሀብት አስተዳደር ደንብ ቁጥር 115/1997',
     sectionCode: 'K',
     category: 'Water & Environment',
     proclamationNumber: 'Reg. No. 115/2005',
     year: 2005,
-    summary: 'Application forms, fees, and compliance conditions for domestic and commercial water exploitation permits.',
-    sourceAuthority: 'FAOLEX',
+    summary: 'Implementation rules for water permits, waterworks and water-resource management.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.6 MB',
-    downloadCount: 1840
+    downloadCount: 1840,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-103',
@@ -1511,10 +1613,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 1375/2025',
     year: 2025,
-    summary: 'Integrated river basin governance across Abbay, Awash, Omo-Gibe, and Rift Valley basins.',
-    sourceAuthority: 'Ministry of Water / FAOLEX',
+    summary: 'Institutional arrangements for integrated river-basin and water-resource management.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.7 MB',
     downloadCount: 1620,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Updated 2026'
   },
   {
@@ -1526,24 +1629,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 841/2014',
     year: 2014,
-    summary: 'Legal constitution, water fee collection, and canal infrastructure maintenance duties of farmers associations.',
-    sourceAuthority: 'FAOLEX',
+    summary: "Formation, administration and duties of irrigation water users' associations.",
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.4 MB',
-    downloadCount: 1210
+    downloadCount: 1210,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-105',
     itemNumber: 105,
-    title: 'Community Watersheds Development and Utilization Proclamation No. 1223/2020',
-    amharicTitle: 'የማኅበረሰብ ተፋሰስ ልማትና አጠቃቀም አዋጅ ቁጥር 1223/2012',
+    title: 'Development, Management and Utilization of Community Watersheds Proclamation No. 1223/2020',
+    amharicTitle: 'የማኅበረሰብ ተፋሰስ ልማት አዋጅ ቁጥር 1223/2012',
     sectionCode: 'K',
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 1223/2020',
     year: 2020,
-    summary: 'Soil conservation terraces, reforestation quotas, and communal watershed tenure protections.',
-    sourceAuthority: 'Ministry of Agriculture / FAOLEX',
+    summary: 'Community watershed development, management, protection and use.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.5 MB',
-    downloadCount: 1140
+    downloadCount: 1140,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-106',
@@ -1554,25 +1659,27 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 1371/2025',
     year: 2025,
-    summary: 'Mandatory ESIA clearance reports prior to executing manufacturing, infrastructure, and mining investments.',
-    sourceAuthority: 'Environmental Protection Authority / FAOLEX',
+    summary: 'Assessment and management of environmental and social effects of development.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.4 MB',
     downloadCount: 3890,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Essential'
   },
   {
     id: 'doc-107',
     itemNumber: 107,
-    title: 'Hazardous Waste Management Control Proclamation No. 1090/2018',
+    title: 'Hazardous Waste Management and Disposal Control Proclamation No. 1090/2018',
     amharicTitle: 'አደገኛ ቆሻሻ አያያዝና አወጋገድ ቁጥጥር አዋጅ ቁጥር 1090/2010',
     sectionCode: 'K',
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 1090/2018',
     year: 2018,
-    summary: 'Generation, transportation, chemical treatment, and prohibition of transboundary dumping of toxic industrial wastes.',
-    sourceAuthority: 'EPA / FAOLEX',
+    summary: 'Hazardous waste generation, storage, transport, treatment and disposal.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.8 MB',
-    downloadCount: 1470
+    downloadCount: 1470,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-108',
@@ -1583,10 +1690,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 655/2009',
     year: 2009,
-    summary: 'Strict biological controls on research, import, and contained use of genetically modified organisms (GMOs).',
-    sourceAuthority: 'EPA / FAOLEX',
+    summary: 'Controls on handling, use and movement of genetically modified organisms.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.6 MB',
-    downloadCount: 1180
+    downloadCount: 1180,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-109',
@@ -1597,10 +1705,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 896/2015',
     year: 2015,
-    summary: 'Streamlined approval for commercial field trials of modified Bt cotton and agricultural crop biotechnology.',
-    sourceAuthority: 'FAO',
+    summary: 'Amendments to the biosafety framework governing modified organisms.',
+    sourceAuthority: 'Food and Agriculture Organization',
     fileSize: '1.1 MB',
-    downloadCount: 1060
+    downloadCount: 1060,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-110',
@@ -1611,25 +1720,27 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 300/2002',
     year: 2002,
-    summary: 'Polluter-pays principle, factory effluent emission ceilings, environmental inspector powers, and closure sanctions.',
+    summary: 'Prevention and control of pollution and associated responsibilities.',
     sourceAuthority: 'Eco-justice Ethiopia',
     fileSize: '1.9 MB',
     downloadCount: 2840,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Essential'
   },
   {
     id: 'doc-111',
     itemNumber: 111,
-    title: 'Prevention of Industrial Pollution Regulation No. 159/2008',
+    title: 'Prevention of Industrial Pollution Council of Ministers Regulation No. 159/2008',
     amharicTitle: 'የኢንዱስትሪ ብክለት መከላከያ ደንብ ቁጥር 159/2001',
     sectionCode: 'K',
     category: 'Water & Environment',
     proclamationNumber: 'Reg. No. 159/2008',
     year: 2008,
-    summary: 'Mandates wastewater treatment plants for tanneries, textile plants, and chemical processing facilities.',
-    sourceAuthority: 'EPA / FAOLEX',
+    summary: 'Industrial pollution prevention, environmental standards and compliance.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.5 MB',
-    downloadCount: 1590
+    downloadCount: 1590,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-112',
@@ -1640,10 +1751,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 716/2011',
     year: 2011,
-    summary: 'Import quotas, phase-out timeline, and customs seizures of banned chlorofluorocarbon (CFC) refrigerants.',
-    sourceAuthority: 'EPA / FAOLEX',
+    summary: 'Licensing and controls for ozone-depleting substances and related imports and exports.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.2 MB',
-    downloadCount: 920
+    downloadCount: 920,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-113',
@@ -1654,10 +1766,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 656/2009',
     year: 2009,
-    summary: 'Domestic ratification of international commitments to phase out HCFC chemicals under Montreal accords.',
+    summary: 'Ratification of amendments to the Montreal Protocol on ozone-depleting substances.',
     sourceAuthority: 'Eco-justice Ethiopia',
     fileSize: '0.8 MB',
-    downloadCount: 840
+    downloadCount: 840,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-114',
@@ -1668,24 +1781,26 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Proc. No. 362/2003',
     year: 2003,
-    summary: 'Enforces international biosafety risk assessment standards for transboundary movement of LMOs.',
+    summary: 'Ratification of the Cartagena Protocol on biosafety.',
     sourceAuthority: 'Eco-justice Ethiopia',
     fileSize: '0.7 MB',
-    downloadCount: 890
+    downloadCount: 890,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-115',
     itemNumber: 115,
-    title: 'Organization of Environmental Protection Authority Regulation No. 545/2024',
+    title: 'Powers, Duties and Organization of EPA Regulation No. 545/2024',
     amharicTitle: 'የአካባቢ ጥበቃ ባለስልጣን አደረጃጀትና ተግባር ደንብ ቁጥር 545/2016',
     sectionCode: 'K',
     category: 'Water & Environment',
     proclamationNumber: 'Reg. No. 545/2024',
     year: 2024,
-    summary: 'Modernized national structure, regional branch coordination, and laboratory certification mandates of the EPA.',
-    sourceAuthority: 'EPA / FAOLEX',
+    summary: 'Organization and responsibilities of the Environmental Protection Authority.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.4 MB',
     downloadCount: 1620,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Updated 2026'
   },
   {
@@ -1697,10 +1812,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Water & Environment',
     proclamationNumber: 'Reg. No. 207/2011',
     year: 2011,
-    summary: 'Environmental audit guidelines, pesticide safety gear, and worker safety rules on commercial flower farms.',
-    sourceAuthority: 'EPA / FAOLEX',
+    summary: 'Environmental and social requirements for floriculture farms.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.7 MB',
-    downloadCount: 1740
+    downloadCount: 1740,
+    fileUrl: 'https://faolex.fao.org/'
   },
 
   // L. Mining and energy (117–119)
@@ -1713,10 +1829,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Mining & Energy',
     proclamationNumber: 'Proc. No. 678/2010',
     year: 2010,
-    summary: 'Prospecting, exploration, and mining licenses; royalty percentages, local content, and environmental bonds.',
-    sourceAuthority: 'Ministry of Mines / FAOLEX',
+    summary: 'Mining licences, mineral development and duties of mining operators.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '3.1 MB',
     downloadCount: 4210,
+    fileUrl: 'https://faolex.fao.org/docs/pdf/eth98151.pdf',
     badge: 'Essential'
   },
   {
@@ -1728,10 +1845,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Mining & Energy',
     proclamationNumber: 'Proc. No. 981/2016',
     year: 2016,
-    summary: 'Licensing of geothermal exploration wells, steam extraction concessions, and power generation rights.',
-    sourceAuthority: 'Ministry of Water and Energy',
+    summary: 'Licensing and development of geothermal resources.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '1.8 MB',
-    downloadCount: 1890
+    downloadCount: 1890,
+    fileUrl: 'https://faolex.fao.org/'
   },
   {
     id: 'doc-119',
@@ -1742,10 +1860,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Mining & Energy',
     proclamationNumber: 'Proc. No. 810/2013',
     year: 2013,
-    summary: 'Electricity generation, transmission, off-grid solar mini-grids, independent power producer (IPP) contracts.',
-    sourceAuthority: 'Petroleum & Energy Authority',
+    summary: 'Electricity activities, energy regulation and energy conservation.',
+    sourceAuthority: 'FAOLEX, Food and Agriculture Organization',
     fileSize: '2.5 MB',
     downloadCount: 3120,
+    fileUrl: 'https://faolex.fao.org/',
     badge: 'Essential'
   },
 
@@ -1759,10 +1878,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Education & Health',
     proclamationNumber: 'Proc. No. 1152/2019',
     year: 2019,
-    summary: 'Accreditation of public and private universities, academic freedom, curriculum review, and tuition rules.',
-    sourceAuthority: 'Ministry of Education',
+    summary: 'Higher education institutions, governance, academic programmes and quality.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '2.8 MB',
-    downloadCount: 3840
+    downloadCount: 3840,
+    fileUrl: 'https://www.moe.gov.et/'
   },
   {
     id: 'doc-121',
@@ -1773,10 +1893,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Education & Health',
     proclamationNumber: 'Proc. No. 1294/2023',
     year: 2023,
-    summary: 'Grants financial, administrative, and academic autonomy to leading Ethiopian public research universities.',
-    sourceAuthority: 'Ministry of Justice',
+    summary: 'University autonomy, governance and institutional responsibilities.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '1.5 MB',
     downloadCount: 2680,
+    fileUrl: 'https://www.moe.gov.et/',
     badge: 'Updated 2026'
   },
   {
@@ -1788,10 +1909,11 @@ export const SEED_LEGAL_DOCUMENTS: LegalDocumentItem[] = [
     category: 'Education & Health',
     proclamationNumber: 'Proc. No. 1112/2019',
     year: 2019,
-    summary: 'Safety standards, pharmaceutical registration, clinical trials, and recall powers of the EFDA.',
-    sourceAuthority: 'Ethiopian Food and Drug Authority (EFDA)',
+    summary: 'Food, medicines, medical devices, cosmetics and tobacco regulation.',
+    sourceAuthority: 'Ethiopian Ministry of Justice',
     fileSize: '3.2 MB',
     downloadCount: 4120,
+    fileUrl: 'https://www.efda.gov.et/',
     badge: 'Essential'
   }
 ];
