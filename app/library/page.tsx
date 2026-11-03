@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   FileText, Download, Search, ShieldCheck, 
   ArrowRight, Eye, CheckCircle2, 
-  Calendar, HardDrive, Scale, X, Plus, UploadCloud, Loader2
+  HardDrive, Scale, X, Plus, UploadCloud, Loader2
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { SEED_LEGAL_DOCUMENTS, LegalDocumentItem } from '@/lib/library-data';
@@ -28,31 +28,39 @@ export default function LegalLibraryPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Upload Form Fields
+  // Upload Form State
   const [newTitle, setNewTitle] = useState('');
   const [newAmharicTitle, setNewAmharicTitle] = useState('');
-  const [newCategory, setNewCategory] = useState<'Proclamations' | 'Regulations' | 'Directives' | 'Court Forms' | 'DARA Templates'>('Proclamations');
+  const [newCategory, setNewCategory] = useState('Business & Investment');
   const [newProcNumber, setNewProcNumber] = useState('');
   const [newYear, setNewYear] = useState('2026');
   const [newSummary, setNewSummary] = useState('');
+  const [directDownloadLink, setDirectDownloadLink] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // 13 Statutory Subject Categories matching Sections A to M
   const categories = [
     'All',
-    'Proclamations',
-    'Regulations',
-    'Directives',
-    'Court Forms',
-    'DARA Templates'
+    'Employment & Labour',
+    'Civil & Constitutional Law',
+    'Courts & Justice',
+    'Nationality & Immigration',
+    'Business & Investment',
+    'Banking & Capital Markets',
+    'Tax & Customs',
+    'Technology & IP',
+    'Land & Property',
+    'Agriculture & Wildlife',
+    'Water & Environment',
+    'Mining & Energy',
+    'Education & Health'
   ];
 
-  // Combined documents list (Seed + Custom Uploads)
   const allDocuments = useMemo(() => {
     return [...customDocuments, ...SEED_LEGAL_DOCUMENTS];
   }, [customDocuments]);
 
-  // Filtered documents
   const filteredDocuments = useMemo(() => {
     return allDocuments.filter((doc) => {
       const matchesCategory = selectedCategory === 'All' || doc.category === selectedCategory;
@@ -64,23 +72,21 @@ export default function LegalLibraryPage() {
         doc.title.toLowerCase().includes(q) ||
         doc.amharicTitle.includes(q) ||
         doc.summary.toLowerCase().includes(q) ||
-        doc.amharicSummary.includes(q) ||
         (doc.proclamationNumber && doc.proclamationNumber.toLowerCase().includes(q)) ||
-        doc.year.toString().includes(q);
+        doc.itemNumber.toString() === q ||
+        doc.year.toString().includes(q) ||
+        doc.sourceAuthority.toLowerCase().includes(q);
 
       return matchesCategory && matchesSearch;
     });
   }, [allDocuments, searchQuery, selectedCategory]);
 
-  // Guaranteed Instant PDF Download
   const handleDownload = (docItem: LegalDocumentItem) => {
-    // 1. Update download counter
     setDownloadCounts((prev) => ({
       ...prev,
       [docItem.id]: (prev[docItem.id] || docItem.downloadCount) + 1
     }));
 
-    // 2. If a custom uploaded file exists in Supabase Storage, download it directly
     if (docItem.fileUrl && docItem.fileUrl.startsWith('http')) {
       const link = document.createElement('a');
       link.href = docItem.fileUrl;
@@ -93,7 +99,7 @@ export default function LegalLibraryPage() {
       return;
     }
 
-    // 3. Otherwise generate the clean official A4 document locally via jsPDF (Zero external redirect / 404)
+    // Direct in-browser generation guaranteed to work with zero 404 errors
     generateGazettePDF({
       title: docItem.title,
       amharicTitle: docItem.amharicTitle,
@@ -101,66 +107,60 @@ export default function LegalLibraryPage() {
       category: docItem.category,
       year: docItem.year,
       summary: docItem.summary,
-      amharicSummary: docItem.amharicSummary,
-      pages: docItem.pages,
-      fileName: `${docItem.id}.pdf`
+      amharicSummary: docItem.amharicTitle,
+      pages: 18,
+      fileName: `${docItem.id}_${docItem.proclamationNumber ? docItem.proclamationNumber.replace(/[^a-zA-Z0-9]/g, '_') : 'statute'}.pdf`
     });
   };
 
-  // Upload PDF directly to Supabase Storage & Database
   const handleFileUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadError(null);
 
-    if (!selectedFile) {
-      setUploadError('Please select a PDF file to upload.');
-      return;
-    }
-
     if (!newTitle.trim()) {
-      setUploadError('Please enter the document title.');
+      setUploadError('Please specify the document title.');
       return;
     }
 
     setUploading(true);
 
     try {
-      const supabase = createClient();
-      const cleanFileName = `${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const filePath = `documents/${cleanFileName}`;
+      let finalFileUrl = directDownloadLink.trim();
 
-      // Upload file to Supabase Storage
-      const { error: uploadErr } = await supabase.storage
-        .from('legal-vault')
-        .upload(filePath, selectedFile, { upsert: true });
+      if (selectedFile) {
+        const supabase = createClient();
+        const cleanFileName = `${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const filePath = `documents/${cleanFileName}`;
 
-      let publicUrl = '';
-      if (!uploadErr) {
-        const { data: { publicUrl: url } } = supabase.storage
+        const { error: uploadErr } = await supabase.storage
           .from('legal-vault')
-          .getPublicUrl(filePath);
-        publicUrl = url;
+          .upload(filePath, selectedFile, { upsert: true });
+
+        if (!uploadErr) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('legal-vault')
+            .getPublicUrl(filePath);
+          finalFileUrl = publicUrl;
+        }
       }
 
       const newDocItem: LegalDocumentItem = {
-        id: `DOC-${Date.now()}`,
+        id: `custom-doc-${Date.now()}`,
+        itemNumber: allDocuments.length + 1,
         title: newTitle.trim(),
         amharicTitle: newAmharicTitle.trim() || newTitle.trim(),
+        sectionCode: 'CUSTOM',
         category: newCategory,
-        amharicCategory: newCategory,
         proclamationNumber: newProcNumber.trim() || undefined,
         year: parseInt(newYear, 10) || 2026,
-        fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
+        fileSize: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '1.5 MB',
         downloadCount: 1,
-        pages: 12,
-        summary: newSummary.trim() || 'Uploaded official Ethiopian statutory legal document.',
-        amharicSummary: newAmharicTitle.trim() || 'በኢትዮጵያ ህግ ማውጫ ውስጥ የተመዘገበ ይፋዊ ሰነድ።',
-        practiceArea: 'corporate',
-        fileUrl: publicUrl || undefined,
-        badge: 'Updated 2026'
+        summary: newSummary.trim() || 'Official statutory instrument registered into LegalLink Library.',
+        sourceAuthority: 'Ministry of Justice / LegalLink Archive',
+        fileUrl: finalFileUrl || undefined,
+        badge: 'New Upload'
       };
 
-      // Add to current session library view
       setCustomDocuments((prev) => [newDocItem, ...prev]);
       setUploading(false);
       setUploadSuccess(true);
@@ -168,16 +168,16 @@ export default function LegalLibraryPage() {
       setTimeout(() => {
         setUploadModalOpen(false);
         setUploadSuccess(false);
-        // Reset form
         setNewTitle('');
         setNewAmharicTitle('');
         setNewProcNumber('');
         setNewSummary('');
+        setDirectDownloadLink('');
         setSelectedFile(null);
-      }, 1200);
+      }, 1000);
 
     } catch (err: any) {
-      setUploadError(err?.message || 'Error uploading document. Please verify your Supabase connection.');
+      setUploadError(err?.message || 'Error saving document. Please try again.');
       setUploading(false);
     }
   };
@@ -195,17 +195,16 @@ export default function LegalLibraryPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[11px] font-bold w-fit">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <span>Ethiopian Legal Document Repository</span>
+              <span>Official Federal Directory • 122 Direct PDF Downloads</span>
             </div>
 
-            {/* Direct Upload Trigger Button */}
             <button
               type="button"
               onClick={() => setUploadModalOpen(true)}
               className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-xs cursor-pointer w-fit"
             >
               <Plus className="w-3.5 h-3.5 text-amber-400" />
-              <span>Upload PDF Document</span>
+              <span>Upload Custom PDF / Link</span>
             </button>
           </div>
 
@@ -217,39 +216,37 @@ export default function LegalLibraryPage() {
 
           <p className="text-xs sm:text-sm text-slate-600 font-normal max-w-2xl leading-relaxed">
             {language === 'am'
-              ? 'የፌዴራል ነጋሪት ጋዜጣ አዋጆችን፣ ደንቦችን፣ የብሔራዊ ባንክ መመሪያዎችንና የሰነዶች ምዝገባ (DARA) ቅጾችን በነፃ ያውርዱ።'
-              : 'Direct access to official Federal Negarit Gazeta proclamations, ministerial directives, civil court pleadings, and certified DARA templates — completely free to download.'}
+              ? 'የፌዴራል ነጋሪት ጋዜጣ አዋጆችን፣ የብሔራዊ ባንክ መመሪያዎችን፣ የኢንቨስትመንት ደንቦችንና የፍርድ ቤት ቅጾችን በቀጥታ ያውርዱ።'
+              : 'Browse all 122 compiled Ethiopian proclamations, regulations, ministerial directives, and court pleadings. Every instrument is ready for high-speed direct PDF download.'}
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-6 text-xs text-slate-500 font-medium">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Official Negarit Gazeta Records</span>
+              <span>122 Certified Instruments (Sections A–M)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Direct A4 PDF Downloads</span>
+              <span>Guaranteed Direct Downloads (Zero 404s)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-amber-600" />
-              <span>Zero Broken Links</span>
+              <span>Bilingual Amharic & English Records</span>
             </div>
           </div>
 
         </div>
       </section>
 
-      {/* 03. Search & Category Filters */}
+      {/* 03. Search & Interactive Category Filters */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
         
-        {/* Search Bar & Stats */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          
           <div className="relative w-full md:w-96">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
-              placeholder={language === 'am' ? 'በአዋጅ ቁጥር ወይም በቃል ይፈልጉ (ለምሳሌ 1156)...' : 'Search by title, number, or keyword (e.g. 1156, lease, tax)...'}
+              placeholder={language === 'am' ? 'በቁጥር ወይም በቃል ይፈልጉ (ለምሳሌ 1156, 1243, 1360)...' : 'Search by title, number, or keyword (e.g. 1156, 1243, banking, lease)...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0A1128] transition-colors shadow-xs"
@@ -257,33 +254,41 @@ export default function LegalLibraryPage() {
           </div>
 
           <div className="text-xs text-slate-500 font-mono w-full md:w-auto text-right">
-            Showing <strong className="text-[#0A1128]">{filteredDocuments.length}</strong> legal documents
+            Showing <strong className="text-[#0A1128]">{filteredDocuments.length}</strong> of 122 legal documents
           </div>
-
         </div>
 
-        {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {/* 13 Category Filter Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 text-xs">
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
+            const count = cat === 'All' 
+              ? allDocuments.length 
+              : allDocuments.filter(d => d.category === cat).length;
+
             return (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full whitespace-nowrap font-bold transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full whitespace-nowrap font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'bg-[#0A1128] text-white shadow-xs'
                     : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                 }`}
               >
-                {cat}
+                <span>{cat}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* 04. Document Grid */}
+        {/* 04. Document Grid (122 Items) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDocuments.map((doc) => {
             const currentDownloads = downloadCounts[doc.id] || doc.downloadCount;
@@ -294,12 +299,15 @@ export default function LegalLibraryPage() {
                 className="card-hover bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between space-y-6 shadow-xs relative"
               >
                 <div className="space-y-3">
-                  
-                  {/* Category Pill & Badge */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                      {language === 'am' ? doc.amharicCategory : doc.category}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-6 h-6 rounded-lg bg-slate-100 text-[#0A1128] font-mono text-[11px] font-black flex items-center justify-center">
+                        {doc.itemNumber}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                        {doc.category}
+                      </span>
+                    </div>
 
                     {doc.badge && (
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -314,7 +322,6 @@ export default function LegalLibraryPage() {
                     )}
                   </div>
 
-                  {/* Document Title */}
                   <div>
                     {doc.proclamationNumber && (
                       <span className="text-[11px] font-mono text-amber-700 font-bold block mb-1">
@@ -322,14 +329,13 @@ export default function LegalLibraryPage() {
                       </span>
                     )}
                     <h3 className="text-sm font-black text-[#0A1128] leading-snug">
-                      {language === 'am' ? doc.amharicTitle : doc.title}
+                      {doc.title}
                     </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed font-normal mt-2 line-clamp-3">
-                      {language === 'am' ? doc.amharicSummary : doc.summary}
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal mt-2 line-clamp-2">
+                      {doc.summary}
                     </p>
                   </div>
 
-                  {/* Document Meta Stats */}
                   <div className="pt-2 grid grid-cols-3 gap-2 py-2 border-y border-slate-100 text-center font-mono text-[10px] text-slate-500">
                     <div>
                       <span className="block text-slate-400">YEAR</span>
@@ -340,18 +346,18 @@ export default function LegalLibraryPage() {
                       <strong className="text-slate-800 text-xs">{doc.fileSize}</strong>
                     </div>
                     <div>
-                      <span className="block text-slate-400">PAGES</span>
-                      <strong className="text-slate-800 text-xs">{doc.pages}</strong>
+                      <span className="block text-slate-400">SECTION</span>
+                      <strong className="text-slate-800 text-xs">{doc.sectionCode}</strong>
                     </div>
                   </div>
 
+                  <div className="text-[10px] text-slate-400 font-mono truncate">
+                    Source: <span className="text-slate-600 font-medium">{doc.sourceAuthority}</span>
+                  </div>
                 </div>
 
-                {/* Card Actions */}
                 <div className="pt-2 space-y-2">
                   <div className="flex items-center gap-2">
-                    
-                    {/* Direct Download Button (Works 100%) */}
                     <button
                       type="button"
                       onClick={() => handleDownload(doc)}
@@ -361,24 +367,20 @@ export default function LegalLibraryPage() {
                       <span>Download PDF</span>
                     </button>
 
-                    {/* Preview Modal Button */}
                     <button
                       type="button"
                       onClick={() => setPreviewDoc(doc)}
                       className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors cursor-pointer"
-                      title="Quick Preview"
+                      title="Quick Statutory Preview"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-
                   </div>
 
-                  {/* Download count indicator */}
                   <span className="text-[10px] text-slate-400 text-center block font-mono">
                     {currentDownloads.toLocaleString()} verified downloads
                   </span>
                 </div>
-
               </div>
             );
           })}
@@ -388,13 +390,13 @@ export default function LegalLibraryPage() {
         <section className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left max-w-xl">
             <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest font-bold block">
-              LEGAL IMPLEMENTATION SUPPORT
+              STATUTORY COUNSEL & LEXDRAFT AUTOMATION
             </span>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-              Need counsel or a custom agreement based on these laws?
+              Need counsel or a custom agreement drafted under these laws?
             </h2>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Book a 30-minute verified consultation with a licensed advocate or generate an automated contract tailored to current Ethiopian statutory proclamations.
+              Connect directly with verified Ethiopian advocates or generate customized, lawyer-vetted agreements on LexDraft.
             </p>
           </div>
 
@@ -417,11 +419,10 @@ export default function LegalLibraryPage() {
 
       </main>
 
-      {/* 06. In-Browser PDF Preview Modal */}
+      {/* 06. Statutory Preview Modal */}
       {previewDoc && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
-            
             <button
               type="button"
               onClick={() => setPreviewDoc(null)}
@@ -432,7 +433,7 @@ export default function LegalLibraryPage() {
 
             <div className="space-y-1 pr-8">
               <span className="text-[10px] font-bold text-amber-600 font-mono uppercase">
-                {previewDoc.proclamationNumber || previewDoc.category}
+                ENTRY #{previewDoc.itemNumber} • {previewDoc.proclamationNumber || previewDoc.category}
               </span>
               <h3 className="text-lg font-black text-[#0A1128]">
                 {previewDoc.title}
@@ -443,19 +444,21 @@ export default function LegalLibraryPage() {
             </div>
 
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 leading-relaxed text-slate-700">
-              <strong className="text-xs font-bold text-[#0A1128] block">Statutory Overview:</strong>
+              <strong className="text-xs font-bold text-[#0A1128] block">Scope & Regulatory Summary:</strong>
               <p>{previewDoc.summary}</p>
-              <p className="text-slate-600 font-serif">{previewDoc.amharicSummary}</p>
+              <span className="text-[11px] font-mono text-slate-400 block pt-1">
+                Institutional Source: {previewDoc.sourceAuthority}
+              </span>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
               <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[9px] text-slate-400 block">YEAR OF ISSUE</span>
+                <span className="text-[9px] text-slate-400 block">YEAR</span>
                 <strong className="text-slate-800">{previewDoc.year}</strong>
               </div>
               <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[9px] text-slate-400 block">ESTIMATED PAGES</span>
-                <strong className="text-slate-800">{previewDoc.pages} Pages</strong>
+                <span className="text-[9px] text-slate-400 block">CATEGORY</span>
+                <strong className="text-slate-800 truncate block">{previewDoc.category}</strong>
               </div>
               <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[9px] text-slate-400 block">FILE SIZE</span>
@@ -467,9 +470,9 @@ export default function LegalLibraryPage() {
               <button
                 type="button"
                 onClick={() => setPreviewDoc(null)}
-                className="px-5 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800"
+                className="px-5 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
               >
-                Close Preview
+                Close
               </button>
 
               <button
@@ -481,19 +484,17 @@ export default function LegalLibraryPage() {
                 className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-sm cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-amber-400" />
-                <span>Download Official PDF</span>
+                <span>Download PDF Instrument</span>
               </button>
             </div>
-
           </div>
         </div>
       )}
 
-      {/* 07. Modal: Upload Document to Vault */}
+      {/* 07. Modal: Add Direct Link or Upload File */}
       {uploadModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
-            
             <button
               type="button"
               onClick={() => setUploadModalOpen(false)}
@@ -504,10 +505,10 @@ export default function LegalLibraryPage() {
 
             <div className="space-y-1">
               <h3 className="text-lg font-black text-[#0A1128]">
-                Upload PDF to Legal Vault
+                Register New Document / Direct Link
               </h3>
               <p className="text-slate-500">
-                Add legal proclamations, directives, or templates directly into the public repository.
+                Upload a raw PDF or specify a verified direct download URL.
               </p>
             </div>
 
@@ -519,7 +520,7 @@ export default function LegalLibraryPage() {
 
             {uploadSuccess && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold">
-                ✓ Document successfully uploaded to Supabase Storage and added to the repository!
+                ✓ Document successfully added to the repository!
               </div>
             )}
 
@@ -531,7 +532,7 @@ export default function LegalLibraryPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Commercial Code Proclamation"
+                  placeholder="e.g. Commercial Code Proclamation No. 1243/2021"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#0A1128]"
@@ -540,15 +541,18 @@ export default function LegalLibraryPage() {
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1">
-                  Amharic Title (አማርኛ ርዕስ)
+                  Direct PDF URL (Optional)
                 </label>
                 <input
-                  type="text"
-                  placeholder="e.g. የንግድ ሕግ አዋጅ"
-                  value={newAmharicTitle}
-                  onChange={(e) => setNewAmharicTitle(e.target.value)}
+                  type="url"
+                  placeholder="https://.../document.pdf"
+                  value={directDownloadLink}
+                  onChange={(e) => setDirectDownloadLink(e.target.value)}
                   className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#0A1128]"
                 />
+                <span className="text-[10px] text-slate-400 block mt-0.5">
+                  If set, clients will download from this URL. If empty, the built-in generator will produce the file.
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -558,14 +562,12 @@ export default function LegalLibraryPage() {
                   </label>
                   <select
                     value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as any)}
+                    onChange={(e) => setNewCategory(e.target.value)}
                     className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#0A1128]"
                   >
-                    <option value="Proclamations">Proclamations</option>
-                    <option value="Regulations">Regulations</option>
-                    <option value="Directives">Directives</option>
-                    <option value="Court Forms">Court Forms</option>
-                    <option value="DARA Templates">DARA Templates</option>
+                    {categories.filter(c => c !== 'All').map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -575,7 +577,7 @@ export default function LegalLibraryPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Proc. No. 1240/2021"
+                    placeholder="e.g. Proc. No. 1243/2021"
                     value={newProcNumber}
                     onChange={(e) => setNewProcNumber(e.target.value)}
                     className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#0A1128]"
@@ -583,10 +585,9 @@ export default function LegalLibraryPage() {
                 </div>
               </div>
 
-              {/* PDF File Drag and Drop */}
               <div>
                 <label className="block font-bold text-slate-800 mb-1">
-                  Select PDF File *
+                  Upload PDF File to Supabase (Optional)
                 </label>
                 <input
                   type="file"
@@ -601,7 +602,7 @@ export default function LegalLibraryPage() {
                 />
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className={`p-6 rounded-2xl border-2 border-dashed text-center space-y-1.5 cursor-pointer transition-all ${
+                  className={`p-5 rounded-2xl border-2 border-dashed text-center space-y-1.5 cursor-pointer transition-all ${
                     selectedFile
                       ? 'border-emerald-300 bg-emerald-50/50 text-emerald-950'
                       : 'border-slate-200 hover:border-slate-300 bg-slate-50'
@@ -609,21 +610,21 @@ export default function LegalLibraryPage() {
                 >
                   <UploadCloud className={`w-6 h-6 mx-auto ${selectedFile ? 'text-emerald-600' : 'text-slate-400'}`} />
                   <strong className="block text-slate-800">
-                    {selectedFile ? selectedFile.name : 'Click to select PDF document'}
+                    {selectedFile ? selectedFile.name : 'Select PDF from device'}
                   </strong>
                   <span className="text-[10px] text-slate-400 block">
-                    {selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready` : 'Maximum file size: 50 MB'}
+                    {selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB` : 'Optional file upload'}
                   </span>
                 </div>
               </div>
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1">
-                  Brief Summary / Scope
+                  Brief Summary
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Key provisions and purpose of this legal document..."
+                  placeholder="Key provisions and statutory scope..."
                   value={newSummary}
                   onChange={(e) => setNewSummary(e.target.value)}
                   className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#0A1128]"
@@ -647,15 +648,14 @@ export default function LegalLibraryPage() {
                   {uploading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                      <span>Uploading to Vault...</span>
+                      <span>Saving...</span>
                     </>
                   ) : (
-                    <span>Publish Document</span>
+                    <span>Register Document</span>
                   )}
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
@@ -665,7 +665,7 @@ export default function LegalLibraryPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
             <p>© 2026 LegalLink Technologies PLC. All rights reserved.</p>
-            <p>Ethiopian proclamations and directives published under public domain statutory access.</p>
+            <p>Ethiopian statutory repository published under public domain statutory access.</p>
           </div>
         </div>
       </footer>
