@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
   Building2, Users, Home as HomeIcon, Sparkles, Briefcase, 
   Scale, Globe, ShieldCheck, Check, ArrowRight, Mic, 
-  Play, Pause, Trash2, Clock, MapPin, Languages, CheckCircle2, 
+  Play, Pause, Trash2, Clock, MapPin, Languages, 
   AlertCircle, ChevronRight, Lock, Star, Loader2, Copy, RefreshCw
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -98,8 +99,9 @@ const FALLBACK_SEED_LAWYERS: AdvocateMatch[] = [
   }
 ];
 
-export default function FindLawyerWizardPage() {
+function FindLawyerWizard() {
   const { language, t } = useLanguage();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
@@ -119,7 +121,7 @@ export default function FindLawyerWizardPage() {
   const [urgency, setUrgency] = useState<string | null>(null);
   const [situationText, setSituationText] = useState<string>('');
 
-  // Audio Voice Note State
+  // Audio Voice Brief
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -141,57 +143,6 @@ export default function FindLawyerWizardPage() {
   const [telebirrUssdCode, setTelebirrUssdCode] = useState<string | null>(null);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-
-  const getInitials = (name: string) => {
-    const cleaned = name.replace(/^(Adv\.|Ato|W\/ro|Dr\.)\s+/i, '').trim();
-    const parts = cleaned.split(/\s+/);
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return (cleaned.slice(0, 2) || 'AD').toUpperCase();
-  };
-
-  const fetchLiveAdvocates = async () => {
-    setLoadingLawyers(true);
-    try {
-      const { data, error } = await supabase
-        .from('lawyer_profiles')
-        .select('*')
-        .order('rating', { ascending: false });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const mapped: AdvocateMatch[] = data.map((d: any) => ({
-          id: d.id,
-          initials: getInitials(d.name),
-          name: d.name,
-          amharicName: d.amharic_name || d.name,
-          category: d.title || 'Federal Court Advocate',
-          amharicCategory: 'የፌዴራል ፍርድ ቤት ጠበቃ',
-          rating: (d.rating ?? 4.9).toString(),
-          reviews: (d.reviews_count ?? 18).toString(),
-          experienceYears: d.experience_years ?? 5,
-          ratePerHour: Number(d.hourly_rate_etb) || 1800,
-          location: d.location || 'Addis Ababa',
-          languages: ['Amharic', 'English'],
-          bio: `Licensed advocate with chambers in ${d.location || 'Addis Ababa'}. Specializes in representation before the ${d.court_jurisdiction || 'Federal Courts'} under Proclamation No. 1249/2021.`,
-          amharicBio: `በ${d.court_jurisdiction || 'ፌዴራል ፍርድ ቤቶች'} ስር በኢፌዴሪ ጠበቆች አዋጅ ቁጥር 1249/2021 ፈቃድ የተሰጣቸው ጠበቃ።`,
-          courtStanding: d.court_jurisdiction || 'Federal High Court',
-          barLicense: d.license_number || d.id,
-          offersPupillage: d.offers_pupillage ?? false
-        }));
-
-        setLawyers(mapped);
-      }
-    } catch (err) {
-      console.warn('Using fallback seed advocates due to fetch error:', err);
-    } finally {
-      setLoadingLawyers(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLiveAdvocates();
-  }, []);
 
   const CATEGORIES: CategoryItem[] = [
     {
@@ -259,6 +210,65 @@ export default function FindLawyerWizardPage() {
       icon: ShieldCheck
     }
   ];
+
+  // Auto-select category if passed in URL query param
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat && CATEGORIES.some((c) => c.id === cat)) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
+
+  const getInitials = (name: string) => {
+    const cleaned = name.replace(/^(Adv\.|Ato|W\/ro|Dr\.)\s+/i, '').trim();
+    const parts = cleaned.split(/\s+/);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return (cleaned.slice(0, 2) || 'AD').toUpperCase();
+  };
+
+  const fetchLiveAdvocates = async () => {
+    setLoadingLawyers(true);
+    try {
+      const { data, error } = await supabase
+        .from('lawyer_profiles')
+        .select('*')
+        .order('rating', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const mapped: AdvocateMatch[] = data.map((d: any) => ({
+          id: d.id,
+          initials: getInitials(d.name),
+          name: d.name,
+          amharicName: d.amharic_name || d.name,
+          category: d.title || 'Federal Court Advocate',
+          amharicCategory: 'የፌዴራል ፍርድ ቤት ጠበቃ',
+          rating: (d.rating ?? 4.9).toString(),
+          reviews: (d.reviews_count ?? 18).toString(),
+          experienceYears: d.experience_years ?? 5,
+          ratePerHour: Number(d.hourly_rate_etb) || 1800,
+          location: d.location || 'Addis Ababa',
+          languages: ['Amharic', 'English'],
+          bio: `Licensed advocate with chambers in ${d.location || 'Addis Ababa'}. Specializes in representation before the ${d.court_jurisdiction || 'Federal Courts'} under Proclamation No. 1249/2021.`,
+          amharicBio: `በ${d.court_jurisdiction || 'ፌዴራል ፍርድ ቤቶች'} ስር በኢፌዴሪ ጠበቆች አዋጅ ቁጥር 1249/2021 ፈቃድ የተሰጣቸው ጠበቃ።`,
+          courtStanding: d.court_jurisdiction || 'Federal High Court',
+          barLicense: d.license_number || d.id,
+          offersPupillage: d.offers_pupillage ?? false
+        }));
+
+        setLawyers(mapped);
+      }
+    } catch (err) {
+      console.warn('Fallback seed advocates used:', err);
+    } finally {
+      setLoadingLawyers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveAdvocates();
+  }, []);
 
   useEffect(() => {
     if (isRecording) {
@@ -395,7 +405,7 @@ export default function FindLawyerWizardPage() {
 
       if (error) throw error;
 
-      // Dispatches Telegram alert asynchronously without blocking UI
+      // Asynchronous Telegram notification dispatch
       fetch('/api/telegram-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -411,7 +421,7 @@ export default function FindLawyerWizardPage() {
             brief: situationText.trim()
           }
         })
-      }).catch((tgErr) => console.warn('Telegram notification error:', tgErr));
+      }).catch((tgErr) => console.warn('Telegram alert error:', tgErr));
 
       const refId = data ? `LL-${data.id.slice(0, 6).toUpperCase()}` : `LL-${Date.now().toString().slice(-6)}`;
       setBookingReference(refId);
@@ -500,7 +510,7 @@ export default function FindLawyerWizardPage() {
           </div>
         )}
 
-        {/* STEP 1: CATEGORY SELECTION */}
+        {/* STEP 1 */}
         {currentStep === 1 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="space-y-2">
@@ -575,7 +585,7 @@ export default function FindLawyerWizardPage() {
           </div>
         )}
 
-        {/* STEP 2: PREFERENCES */}
+        {/* STEP 2 */}
         {currentStep === 2 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="space-y-2">
@@ -588,7 +598,6 @@ export default function FindLawyerWizardPage() {
             </div>
 
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-slate-200 shadow-xs space-y-7 text-xs">
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
                 <div className="space-y-2.5">
                   <label className="font-bold text-slate-800 block">
@@ -715,7 +724,7 @@ export default function FindLawyerWizardPage() {
                       className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
                         urgency === time 
                           ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       {time}
@@ -836,7 +845,7 @@ export default function FindLawyerWizardPage() {
           </div>
         )}
 
-        {/* STEP 3: MATCHED LAWYERS */}
+        {/* STEP 3 */}
         {currentStep === 3 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -983,7 +992,7 @@ export default function FindLawyerWizardPage() {
           </div>
         )}
 
-        {/* STEP 4: CONFIRMATION & REVIEW */}
+        {/* STEP 4 */}
         {currentStep === 4 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="space-y-2">
@@ -1232,7 +1241,6 @@ export default function FindLawyerWizardPage() {
       {isSubmittedSuccess && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
-            
             <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
               <Check className="w-8 h-8" />
             </div>
@@ -1318,5 +1326,17 @@ export default function FindLawyerWizardPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function FindLawyerWizardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-mono text-slate-400">
+        Loading LegalLink Matching Engine...
+      </div>
+    }>
+      <FindLawyerWizard />
+    </Suspense>
   );
 }
