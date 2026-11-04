@@ -1,24 +1,40 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const role = requestUrl.searchParams.get('role') || 'client';
-  const redirect = requestUrl.searchParams.get('redirect') || (role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer');
-  const origin = requestUrl.origin;
+  try {
+    const requestUrl = new URL(request.url);
+    const role = requestUrl.searchParams.get('role') || 'client';
+    const redirect = requestUrl.searchParams.get('redirect') || (role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer');
+    const origin = requestUrl.origin;
 
-  const supabase = createClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
-    },
-  });
+    if (!supabaseAnonKey) {
+      return NextResponse.json({
+        error: 'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel environment variables.',
+      }, { status: 500 });
+    }
 
-  if (error || !data?.url) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error?.message || 'oauth_init_failed')}`);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${origin}/auth/callback?redirect=${encodeURIComponent(redirect)}`,
+      },
+    });
+
+    if (error || !data?.url) {
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error?.message || 'oauth_failed')}`);
+    }
+
+    return NextResponse.redirect(data.url);
+  } catch (err: any) {
+    return NextResponse.json({
+      error: err?.message || 'Internal Server Error',
+      stack: err?.stack,
+    }, { status: 500 });
   }
-
-  return NextResponse.redirect(data.url);
 }
