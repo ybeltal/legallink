@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Building2, Users, Home as HomeIcon, Sparkles, Briefcase, 
@@ -102,15 +102,13 @@ export default function FindLawyerWizardPage() {
   const { language, t } = useLanguage();
   const supabase = createClient();
 
-  // Stepper State
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [stepError, setStepError] = useState<string | null>(null);
 
-  // Dynamic Advocates fetched from Supabase
   const [lawyers, setLawyers] = useState<AdvocateMatch[]>(FALLBACK_SEED_LAWYERS);
   const [loadingLawyers, setLoadingLawyers] = useState<boolean>(true);
 
-  // Step 1: Category Selection
+  // Step 1: Category
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Step 2: Preferences
@@ -121,22 +119,22 @@ export default function FindLawyerWizardPage() {
   const [urgency, setUrgency] = useState<string | null>(null);
   const [situationText, setSituationText] = useState<string>('');
 
-  // Step 2: Optional Audio Voice Brief
+  // Audio Voice Note State
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Step 3: Selected Lawyer Match
+  // Step 3: Selected Lawyer
   const [selectedLawyerId, setSelectedLawyerId] = useState<string | null>(null);
 
-  // Step 4: Client Contact Inputs
+  // Step 4: Client Contact
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
   const [clientEmail, setClientEmail] = useState<string>('');
 
-  // Step 4: Submission & Escrow State
+  // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -144,17 +142,13 @@ export default function FindLawyerWizardPage() {
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  // Extract initials utility
   const getInitials = (name: string) => {
     const cleaned = name.replace(/^(Adv\.|Ato|W\/ro|Dr\.)\s+/i, '').trim();
     const parts = cleaned.split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return (cleaned.slice(0, 2) || 'AD').toUpperCase();
   };
 
-  // Fetch dynamic advocates from Supabase
   const fetchLiveAdvocates = async () => {
     setLoadingLawyers(true);
     try {
@@ -266,7 +260,6 @@ export default function FindLawyerWizardPage() {
     }
   ];
 
-  // Voice note timer logic
   useEffect(() => {
     if (isRecording) {
       setRecordingDuration(0);
@@ -313,7 +306,6 @@ export default function FindLawyerWizardPage() {
   const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory);
   const activeLawyerObj = lawyers.find((l) => l.id === selectedLawyerId);
 
-  // Mandatory Navigation Step Checks
   const handleProceedFromStep1 = () => {
     if (!selectedCategory) {
       setStepError('Please select a legal practice area before continuing.');
@@ -361,7 +353,6 @@ export default function FindLawyerWizardPage() {
     setCurrentStep(4);
   };
 
-  // Submit to Supabase consultation_bookings
   const handleConfirmMatchSubmission = async () => {
     setSubmissionError(null);
 
@@ -404,6 +395,24 @@ export default function FindLawyerWizardPage() {
 
       if (error) throw error;
 
+      // Dispatches Telegram alert asynchronously without blocking UI
+      fetch('/api/telegram-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'consultation_booked',
+          data: {
+            client_name: clientName.trim(),
+            client_phone: clientPhone.trim(),
+            lawyer_name: activeLawyerObj.name,
+            practice_area: activeCategoryObj.title,
+            fee_etb: activeLawyerObj.ratePerHour,
+            urgency: urgency,
+            brief: situationText.trim()
+          }
+        })
+      }).catch((tgErr) => console.warn('Telegram notification error:', tgErr));
+
       const refId = data ? `LL-${data.id.slice(0, 6).toUpperCase()}` : `LL-${Date.now().toString().slice(-6)}`;
       setBookingReference(refId);
       setTelebirrUssdCode(`*127*${Math.floor(100000 + Math.random() * 900000)}#`);
@@ -426,7 +435,6 @@ export default function FindLawyerWizardPage() {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       <Navbar />
 
-      {/* Stepper Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -483,7 +491,6 @@ export default function FindLawyerWizardPage() {
         </div>
       </div>
 
-      {/* Main Wizard Canvas */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-6">
         
         {stepError && (
@@ -582,33 +589,29 @@ export default function FindLawyerWizardPage() {
 
             <div className="bg-white p-7 sm:p-9 rounded-3xl border border-slate-200 shadow-xs space-y-7 text-xs">
               
-              {/* Location & Language */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
                 <div className="space-y-2.5">
                   <label className="font-bold text-slate-800 block">
                     Preferred Location <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['Addis Ababa', 'Dire Dawa', 'Hawassa', 'Bahir Dar', 'Mekelle', 'Adama', 'Remote / Online'].map((loc) => {
-                      const isSel = location === loc;
-                      return (
-                        <button
-                          key={loc}
-                          type="button"
-                          onClick={() => {
-                            setLocation(loc);
-                            setStepError(null);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                            isSel 
-                              ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          {loc}
-                        </button>
-                      );
-                    })}
+                    {['Addis Ababa', 'Dire Dawa', 'Hawassa', 'Bahir Dar', 'Mekelle', 'Adama', 'Remote / Online'].map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => {
+                          setLocation(loc);
+                          setStepError(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                          location === loc 
+                            ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -617,31 +620,27 @@ export default function FindLawyerWizardPage() {
                     Consultation Language <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['Amharic', 'English', 'Oromiffa', 'Tigrinya', 'French'].map((lng) => {
-                      const isSel = consultLanguage === lng;
-                      return (
-                        <button
-                          key={lng}
-                          type="button"
-                          onClick={() => {
-                            setConsultLanguage(lng);
-                            setStepError(null);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                            isSel 
-                              ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          {lng}
-                        </button>
-                      );
-                    })}
+                    {['Amharic', 'English', 'Oromiffa', 'Tigrinya', 'French'].map((lng) => (
+                      <button
+                        key={lng}
+                        type="button"
+                        onClick={() => {
+                          setConsultLanguage(lng);
+                          setStepError(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                          consultLanguage === lng 
+                            ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {lng}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Court Standing & Mode */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-7 pt-4 border-t border-slate-100">
                 <div className="space-y-2.5">
                   <label className="font-bold text-slate-800 flex items-center justify-between">
@@ -654,26 +653,23 @@ export default function FindLawyerWizardPage() {
                       'Federal High Court',
                       'Supreme Court & Cassation',
                       'Open / Any Level'
-                    ].map((tier) => {
-                      const isSel = courtStanding === tier;
-                      return (
-                        <button
-                          key={tier}
-                          type="button"
-                          onClick={() => {
-                            setCourtStanding(tier);
-                            setStepError(null);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                            isSel 
-                              ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          {tier}
-                        </button>
-                      );
-                    })}
+                    ].map((tier) => (
+                      <button
+                        key={tier}
+                        type="button"
+                        onClick={() => {
+                          setCourtStanding(tier);
+                          setStepError(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                          courtStanding === tier 
+                            ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {tier}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -682,60 +678,52 @@ export default function FindLawyerWizardPage() {
                     Consultation Mode <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['Video Call', 'In-Person Chamber Visit', 'Confidential Phone Call'].map((mode) => {
-                      const isSel = consultMode === mode;
-                      return (
-                        <button
-                          key={mode}
-                          type="button"
-                          onClick={() => {
-                            setConsultMode(mode);
-                            setStepError(null);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                            isSel 
-                              ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          {mode}
-                        </button>
-                      );
-                    })}
+                    {['Video Call', 'In-Person Chamber Visit', 'Confidential Phone Call'].map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => {
+                          setConsultMode(mode);
+                          setStepError(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                          consultMode === mode 
+                            ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {mode}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Urgency */}
               <div className="pt-4 border-t border-slate-100 space-y-2.5">
                 <label className="font-bold text-slate-800 block">
                   How soon do you need help? <span className="text-red-500">*</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {['Within 24 hours', 'Within 3 days', 'Within a week', 'Flexible'].map((time) => {
-                    const isSel = urgency === time;
-                    return (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => {
-                          setUrgency(time);
-                          setStepError(null);
-                        }}
-                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                          isSel 
-                            ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
+                  {['Within 24 hours', 'Within 3 days', 'Within a week', 'Flexible'].map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => {
+                        setUrgency(time);
+                        setStepError(null);
+                      }}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                        urgency === time 
+                          ? 'bg-[#0A1128] text-white border-[#0A1128] shadow-xs' 
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    );
-                  })}
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Situation & Voice Note */}
               <div className="pt-4 border-t border-slate-100 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-800 block">
@@ -848,7 +836,7 @@ export default function FindLawyerWizardPage() {
           </div>
         )}
 
-        {/* STEP 3: MATCHED LAWYERS (DYNAMIC SUPABASE SYNC) */}
+        {/* STEP 3: MATCHED LAWYERS */}
         {currentStep === 3 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1016,7 +1004,6 @@ export default function FindLawyerWizardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Left Card: YOUR REQUEST & MANDATORY CLIENT INPUTS */}
               <div className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs space-y-5 text-xs">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">
                   YOUR REQUEST & CONTACT
@@ -1137,7 +1124,6 @@ export default function FindLawyerWizardPage() {
                 </div>
               </div>
 
-              {/* Right Card: SELECTED LAWYER */}
               <div className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs space-y-5 text-xs flex flex-col justify-between">
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono mb-4">
@@ -1242,7 +1228,7 @@ export default function FindLawyerWizardPage() {
 
       </main>
 
-      {/* Confirmation & Telebirr USSD Success Modal */}
+      {/* Confirmation Modal */}
       {isSubmittedSuccess && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
@@ -1273,7 +1259,6 @@ export default function FindLawyerWizardPage() {
               </div>
             )}
 
-            {/* Escrow Payment Accounts */}
             <div className="space-y-2 text-left">
               <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
                 <div>
@@ -1324,7 +1309,6 @@ export default function FindLawyerWizardPage() {
         </div>
       )}
 
-      {/* Enterprise Footer */}
       <footer className="bg-[#0A1128] text-slate-400 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">

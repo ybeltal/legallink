@@ -34,7 +34,6 @@ export default function AdvocateRegisterPage() {
     setLoading(true);
 
     try {
-      // Generate standard Ethiopian Bar identifier
       const advId = licenseNumber.trim().toUpperCase().startsWith('ETH-BAR') 
         ? licenseNumber.trim().toUpperCase() 
         : `ETH-BAR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -52,7 +51,7 @@ export default function AdvocateRegisterPage() {
           court_jurisdiction: courtStanding,
           hourly_rate_etb: hourlyRate,
           location: location.trim(),
-          is_verified: false, // Must be vetted by admin in /admin
+          is_verified: false,
           vetting_status: 'pending',
           offers_pupillage: offersPupillage,
           experience_years: 5,
@@ -69,7 +68,25 @@ export default function AdvocateRegisterPage() {
         throw error;
       }
 
-      // Store advocate's identity in session and confirm
+      // Dispatches Telegram alert asynchronously
+      fetch('/api/telegram-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'advocate_registered',
+          data: {
+            name: fullName.trim(),
+            amharic_name: amharicName.trim(),
+            license_number: licenseNumber.trim().toUpperCase(),
+            court_jurisdiction: courtStanding,
+            hourly_rate_etb: hourlyRate,
+            phone: phone.trim(),
+            email: email.trim(),
+            location: location.trim()
+          }
+        })
+      }).catch((tgErr) => console.warn('Telegram registration alert error:', tgErr));
+
       sessionStorage.setItem('ll_active_advocate_id', advId);
       setIsSuccess(true);
     } catch (err: any) {
