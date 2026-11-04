@@ -46,7 +46,7 @@ export default function NextGenHubPage() {
 
   const [opportunitiesList, setOpportunitiesList] = useState<OpportunityItem[]>(SEED_OPPORTUNITIES);
 
-  // Fetch opportunities from Supabase and merge with seed catalog
+  // Load opportunities from Supabase and merge with seed catalog
   useEffect(() => {
     async function loadOpportunities() {
       try {
@@ -118,12 +118,10 @@ export default function NextGenHubPage() {
     setApplying(true);
 
     try {
-      const isUUID = selectedOpportunity?.id && selectedOpportunity.id.includes('-');
-
       const { error } = await supabase
         .from('student_applications')
         .insert({
-          opportunity_id: isUUID ? selectedOpportunity?.id : null,
+          opportunity_id: selectedOpportunity?.id || 'general',
           opportunity_title: selectedOpportunity?.title || 'General Legal Internship',
           applicant_name: applicantName.trim(),
           applicant_email: applicantEmail.trim(),
