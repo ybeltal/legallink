@@ -40,11 +40,22 @@ export async function POST(req: Request) {
     } else if (event === 'student_application') {
       message = 
         `🎓 *NEW NEXTGEN CANDIDATE APPLICATION*\n\n` +
-        `👤 *Applicant:* ${data.applicant_name}\n` +
+        `👤 *Candidate:* ${data.applicant_name}\n` +
         `🏛 *University:* ${data.university} (${data.current_year})\n` +
         `💼 *Opportunity:* ${data.opportunity_title}\n` +
-        `📞 *Phone:* \`${data.applicant_phone}\`\n\n` +
+        `📞 *Contact:* \`${data.applicant_phone}\`\n` +
+        (data.applicant_email ? `📧 *Email:* ${data.applicant_email}\n` : '') +
+        (data.cover_note ? `📝 *Note:* _${data.cover_note.slice(0, 150)}_\n\n` : '\n\n') +
         `🔗 [Open NextGen Applications](https://legallink-two.vercel.app/admin)`;
+    } else if (event === 'opportunity_posted') {
+      message = 
+        `💼 *NEW OPPORTUNITY POSTED*\n\n` +
+        `📌 *Title:* ${data.title}\n` +
+        `🏛 *Organization:* ${data.organization}\n` +
+        `📂 *Track:* ${data.track}\n` +
+        `📍 *Location:* ${data.location}\n` +
+        `💰 *Stipend:* ${data.stipend}\n\n` +
+        `🔗 [Open Admin Console](https://legallink-two.vercel.app/admin)`;
     }
 
     if (!message) {

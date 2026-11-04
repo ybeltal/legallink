@@ -111,18 +111,21 @@ export default function NextGenHubPage() {
     });
   }, [opportunitiesList, searchQuery, selectedTrack]);
 
-  // LIVE Supabase Insert: Student Application
+  // LIVE Supabase Insert + Instant Telegram Alert: Student Application
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApplyError(null);
     setApplying(true);
 
     try {
+      const oppTitle = selectedOpportunity?.title || 'General Legal Internship';
+      const oppId = selectedOpportunity?.id || 'general';
+
       const { error } = await supabase
         .from('student_applications')
         .insert({
-          opportunity_id: selectedOpportunity?.id || 'general',
-          opportunity_title: selectedOpportunity?.title || 'General Legal Internship',
+          opportunity_id: oppId,
+          opportunity_title: oppTitle,
           applicant_name: applicantName.trim(),
           applicant_email: applicantEmail.trim(),
           applicant_phone: applicantPhone.trim(),
@@ -133,6 +136,24 @@ export default function NextGenHubPage() {
         });
 
       if (error) throw error;
+
+      // Dispatches Telegram alert asynchronously without blocking UI
+      fetch('/api/telegram-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'student_application',
+          data: {
+            applicant_name: applicantName.trim(),
+            applicant_email: applicantEmail.trim(),
+            applicant_phone: applicantPhone.trim(),
+            university: applicantUniversity.trim(),
+            current_year: applicantYear,
+            opportunity_title: oppTitle,
+            cover_note: coverNote.trim()
+          }
+        })
+      }).catch((tgErr) => console.warn('Telegram notification error:', tgErr));
 
       setApplying(false);
       setAppliedSuccess(true);
@@ -152,7 +173,7 @@ export default function NextGenHubPage() {
     }
   };
 
-  // LIVE Supabase Insert: New Job/Pupillage Opportunity
+  // LIVE Supabase Insert + Instant Telegram Alert: New Opportunity
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPostError(null);
@@ -181,6 +202,22 @@ export default function NextGenHubPage() {
         .single();
 
       if (error) throw error;
+
+      // Dispatches Telegram alert for newly posted chamber opportunity
+      fetch('/api/telegram-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'opportunity_posted',
+          data: {
+            title: postTitle.trim(),
+            organization: postOrg.trim(),
+            track: postTrack,
+            location: postLocation.trim(),
+            stipend: postStipend.trim() ? `ETB ${postStipend} / month` : 'Stipend Negotiable'
+          }
+        })
+      }).catch((tgErr) => console.warn('Telegram notification error:', tgErr));
 
       if (data) {
         const newlyAddedItem: OpportunityItem = {
