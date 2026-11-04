@@ -1,29 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck, User, Scale } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { 
+  ShieldCheck, ArrowRight, Eye, EyeOff, Check, 
+  Scale, User, AlertCircle, Building2, Lock
+} from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-export default function LoginPage() {
+export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
+  // Mode: 'signup' (default for Get Started) vs 'signin'
+  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
   const [role, setRole] = useState<'client' | 'advocate'>('client');
+
+  // Sign-in Form state
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Read URL query parameter ?mode=signin or ?mode=signup
+  useEffect(() => {
+    const urlMode = searchParams.get('mode');
+    if (urlMode === 'signin') {
+      setMode('signin');
+    } else if (urlMode === 'signup') {
+      setMode('signup');
+    }
+  }, [searchParams]);
+
+  // Handle Sign In submission
+  const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
     if (!agreedToTerms) {
-      setErrorMessage('You must agree to the Terms of Service and Privacy Policy to sign in.');
+      setErrorMessage('You must accept the Terms of Service and Privacy Policy to proceed.');
       return;
     }
 
@@ -38,7 +57,7 @@ export default function LoginPage() {
       if (role === 'advocate') {
         const queryVal = identifier.trim();
 
-        // Query database: lookup advocate by email OR license_number
+        // Check against Supabase lawyer_profiles table
         const { data: advList, error } = await supabase
           .from('lawyer_profiles')
           .select('id, name, email, license_number')
@@ -52,12 +71,10 @@ export default function LoginPage() {
           return;
         }
 
-        // Store the matched advocate's ID
         const matched = advList[0];
         sessionStorage.setItem('ll_active_advocate_id', matched.id);
         setIsLoading(false);
         router.push('/advocate/portal');
-
       } else {
         // Client flow
         setIsLoading(false);
@@ -69,262 +86,391 @@ export default function LoginPage() {
     }
   };
 
+  // Google OAuth flow
   const handleGoogleSignIn = () => {
     if (!agreedToTerms) {
-      setErrorMessage('You must agree to the Terms of Service and Privacy Policy before continuing with Google.');
+      setErrorMessage('You must accept the Terms of Service and Privacy Policy before continuing with Google.');
       return;
     }
-    if (role === 'advocate') {
-      window.location.href = `/api/auth/google?role=advocate&redirect=/advocate/portal`;
-    } else {
-      window.location.href = `/api/auth/google?role=client&redirect=/find-a-lawyer`;
-    }
+    const redirectUrl = role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer';
+    window.location.href = `/api/auth/google?role=${role}&redirect=${redirectUrl}`;
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 py-10 text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900">
       
-      {/* Top Navigation Row */}
-      <div className="max-w-md w-full flex items-center justify-between mb-5 px-1">
-        <Link 
-          href="/"
-          className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Return to LegalLink</span>
-        </Link>
-
-        <Link href="/" className="flex items-center gap-1.5 group">
-          <img src="/logo.png" alt="LegalLink Logo" className="w-6 h-6 object-contain" />
-          <span className="font-black text-base text-[#0A1128] tracking-tight">
+      {/* Top Header Row */}
+      <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group cursor-pointer">
+          <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
+          <span className="font-black text-xl tracking-tight text-[#0A1128]">
             Legal<span className="text-amber-500">Link</span>
           </span>
         </Link>
-      </div>
 
-      {/* Main Authentication Card */}
-      <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200/90 p-8 sm:p-9 shadow-xs space-y-6">
+        {/* Toggle between Sign Up and Sign In */}
+        <div className="text-xs font-semibold text-slate-600">
+          {mode === 'signup' ? (
+            <>
+              <span>Already have an account? </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signin');
+                  setErrorMessage(null);
+                }}
+                className="text-[#0A1128] font-bold hover:text-amber-600 underline underline-offset-4 cursor-pointer"
+              >
+                Log in
+              </button>
+            </>
+          ) : (
+            <>
+              <span>New to LegalLink? </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signup');
+                  setErrorMessage(null);
+                }}
+                className="text-[#0A1128] font-bold hover:text-amber-600 underline underline-offset-4 cursor-pointer"
+              >
+                Sign up
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* Main Dual-Folder Canvas */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col justify-center space-y-8">
         
-        {/* Header Block */}
-        <div className="text-center space-y-1.5">
-          <h1 className="text-2xl font-black text-[#0A1128] tracking-tight">
-            Sign In
+        {/* Title */}
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+            {mode === 'signup' ? 'Join as a client or advocate' : 'Sign in to LegalLink'}
           </h1>
-          <p className="text-xs text-slate-500 max-w-xs mx-auto font-normal leading-relaxed">
-            Access your consultation briefs, documents, and Telebirr escrow records.
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+            {mode === 'signup' 
+              ? 'Select how you want to experience Ethiopia’s premier digital legal network.' 
+              : 'Choose your workspace to access consultations, escrow balances, and documents.'}
           </p>
         </div>
 
-        {/* Portal Workspace Switcher Tabs */}
-        <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600 border border-slate-200/50">
-          <button
-            type="button"
+        {/* Error notification */}
+        {errorMessage && (
+          <div className="max-w-md mx-auto w-full p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-scaleUp">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* The Two "Folder" Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
+          
+          {/* FOLDER 1: CLIENT */}
+          <div
             onClick={() => {
               setRole('client');
               setErrorMessage(null);
             }}
-            className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`p-6 sm:p-8 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-6 relative group ${
               role === 'client'
-                ? 'bg-white text-[#0A1128] shadow-xs'
-                : 'hover:text-[#0A1128]'
+                ? 'bg-white border-[#0A1128] ring-2 ring-[#0A1128]/15 shadow-xl'
+                : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:bg-white shadow-xs'
             }`}
           >
-            <User className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Client Portal</span>
-          </button>
+            {/* Top Selection Radio / Checkmark */}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                CITIZEN & ENTERPRISE
+              </span>
 
-          <button
-            type="button"
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                role === 'client' 
+                  ? 'border-[#0A1128] bg-[#0A1128] text-white' 
+                  : 'border-slate-300 bg-white'
+              }`}>
+                {role === 'client' && <Check className="w-3.5 h-3.5" />}
+              </div>
+            </div>
+
+            {/* Client Custom Vector Artwork */}
+            <div className="py-2 flex justify-center">
+              <svg className="w-32 h-32" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Shield Background */}
+                <path d="M60 12L95 26V58C95 82 80 102 60 108C40 102 25 82 25 58V26L60 12Z" fill="#F0FDF4" stroke="#86EFAC" strokeWidth="2" />
+                {/* Client Avatar Inside */}
+                <circle cx="60" cy="46" r="14" fill="#0A1128" />
+                <path d="M40 78C40 68 49 64 60 64C71 64 80 68 80 78V84H40V78Z" fill="#0A1128" />
+                {/* Check / Trust Emblem */}
+                <circle cx="78" cy="74" r="10" fill="#10B981" />
+                <path d="M74 74L77 77L83 71" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            {/* Folder Copy */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-[#0A1128]">
+                I’m a client, seeking legal counsel
+              </h2>
+              <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                Book consultations with verified Federal advocates, review agreements, and protect retainer payments in Telebirr escrow.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <div className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition-all ${
+                role === 'client'
+                  ? 'bg-[#0A1128] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200'
+              }`}>
+                {role === 'client' ? 'Selected • Client Portal' : 'Select Client'}
+              </div>
+            </div>
+          </div>
+
+          {/* FOLDER 2: ADVOCATE */}
+          <div
             onClick={() => {
               setRole('advocate');
               setErrorMessage(null);
             }}
-            className={`py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`p-6 sm:p-8 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-6 relative group ${
               role === 'advocate'
-                ? 'bg-white text-[#0A1128] shadow-xs'
-                : 'hover:text-[#0A1128]'
+                ? 'bg-white border-[#0A1128] ring-2 ring-[#0A1128]/15 shadow-xl'
+                : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:bg-white shadow-xs'
             }`}
           >
-            <Scale className="w-3.5 h-3.5 text-amber-600" />
-            <span>Advocate Workspace</span>
-          </button>
+            {/* Top Selection Radio / Checkmark */}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                PROCLAMATION NO. 1249/2021
+              </span>
+
+              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                role === 'advocate' 
+                  ? 'border-[#0A1128] bg-[#0A1128] text-white' 
+                  : 'border-slate-300 bg-white'
+              }`}>
+                {role === 'advocate' && <Check className="w-3.5 h-3.5" />}
+              </div>
+            </div>
+
+            {/* Advocate Custom Vector Artwork */}
+            <div className="py-2 flex justify-center">
+              <svg className="w-32 h-32" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Court Pillar / Structure */}
+                <rect x="25" y="90" width="70" height="8" rx="2" fill="#E2E8F0" />
+                <rect x="30" y="24" width="60" height="6" rx="2" fill="#E2E8F0" />
+                <path d="M60 10L30 24H90L60 10Z" fill="#CBD5E1" />
+                {/* Scales of Justice */}
+                <path d="M60 28V84" stroke="#0A1128" strokeWidth="3" strokeLinecap="round" />
+                <path d="M38 42H82" stroke="#0A1128" strokeWidth="2.5" strokeLinecap="round" />
+                {/* Left Pan */}
+                <path d="M38 42L30 58M38 42L46 58" stroke="#D97706" strokeWidth="1.5" />
+                <path d="M26 58H50C50 64 26 64 26 58Z" fill="#D97706" />
+                {/* Right Pan */}
+                <path d="M82 42L74 58M82 42L90 58" stroke="#D97706" strokeWidth="1.5" />
+                <path d="M70 58H94C94 64 70 64 70 58Z" fill="#D97706" />
+                {/* Ethiopian Flag Badge Accent */}
+                <circle cx="60" cy="56" r="7" fill="#F59E0B" />
+                <path d="M57 56L60 53L63 56" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            {/* Folder Copy */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-[#0A1128]">
+                I’m a licensed advocate, offering counsel
+              </h2>
+              <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                Receive client briefs, disburse verified Telebirr consultation payouts, and mentor NextGen law interns.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <div className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition-all ${
+                role === 'advocate'
+                  ? 'bg-[#0A1128] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200'
+              }`}>
+                {role === 'advocate' ? 'Selected • Advocate Workspace' : 'Select Advocate'}
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        {/* Google OAuth Provider */}
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 flex items-center justify-center gap-2.5 transition-all shadow-xs cursor-pointer"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            />
-          </svg>
-          <span>Continue with Google as {role === 'client' ? 'Client' : 'Advocate'}</span>
-        </button>
+        {/* Action Tray */}
+        <div className="max-w-md mx-auto w-full space-y-5 pt-2">
+          
+          {/* SIGN UP ACTION MODE */}
+          {mode === 'signup' && (
+            <div className="space-y-3 animate-fadeIn">
+              {role === 'client' ? (
+                <button
+                  type="button"
+                  onClick={() => router.push('/find-a-lawyer')}
+                  className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer text-xs"
+                >
+                  <span>Join as Client</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => router.push('/advocate/register')}
+                  className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer text-xs"
+                >
+                  <Scale className="w-4 h-4 text-amber-400" />
+                  <span>Register Chamber as Advocate</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                </button>
+              )}
 
-        {/* Visual Credential Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="w-full border-t border-slate-200" />
-          <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest absolute">
-            Or with credentials
-          </span>
-        </div>
-
-        {/* Input Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          {errorMessage && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold leading-relaxed">
-              {errorMessage}
+              {/* Google OAuth Option */}
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 flex items-center justify-center gap-2.5 transition-all shadow-2xs cursor-pointer"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Continue with Google as {role === 'client' ? 'Client' : 'Advocate'}</span>
+              </button>
             </div>
           )}
 
-          {/* Identifier Input */}
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-slate-800">
-              {role === 'advocate' ? 'Bar License Number or Chamber Email' : 'Email or Telebirr Phone Number'}
-            </label>
-            <input
-              type="text"
-              required
-              placeholder={role === 'advocate' ? 'e.g. dawit@chambers.et or ETH-BAR-2015-0081' : '0911 000 000 or name@example.com'}
-              value={identifier}
-              onChange={(e) => {
-                setIdentifier(e.target.value);
-                if (errorMessage) setErrorMessage(null);
-              }}
-              className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#0A1128] focus:ring-1 focus:ring-[#0A1128] transition-all"
-            />
-          </div>
-
-          {/* Password Input */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-800">
-                Password
-              </label>
-              <Link 
-                href="/forgot-password"
-                className="text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors"
-              >
-                Forgot?
-              </Link>
-            </div>
-            
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errorMessage) setErrorMessage(null);
-                }}
-                className="w-full p-3 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#0A1128] focus:ring-1 focus:ring-[#0A1128] transition-all"
-              />
+          {/* SIGN IN ACTION MODE */}
+          {mode === 'signin' && (
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm space-y-4 text-xs animate-fadeIn">
+              
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                aria-label="Toggle password visibility"
+                onClick={handleGoogleSignIn}
+                className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center justify-center gap-2.5 transition-all shadow-2xs cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Google Sign In as {role === 'client' ? 'Client' : 'Advocate'}</span>
               </button>
-            </div>
-          </div>
 
-          {/* Mandatory Terms & Policy Checkbox */}
-          <div className="pt-1">
-            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+              <div className="relative flex items-center justify-center my-2">
+                <div className="w-full border-t border-slate-200" />
+                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest absolute">
+                  Or with credentials
+                </span>
+              </div>
+
+              <form onSubmit={handleSignInSubmit} className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-800 mb-1">
+                    {role === 'advocate' ? 'Bar License Number or Chamber Email *' : 'Email or Phone Number *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={role === 'advocate' ? 'e.g. dawit@chambers.et or ETH-BAR-2015-0081' : '0911 000 000 or client@example.com'}
+                    value={identifier}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-slate-800">
+                      Password *
+                    </label>
+                    <Link href="/forgot-password" className="text-[10px] text-amber-600 hover:underline">
+                      Forgot?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (errorMessage) setErrorMessage(null);
+                      }}
+                      className="w-full p-2.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <span>{isLoading ? 'Verifying Chamber...' : `Sign In as ${role === 'client' ? 'Client' : 'Advocate'}`}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Terms & Privacy Policy (Clickable & Unchanged) */}
+          <div className="text-center pt-2">
+            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
-                required
                 checked={agreedToTerms}
                 onChange={(e) => {
                   setAgreedToTerms(e.target.checked);
                   if (errorMessage) setErrorMessage(null);
                 }}
-                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#0A1128] focus:ring-[#0A1128] accent-[#0A1128] cursor-pointer shrink-0"
+                className="w-3.5 h-3.5 rounded border-slate-300 text-[#0A1128] accent-[#0A1128] cursor-pointer"
               />
-              <span className="text-[11px] text-slate-600 leading-snug font-normal">
+              <span className="text-[11px] text-slate-500 leading-snug">
                 I agree to the{' '}
-                <Link
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-[#0A1128] hover:text-amber-600 underline underline-offset-2 transition-colors"
-                >
+                <Link href="/terms" target="_blank" className="font-bold text-[#0A1128] underline hover:text-amber-600">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-[#0A1128] hover:text-amber-600 underline underline-offset-2 transition-colors"
-                >
+                <Link href="/privacy" target="_blank" className="font-bold text-[#0A1128] underline hover:text-amber-600">
                   Privacy Policy
-                </Link>
-                <span className="text-red-500 font-bold ml-0.5">*</span>
+                </Link>.
               </span>
             </label>
           </div>
 
-          {/* Action Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-          >
-            <span>
-              {isLoading 
-                ? 'Verifying Credentials...' 
-                : role === 'advocate' 
-                ? 'Sign In to Advocate Workspace' 
-                : 'Sign In to Client Portal'}
-            </span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </form>
-
-        {/* Account Creation Section */}
-        <div className="pt-2 border-t border-slate-100 text-center space-y-3">
-          <span className="text-xs text-slate-400 block font-normal">
-            Are you a licensed advocate joining LegalLink?
-          </span>
-
-          <Link
-            href="/advocate/register"
-            className="w-full py-3 bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-2xs"
-          >
-            <Scale className="w-3.5 h-3.5 text-amber-700" />
-            <span>Register Your Legal Chamber</span>
-            <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
-          </Link>
         </div>
 
-      </div>
+      </main>
 
-      {/* Trust Compliance Notice */}
-      <div className="flex items-center justify-center gap-2 mt-6 text-[11px] font-medium text-slate-500">
-        <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-        <span>Compliant with Ethiopian Commercial Code & Telebirr USSD Escrow</span>
-      </div>
+      {/* Trust Compliance Notice Footer */}
+      <footer className="w-full py-6 text-center text-[11px] text-slate-500 border-t border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Compliant with Ethiopian Commercial Code & Telebirr USSD Escrow</span>
+          </div>
+          <p>© 2026 LegalLink Technologies PLC. Federal Proclamation No. 1249/2021.</p>
+        </div>
+      </footer>
 
     </div>
   );
