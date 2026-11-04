@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { 
-  GraduationCap, Briefcase, Search, Building2, 
-  MapPin, Clock, Calendar, CheckCircle2, ArrowRight, 
-  Sparkles, Plus, X, User, Mail, Phone, FileText, Send, Scale
+  GraduationCap, Search, Building2, 
+  MapPin, Clock, CheckCircle2, ArrowRight, 
+  Plus, X, Send, Loader2, AlertCircle
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { SEED_OPPORTUNITIES, OpportunityItem } from '@/lib/nextgen-data';
+import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function NextGenHubPage() {
   const { language } = useLanguage();
+  const supabase = createClient();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTrack, setSelectedTrack] = useState<string>('All');
@@ -27,7 +29,9 @@ export default function NextGenHubPage() {
   const [applicantUniversity, setApplicantUniversity] = useState('');
   const [applicantYear, setApplicantYear] = useState('4th Year LL.B');
   const [coverNote, setCoverNote] = useState('');
+  const [applying, setApplying] = useState(false);
   const [appliedSuccess, setAppliedSuccess] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   // Post opening form fields
   const [postTitle, setPostTitle] = useState('');
@@ -36,9 +40,50 @@ export default function NextGenHubPage() {
   const [postLocation, setPostLocation] = useState('Bole, Addis Ababa');
   const [postStipend, setPostStipend] = useState('');
   const [postSummary, setPostSummary] = useState('');
+  const [posting, setPosting] = useState(false);
   const [postSuccess, setPostSuccess] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
 
   const [opportunitiesList, setOpportunitiesList] = useState<OpportunityItem[]>(SEED_OPPORTUNITIES);
+
+  // Fetch opportunities from Supabase and merge with seed catalog
+  useEffect(() => {
+    async function loadOpportunities() {
+      try {
+        const { data, error } = await supabase
+          .from('job_opportunities')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const formattedDbItems: OpportunityItem[] = data.map((d: any) => ({
+            id: d.id,
+            title: d.title,
+            amharicTitle: d.amharic_title || d.title,
+            organization: d.organization,
+            orgType: (d.org_type as any) || 'Law Firm',
+            location: d.location || 'Addis Ababa',
+            track: d.track,
+            amharicTrack: d.track === 'Pupillage' ? 'የጥብቅና ረዳትነት' : 'የህግ ልምምድ',
+            eligibility: d.eligibility || 'LL.B Students & Graduates',
+            stipendETB: d.stipend_etb || 'Negotiable',
+            workType: (d.work_type as any) || 'Full-time',
+            deadline: d.deadline || 'Rolling Basis',
+            postedDate: new Date(d.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            summary: d.summary,
+            requirements: d.requirements || [],
+            badge: (d.badge as any) || 'Featured'
+          }));
+
+          setOpportunitiesList([...formattedDbItems, ...SEED_OPPORTUNITIES]);
+        }
+      } catch {
+        // Fallback to seed catalog if database offline
+      }
+    }
+    loadOpportunities();
+  }, [supabase]);
 
   const tracks = [
     'All',
@@ -66,50 +111,116 @@ export default function NextGenHubPage() {
     });
   }, [opportunitiesList, searchQuery, selectedTrack]);
 
-  const handleApplySubmit = (e: React.FormEvent) => {
+  // LIVE Supabase Insert: Student Application
+  const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setAppliedSuccess(true);
-    setTimeout(() => {
-      setAppliedSuccess(false);
-      setApplyModalOpen(false);
-      setApplicantName('');
-      setApplicantEmail('');
-      setApplicantPhone('');
-      setCoverNote('');
-    }, 1500);
+    setApplyError(null);
+    setApplying(true);
+
+    try {
+      const isUUID = selectedOpportunity?.id && selectedOpportunity.id.includes('-');
+
+      const { error } = await supabase
+        .from('student_applications')
+        .insert({
+          opportunity_id: isUUID ? selectedOpportunity?.id : null,
+          opportunity_title: selectedOpportunity?.title || 'General Legal Internship',
+          applicant_name: applicantName.trim(),
+          applicant_email: applicantEmail.trim(),
+          applicant_phone: applicantPhone.trim(),
+          university: applicantUniversity.trim(),
+          current_year: applicantYear,
+          cover_note: coverNote.trim() || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      setApplying(false);
+      setAppliedSuccess(true);
+      setTimeout(() => {
+        setAppliedSuccess(false);
+        setApplyModalOpen(false);
+        setApplicantName('');
+        setApplicantEmail('');
+        setApplicantPhone('');
+        setApplicantUniversity('');
+        setCoverNote('');
+      }, 1500);
+
+    } catch (err: any) {
+      setApplying(false);
+      setApplyError(err?.message || 'Failed to submit application. Please check connection.');
+    }
   };
 
-  const handlePostSubmit = (e: React.FormEvent) => {
+  // LIVE Supabase Insert: New Job/Pupillage Opportunity
+  const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newOpp: OpportunityItem = {
-      id: `opp-custom-${Date.now()}`,
-      title: postTitle.trim(),
-      amharicTitle: postTitle.trim(),
-      organization: postOrg.trim(),
-      orgType: 'Law Firm',
-      location: postLocation.trim(),
-      track: postTrack,
-      amharicTrack: postTrack === 'Pupillage' ? 'የጥብቅና ረዳትነት' : 'የህግ ልምምድ',
-      eligibility: 'LL.B Candidates & Fresh Graduates',
-      stipendETB: postStipend.trim() ? `ETB ${postStipend} / month` : 'Stipend Negotiable',
-      workType: 'Full-time',
-      deadline: 'Rolling Basis',
-      postedDate: 'Today',
-      summary: postSummary.trim() || 'Opportunity posted directly via LegalLink NextGen Platform.',
-      requirements: ['Academic standing in LL.B', 'Dedication to professional legal ethics'],
-      badge: 'Featured'
-    };
+    setPostError(null);
+    setPosting(true);
 
-    setOpportunitiesList((prev) => [newOpp, ...prev]);
-    setPostSuccess(true);
-    setTimeout(() => {
-      setPostSuccess(false);
-      setPostModalOpen(false);
-      setPostTitle('');
-      setPostOrg('');
-      setPostSummary('');
-      setPostStipend('');
-    }, 1200);
+    try {
+      const { data, error } = await supabase
+        .from('job_opportunities')
+        .insert({
+          title: postTitle.trim(),
+          amharic_title: postTitle.trim(),
+          organization: postOrg.trim(),
+          org_type: 'Law Firm',
+          location: postLocation.trim(),
+          track: postTrack,
+          eligibility: 'LL.B Students & Fresh Graduates',
+          stipend_etb: postStipend.trim() ? `ETB ${postStipend} / month` : 'Stipend Negotiable',
+          work_type: 'Full-time',
+          deadline: 'Rolling Basis',
+          summary: postSummary.trim(),
+          requirements: ['Academic standing in LL.B', 'Dedication to professional legal ethics'],
+          badge: 'Featured',
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const newlyAddedItem: OpportunityItem = {
+          id: data.id,
+          title: data.title,
+          amharicTitle: data.amharic_title,
+          organization: data.organization,
+          orgType: 'Law Firm',
+          location: data.location,
+          track: data.track,
+          amharicTrack: data.track === 'Pupillage' ? 'የጥብቅና ረዳትነት' : 'የህግ ልምምድ',
+          eligibility: data.eligibility,
+          stipendETB: data.stipend_etb,
+          workType: 'Full-time',
+          deadline: data.deadline,
+          postedDate: 'Today',
+          summary: data.summary,
+          requirements: data.requirements,
+          badge: 'Featured'
+        };
+        setOpportunitiesList((prev) => [newlyAddedItem, ...prev]);
+      }
+
+      setPosting(false);
+      setPostSuccess(true);
+      setTimeout(() => {
+        setPostSuccess(false);
+        setPostModalOpen(false);
+        setPostTitle('');
+        setPostOrg('');
+        setPostSummary('');
+        setPostStipend('');
+      }, 1200);
+
+    } catch (err: any) {
+      setPosting(false);
+      setPostError(err?.message || 'Failed to publish opportunity. Please try again.');
+    }
   };
 
   return (
@@ -130,7 +241,10 @@ export default function NextGenHubPage() {
 
             <button
               type="button"
-              onClick={() => setPostModalOpen(true)}
+              onClick={() => {
+                setPostError(null);
+                setPostModalOpen(true);
+              }}
               className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-xs cursor-pointer w-fit"
             >
               <Plus className="w-3.5 h-3.5 text-amber-400" />
@@ -226,7 +340,6 @@ export default function NextGenHubPage() {
               className="card-hover bg-white rounded-3xl border border-slate-200 p-6 flex flex-col justify-between space-y-5 shadow-xs relative"
             >
               <div className="space-y-3">
-                {/* Track Badge & Special Tag */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
                     {opp.track}
@@ -245,7 +358,6 @@ export default function NextGenHubPage() {
                   )}
                 </div>
 
-                {/* Role Title & Org */}
                 <div>
                   <h3 className="text-sm font-black text-[#0A1128] leading-snug">
                     {opp.title}
@@ -256,7 +368,6 @@ export default function NextGenHubPage() {
                   </div>
                 </div>
 
-                {/* Details Pills */}
                 <div className="pt-2 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
@@ -272,7 +383,6 @@ export default function NextGenHubPage() {
                   {opp.summary}
                 </p>
 
-                {/* Stipend & Eligibility */}
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-slate-400 font-medium">Stipend:</span>
@@ -285,11 +395,11 @@ export default function NextGenHubPage() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="pt-2 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => {
+                    setApplyError(null);
                     setSelectedOpportunity(opp);
                     setApplyModalOpen(true);
                   }}
@@ -312,7 +422,7 @@ export default function NextGenHubPage() {
           ))}
         </div>
 
-        {/* 05. Student Practical Sandbox Banner */}
+        {/* 05. Practical Skills Section */}
         <section className="bg-gradient-to-r from-[#0A1128] via-[#102A43] to-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left max-w-xl">
             <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest font-bold block">
@@ -345,7 +455,7 @@ export default function NextGenHubPage() {
 
       </main>
 
-      {/* 06. Application Modal */}
+      {/* 06. LIVE Application Modal */}
       {applyModalOpen && selectedOpportunity && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
@@ -369,10 +479,17 @@ export default function NextGenHubPage() {
               </p>
             </div>
 
+            {applyError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{applyError}</span>
+              </div>
+            )}
+
             {appliedSuccess && (
               <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <span>Application submitted successfully! The hiring team will review your profile.</span>
+                <span>Application submitted to LegalLink database! The hiring team has been notified.</span>
               </div>
             )}
 
@@ -384,7 +501,7 @@ export default function NextGenHubPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Yibeltal Semagn"
+                  placeholder="e.g. Abebe Balcha"
                   value={applicantName}
                   onChange={(e) => setApplicantName(e.target.value)}
                   className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#0A1128]"
@@ -476,10 +593,20 @@ export default function NextGenHubPage() {
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+                  disabled={applying}
+                  className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 >
-                  <Send className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Submit Application</span>
+                  {applying ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                      <span>Saving to Supabase...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Submit Application</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -487,7 +614,7 @@ export default function NextGenHubPage() {
         </div>
       )}
 
-      {/* 07. Post Opportunity Modal */}
+      {/* 07. LIVE Post Opportunity Modal */}
       {postModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
@@ -508,10 +635,17 @@ export default function NextGenHubPage() {
               </p>
             </div>
 
+            {postError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{postError}</span>
+              </div>
+            )}
+
             {postSuccess && (
               <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <span>Opportunity published live to the NextGen Hub!</span>
+                <span>Opportunity saved permanently to Supabase and published live!</span>
               </div>
             )}
 
@@ -613,9 +747,17 @@ export default function NextGenHubPage() {
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+                  disabled={posting}
+                  className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 >
-                  <span>Publish Opportunity</span>
+                  {posting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Publish Opportunity</span>
+                  )}
                 </button>
               </div>
             </form>
