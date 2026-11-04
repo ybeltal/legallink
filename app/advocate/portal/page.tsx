@@ -2,25 +2,25 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Scale, DollarSign, Calendar, Clock, 
   User, Phone, Mail, FileText, CheckCircle2, AlertCircle, 
   Edit3, Save, RefreshCw, GraduationCap, ArrowRight, 
-  ExternalLink, LogOut, Check, Building2, MapPin
+  ExternalLink, LogOut
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdvocatePortalPage() {
+  const router = useRouter();
   const supabase = createClient();
 
-  // Active Tab: cases | nextgen | profile
   const [activeTab, setActiveTab] = useState<'cases' | 'nextgen' | 'profile'>('cases');
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  // Selected Advocate Identity (default to Adv. Dawit Tesfaye, supports live switcher)
-  const [currentAdvocateId, setCurrentAdvocateId] = useState<string>('ETH-BAR-2015-0081');
+  // Authenticated Advocate Identity
   const [advocateProfile, setAdvocateProfile] = useState<any>(null);
 
   // Editable Profile Form State
@@ -34,47 +34,51 @@ export default function AdvocatePortalPage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Data Stores
-  const [allAdvocates, setAllAdvocates] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
 
-  // Load Advocate Session & Data
-  const loadPortalData = async () => {
+  const loadAdvocateSession = async () => {
     setLoading(true);
+    const activeAdvocateId = sessionStorage.getItem('ll_active_advocate_id');
+
+    // If not logged in, redirect to login page
+    if (!activeAdvocateId) {
+      router.push('/login');
+      return;
+    }
+
     try {
-      // 1. Fetch all advocates for the session switcher
-      const { data: advData } = await supabase
+      // 1. Fetch this specific advocate's profile from database
+      const { data: profile, error } = await supabase
         .from('lawyer_profiles')
         .select('*')
-        .order('name');
-      
-      if (advData && advData.length > 0) {
-        setAllAdvocates(advData);
-        
-        // Check session storage or fallback to first
-        const savedId = sessionStorage.getItem('ll_active_advocate_id') || currentAdvocateId;
-        const matched = advData.find((a: any) => a.id === savedId) || advData[0];
-        
-        setCurrentAdvocateId(matched.id);
-        setAdvocateProfile(matched);
-        setEditName(matched.name);
-        setEditAmharicName(matched.amharic_name || '');
-        setEditTitle(matched.title || '');
-        setEditRate(matched.hourly_rate_etb || 1800);
-        setEditJurisdiction(matched.court_jurisdiction || '');
-        setEditLocation(matched.location || 'Addis Ababa');
-        setEditOffersPupillage(matched.offers_pupillage ?? true);
+        .eq('id', activeAdvocateId)
+        .single();
+
+      if (error || !profile) {
+        // Fallback or session expired
+        sessionStorage.removeItem('ll_active_advocate_id');
+        router.push('/login');
+        return;
       }
 
-      // 2. Fetch consultation bookings assigned to this advocate
+      setAdvocateProfile(profile);
+      setEditName(profile.name);
+      setEditAmharicName(profile.amharic_name || '');
+      setEditTitle(profile.title || '');
+      setEditRate(profile.hourly_rate_etb || 1800);
+      setEditJurisdiction(profile.court_jurisdiction || 'Federal High Court');
+      setEditLocation(profile.location || 'Addis Ababa');
+      setEditOffersPupillage(profile.offers_pupillage ?? true);
+
+      // 2. Fetch bookings specifically for this advocate
       const { data: bookData } = await supabase
         .from('consultation_bookings')
         .select('*')
+        .or(`lawyer_id.eq.${profile.id},lawyer_name.ilike.%${profile.name.replace('Adv. ', '')}%`)
         .order('created_at', { ascending: false });
 
-      if (bookData) {
-        setBookings(bookData);
-      }
+      if (bookData) setBookings(bookData);
 
       // 3. Fetch NextGen Student Applications
       const { data: appData } = await supabase
@@ -82,18 +86,17 @@ export default function AdvocatePortalPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (appData) {
-        setApplications(appData);
-      }
+      if (appData) setApplications(appData);
+
     } catch (err) {
-      console.error('Error loading advocate portal data:', err);
+      console.error('Error loading advocate portal:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadPortalData();
+    loadAdvocateSession();
   }, []);
 
   const triggerFeedback = (msg: string) => {
@@ -101,40 +104,18 @@ export default function AdvocatePortalPage() {
     setTimeout(() => setFeedback(null), 3500);
   };
 
-  // Switch Active Advocate Identity
-  const handleSwitchAdvocate = (newId: string) => {
-    sessionStorage.setItem('ll_active_advocate_id', newId);
-    setCurrentAdvocateId(newId);
-    const matched = allAdvocates.find((a: any) => a.id === newId);
-    if (matched) {
-      setAdvocateProfile(matched);
-      setEditName(matched.name);
-      setEditAmharicName(matched.amharic_name || '');
-      setEditTitle(matched.title || '');
-      setEditRate(matched.hourly_rate_etb || 1800);
-      setEditJurisdiction(matched.court_jurisdiction || '');
-      setEditLocation(matched.location || 'Addis Ababa');
-      setEditOffersPupillage(matched.offers_pupillage ?? true);
-      triggerFeedback(`Switched workspace identity to ${matched.name}`);
-    }
+  const handleSignOut = () => {
+    sessionStorage.removeItem('ll_active_advocate_id');
+    router.push('/login');
   };
-
-  // Filter Bookings for Current Advocate
-  const myBookings = useMemo(() => {
-    if (!advocateProfile) return [];
-    return bookings.filter(b => 
-      b.lawyer_id === advocateProfile.id || 
-      b.lawyer_name?.toLowerCase().includes(advocateProfile.name.toLowerCase().replace('adv. ', ''))
-    );
-  }, [bookings, advocateProfile]);
 
   // Financial Balance Calculations (85% net to advocate after 15% platform commission)
   const earnings = useMemo(() => {
-    const totalConsultationValue = myBookings.reduce((sum, b) => sum + (Number(b.fee_etb) || 0), 0);
-    const inEscrow = myBookings
+    const totalConsultationValue = bookings.reduce((sum, b) => sum + (Number(b.fee_etb) || 0), 0);
+    const inEscrow = bookings
       .filter(b => b.escrow_status === 'in_escrow' || b.escrow_status === 'awaiting_payment')
       .reduce((sum, b) => sum + (Number(b.fee_etb) || 0) * 0.85, 0);
-    const disbursed = myBookings
+    const disbursed = bookings
       .filter(b => b.escrow_status === 'released_to_advocate')
       .reduce((sum, b) => sum + (Number(b.fee_etb) || 0) * 0.85, 0);
 
@@ -142,9 +123,9 @@ export default function AdvocatePortalPage() {
       totalGross: totalConsultationValue,
       netDisbursed: disbursed,
       heldInEscrow: inEscrow,
-      activeCases: myBookings.length
+      activeCases: bookings.length
     };
-  }, [myBookings]);
+  }, [bookings]);
 
   // Save Profile Card Changes to Supabase
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -188,7 +169,6 @@ export default function AdvocatePortalPage() {
     }
   };
 
-  // Advocate NextGen candidate action
   const handleCandidateAction = async (appId: string, action: 'shortlisted' | 'reviewed') => {
     const { error } = await supabase
       .from('student_applications')
@@ -197,15 +177,23 @@ export default function AdvocatePortalPage() {
 
     if (!error) {
       setApplications(prev => prev.map(a => a.id === appId ? { ...a, status: action } : a));
-      triggerFeedback(`Candidate updated to ${action}. Chamber interview invitation pending.`);
+      triggerFeedback(`Candidate updated to ${action}. Chamber interview pending.`);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-mono text-slate-500">
+        Loading Chamber Workspace...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       <Navbar />
 
-      {/* Top Identity & Breadcrumb Bar */}
+      {/* Top Header */}
       <section className="bg-white border-b border-slate-200 pt-8 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           
@@ -215,28 +203,23 @@ export default function AdvocatePortalPage() {
               <span>Advocate Workspace • Proclamation No. 1249/2021 Compliant</span>
             </div>
 
-            {/* Quick Session Identity Switcher */}
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-slate-400 font-medium">Logged in as:</span>
-              <select
-                value={currentAdvocateId}
-                onChange={(e) => handleSwitchAdvocate(e.target.value)}
-                className="p-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus:outline-none"
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={loadAdvocateSession}
+                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors cursor-pointer"
+                title="Refresh Portal Data"
               >
-                {allAdvocates.map((adv) => (
-                  <option key={adv.id} value={adv.id}>
-                    {adv.name} ({adv.license_number})
-                  </option>
-                ))}
-              </select>
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
 
               <button
                 type="button"
-                onClick={loadPortalData}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors"
-                title="Refresh Portal Data"
+                onClick={handleSignOut}
+                className="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
               </button>
             </div>
           </div>
@@ -244,10 +227,10 @@ export default function AdvocatePortalPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
-                {advocateProfile?.name || 'Advocate Workspace'}
+                {advocateProfile?.name}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
-                {advocateProfile?.title || 'Federal Court Advocate'} • License: <strong className="font-mono text-amber-700">{advocateProfile?.license_number}</strong>
+                {advocateProfile?.title} • License: <strong className="font-mono text-amber-700">{advocateProfile?.license_number}</strong> • Email: <strong className="text-slate-700">{advocateProfile?.email || 'N/A'}</strong>
               </p>
             </div>
 
@@ -256,7 +239,7 @@ export default function AdvocatePortalPage() {
                 href="/find-a-lawyer"
                 className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
               >
-                <span>View Public Card</span>
+                <span>View Public Directory</span>
                 <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
               </Link>
             </div>
@@ -301,7 +284,6 @@ export default function AdvocatePortalPage() {
       {/* Main Workspace Navigation */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
         
-        {/* Toast Alert */}
         {feedback && (
           <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-scaleUp">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -321,7 +303,7 @@ export default function AdvocatePortalPage() {
             }`}
           >
             <Calendar className="w-3.5 h-3.5 text-amber-400" />
-            <span>My Client Consultations ({myBookings.length})</span>
+            <span>My Client Consultations ({bookings.length})</span>
           </button>
 
           <button
@@ -354,13 +336,11 @@ export default function AdvocatePortalPage() {
         {/* TAB 1: CLIENT CONSULTATIONS & ESCROW */}
         {activeTab === 'cases' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h2 className="text-base font-black text-[#0A1128]">Assigned Client Cases & Telebirr Escrow Ledger</h2>
-                <p className="text-slate-500 font-normal">
-                  Client consultations booked directly with you. Payouts (85% net) are transferred upon session confirmation.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-base font-black text-[#0A1128]">Assigned Client Cases & Telebirr Escrow Ledger</h2>
+              <p className="text-slate-500 font-normal">
+                Client consultations booked with your chambers. Payouts (85% net) are transferred upon session confirmation.
+              </p>
             </div>
 
             <div className="overflow-x-auto">
@@ -377,7 +357,7 @@ export default function AdvocatePortalPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {myBookings.map((b) => (
+                  {bookings.map((b) => (
                     <tr key={b.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-3 px-3 font-mono">
                         <strong className="text-amber-800 block">{b.id.slice(0, 8).toUpperCase()}</strong>
@@ -421,7 +401,7 @@ export default function AdvocatePortalPage() {
                       </td>
                     </tr>
                   ))}
-                  {myBookings.length === 0 && (
+                  {bookings.length === 0 && (
                     <tr>
                       <td colSpan={7} className="text-center py-10 text-slate-400">
                         No client bookings assigned to your profile yet.
@@ -617,7 +597,6 @@ export default function AdvocatePortalPage() {
                 </div>
               </div>
 
-              {/* NextGen Mentorship Toggle */}
               <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
                 <div>
                   <strong className="text-[#0A1128] block">NextGen Pupillage Mentorship</strong>
@@ -648,15 +627,6 @@ export default function AdvocatePortalPage() {
         )}
 
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-slate-400 text-xs mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-          <p>© 2026 LegalLink Technologies PLC. Advocate Operations Suite.</p>
-          <p>Licensing verified under Ethiopian Federal Advocacy Proclamation No. 1249/2021.</p>
-        </div>
-      </footer>
-
     </div>
   );
 }

@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck, User, Scale } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [role, setRole] = useState<'client' | 'advocate'>('client');
   const [identifier, setIdentifier] = useState('');
@@ -33,24 +35,37 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      setTimeout(() => {
-        setIsLoading(false);
-        if (role === 'advocate') {
-          // Store advocate session identity for the Advocate Workspace
-          const trimmedId = identifier.trim().toUpperCase();
-          if (trimmedId.includes('BAR') || trimmedId.includes('ETH')) {
-            sessionStorage.setItem('ll_active_advocate_id', trimmedId);
-          } else {
-            sessionStorage.setItem('ll_active_advocate_id', 'ETH-BAR-2015-0081');
-          }
-          router.push('/advocate/portal');
-        } else {
-          router.push('/find-a-lawyer');
+      if (role === 'advocate') {
+        const queryVal = identifier.trim();
+
+        // Query database: lookup advocate by email OR license_number
+        const { data: advList, error } = await supabase
+          .from('lawyer_profiles')
+          .select('id, name, email, license_number')
+          .or(`email.ilike.${queryVal},license_number.ilike.${queryVal}`);
+
+        if (error) throw error;
+
+        if (!advList || advList.length === 0) {
+          setIsLoading(false);
+          setErrorMessage(`No registered advocate found with "${queryVal}". Please register your chamber first.`);
+          return;
         }
-      }, 700);
-    } catch {
+
+        // Store the matched advocate's ID
+        const matched = advList[0];
+        sessionStorage.setItem('ll_active_advocate_id', matched.id);
+        setIsLoading(false);
+        router.push('/advocate/portal');
+
+      } else {
+        // Client flow
+        setIsLoading(false);
+        router.push('/find-a-lawyer');
+      }
+    } catch (err: any) {
       setIsLoading(false);
-      setErrorMessage('Authentication failed. Please verify your credentials and try again.');
+      setErrorMessage(err?.message || 'Authentication failed. Please verify your credentials and try again.');
     }
   };
 
@@ -59,9 +74,7 @@ export default function LoginPage() {
       setErrorMessage('You must agree to the Terms of Service and Privacy Policy before continuing with Google.');
       return;
     }
-    // Route advocate Google logins to advocate portal
     if (role === 'advocate') {
-      sessionStorage.setItem('ll_active_advocate_id', 'ETH-BAR-2015-0081');
       window.location.href = `/api/auth/google?role=advocate&redirect=/advocate/portal`;
     } else {
       window.location.href = `/api/auth/google?role=client&redirect=/find-a-lawyer`;
@@ -183,12 +196,12 @@ export default function LoginPage() {
           {/* Identifier Input */}
           <div className="space-y-1">
             <label className="block text-xs font-bold text-slate-800">
-              {role === 'advocate' ? 'Bar License Number or Email' : 'Email or Telebirr Phone Number'}
+              {role === 'advocate' ? 'Bar License Number or Chamber Email' : 'Email or Telebirr Phone Number'}
             </label>
             <input
               type="text"
               required
-              placeholder={role === 'advocate' ? 'ETH-BAR-2015-0081 or advocate@chambers.et' : '0911 000 000 or name@example.com'}
+              placeholder={role === 'advocate' ? 'e.g. dawit@chambers.et or ETH-BAR-2015-0081' : '0911 000 000 or name@example.com'}
               value={identifier}
               onChange={(e) => {
                 setIdentifier(e.target.value);
@@ -280,7 +293,7 @@ export default function LoginPage() {
           >
             <span>
               {isLoading 
-                ? 'Signing In...' 
+                ? 'Verifying Credentials...' 
                 : role === 'advocate' 
                 ? 'Sign In to Advocate Workspace' 
                 : 'Sign In to Client Portal'}
@@ -292,14 +305,15 @@ export default function LoginPage() {
         {/* Account Creation Section */}
         <div className="pt-2 border-t border-slate-100 text-center space-y-3">
           <span className="text-xs text-slate-400 block font-normal">
-            First time using LegalLink?
+            Are you a licensed advocate joining LegalLink?
           </span>
 
           <Link
-            href="/signup"
+            href="/advocate/register"
             className="w-full py-3 bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-2xs"
           >
-            <span>Create an Account</span>
+            <Scale className="w-3.5 h-3.5 text-amber-700" />
+            <span>Register Your Legal Chamber</span>
             <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
           </Link>
         </div>
