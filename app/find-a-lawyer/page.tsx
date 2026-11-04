@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { 
   Building2, Users, Home as HomeIcon, Sparkles, Briefcase, 
   Scale, Globe, ShieldCheck, Check, ArrowRight, Mic, 
-  Play, Pause, Trash2, Clock, MapPin, Languages, 
+  Play, Pause, Trash2, Clock, MapPin, Languages, CheckCircle2, 
   AlertCircle, ChevronRight, Lock, Star, Loader2, Copy, RefreshCw
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -121,7 +121,7 @@ function FindLawyerWizard() {
   const [urgency, setUrgency] = useState<string | null>(null);
   const [situationText, setSituationText] = useState<string>('');
 
-  // Audio Voice Brief
+  // Audio Voice Note State
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -211,11 +211,11 @@ function FindLawyerWizard() {
     }
   ];
 
-  // Auto-select category if passed in URL query param
+  // Pick up category query parameter from landing page
   useEffect(() => {
-    const cat = searchParams.get('category');
-    if (cat && CATEGORIES.some((c) => c.id === cat)) {
-      setSelectedCategory(cat);
+    const categoryQuery = searchParams.get('category');
+    if (categoryQuery && CATEGORIES.some((c) => c.id === categoryQuery)) {
+      setSelectedCategory(categoryQuery);
     }
   }, [searchParams]);
 
@@ -260,7 +260,7 @@ function FindLawyerWizard() {
         setLawyers(mapped);
       }
     } catch (err) {
-      console.warn('Fallback seed advocates used:', err);
+      console.warn('Using fallback seed advocates due to fetch error:', err);
     } finally {
       setLoadingLawyers(false);
     }
@@ -405,7 +405,7 @@ function FindLawyerWizard() {
 
       if (error) throw error;
 
-      // Asynchronous Telegram notification dispatch
+      // Dispatches Telegram alert asynchronously without blocking UI
       fetch('/api/telegram-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -421,7 +421,7 @@ function FindLawyerWizard() {
             brief: situationText.trim()
           }
         })
-      }).catch((tgErr) => console.warn('Telegram alert error:', tgErr));
+      }).catch((tgErr) => console.warn('Telegram notification error:', tgErr));
 
       const refId = data ? `LL-${data.id.slice(0, 6).toUpperCase()}` : `LL-${Date.now().toString().slice(-6)}`;
       setBookingReference(refId);
@@ -510,7 +510,7 @@ function FindLawyerWizard() {
           </div>
         )}
 
-        {/* STEP 1 */}
+        {/* STEP 1: CATEGORY SELECTION */}
         {currentStep === 1 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="space-y-2">
@@ -585,7 +585,7 @@ function FindLawyerWizard() {
           </div>
         )}
 
-        {/* STEP 2 */}
+        {/* STEP 2: PREFERENCES */}
         {currentStep === 2 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="space-y-2">
@@ -845,7 +845,7 @@ function FindLawyerWizard() {
           </div>
         )}
 
-        {/* STEP 3 */}
+        {/* STEP 3: MATCHED LAWYERS */}
         {currentStep === 3 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -992,7 +992,7 @@ function FindLawyerWizard() {
           </div>
         )}
 
-        {/* STEP 4 */}
+        {/* STEP 4: CONFIRMATION & REVIEW */}
         {currentStep === 4 && (
           <div className="space-y-8 animate-fadeIn">
             <div className="space-y-2">
@@ -1241,6 +1241,7 @@ function FindLawyerWizard() {
       {isSubmittedSuccess && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
+            
             <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
               <Check className="w-8 h-8" />
             </div>
