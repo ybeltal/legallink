@@ -4,12 +4,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Building2, Users, Home as HomeIcon, Sparkles, Briefcase, 
-  Scale, Globe, ShieldCheck, Check, ArrowRight, Mic, MicOff, 
+  Scale, Globe, ShieldCheck, Check, ArrowRight, Mic, 
   Play, Pause, Trash2, Clock, MapPin, Languages, CheckCircle2, 
-  AlertCircle, Phone, Video, ChevronRight, Lock, RotateCcw,
-  Star
+  AlertCircle, ChevronRight, Lock, Star, Loader2, Copy
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface CategoryItem {
@@ -42,6 +42,7 @@ interface AdvocateMatch {
 
 export default function FindLawyerWizardPage() {
   const { language, t } = useLanguage();
+  const supabase = createClient();
 
   // Wizard Stepper: 1 | 2 | 3 | 4
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
@@ -67,10 +68,18 @@ export default function FindLawyerWizardPage() {
   // Step 3: Selected Lawyer Match
   const [selectedLawyerId, setSelectedLawyerId] = useState<string>('ETH-BAR-2018-0492');
 
-  // Step 4: Submission & Escrow Modal
+  // Step 4: Client Contact Inputs
+  const [clientName, setClientName] = useState<string>('');
+  const [clientPhone, setClientPhone] = useState<string>('');
+  const [clientEmail, setClientEmail] = useState<string>('');
+
+  // Step 4: Submission & Escrow State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [telebirrUssdCode, setTelebirrUssdCode] = useState<string | null>(null);
+  const [bookingReference, setBookingReference] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // 8 Practice Categories matching Step 1 Screen
   const CATEGORIES: CategoryItem[] = [
@@ -245,19 +254,63 @@ export default function FindLawyerWizardPage() {
   const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory) || CATEGORIES[0];
   const activeLawyerObj = MATCHED_LAWYERS.find((l) => l.id === selectedLawyerId) || MATCHED_LAWYERS[0];
 
-  const handleConfirmMatchSubmission = () => {
+  // Save the booking to Supabase and generate Escrow Reference
+  const handleConfirmMatchSubmission = async () => {
+    setSubmissionError(null);
+
+    if (!clientName.trim() || !clientPhone.trim()) {
+      setSubmissionError('Please provide your name and Telebirr phone number so counsel can confirm the appointment.');
+      return;
+    }
+
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      const fullDescription = situationText.trim() + (audioUrl ? ` [Voice brief attached - duration: ${formatTimer(recordingDuration)}]` : '');
+
+      const { data, error } = await supabase
+        .from('consultation_bookings')
+        .insert({
+          lawyer_id: activeLawyerObj.id,
+          lawyer_name: activeLawyerObj.name,
+          client_name: clientName.trim(),
+          client_phone: clientPhone.trim(),
+          client_email: clientEmail.trim() || null,
+          consultation_date: new Date().toISOString().split('T')[0],
+          consultation_time: `${urgency} (${consultMode})`,
+          practice_area: activeCategoryObj.title,
+          brief_description: fullDescription || 'Requested consultation through 4-step wizard',
+          fee_etb: activeLawyerObj.ratePerHour,
+          escrow_status: 'awaiting_payment',
+          booking_status: 'confirmed'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const refId = data ? `LL-${data.id.slice(0, 6).toUpperCase()}` : `LL-${Date.now().toString().slice(-6)}`;
+      setBookingReference(refId);
+      setTelebirrUssdCode(`*127*${Math.floor(100000 + Math.random() * 900000)}#`);
       setIsSubmitting(false);
       setIsSubmittedSuccess(true);
-      setTelebirrUssdCode(`*127*${Math.floor(100000 + Math.random() * 900000)}#`);
-    }, 1500);
+
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setSubmissionError(err?.message || 'Failed to submit match request. Please check your connection.');
+    }
+  };
+
+  const copyText = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       
-      {/* 1. Global Unified Navigation */}
+      {/* 1. Global Navigation */}
       <Navbar />
 
       {/* 2. Top Stepper Header */}
@@ -272,7 +325,7 @@ export default function FindLawyerWizardPage() {
               <span className="text-slate-800 font-bold">{t('nav_find_lawyer')}</span>
             </div>
 
-            {/* Stepper Indicator Pills: 1 Category > 2 Preferences > 3 Match > 4 Confirm */}
+            {/* Stepper Indicator Pills */}
             <div className="flex items-center gap-2 sm:gap-4 text-xs font-bold overflow-x-auto pb-1 sm:pb-0">
               
               {/* Step 1 Pill */}
@@ -485,7 +538,7 @@ export default function FindLawyerWizardPage() {
                 
                 {/* Court Standing / Judicial Tier */}
                 <div className="space-y-2.5">
-                  <label className="font-bold text-slate-800 block flex items-center justify-between">
+                  <label className="font-bold text-slate-800 flex items-center justify-between">
                     <span>Court Standing / Judicial Tier</span>
                     <span className="text-[10px] text-amber-700 font-mono">የችሎት ደረጃ</span>
                   </label>
@@ -730,7 +783,7 @@ export default function FindLawyerWizardPage() {
                         </div>
                       </div>
 
-                      {/* Rating with imported Star icon */}
+                      {/* Rating */}
                       <div className="flex items-center gap-1 text-xs text-slate-700">
                         <div className="flex items-center text-amber-500">
                           {[...Array(5)].map((_, i) => (
@@ -813,7 +866,7 @@ export default function FindLawyerWizardPage() {
         )}
 
         {/* ========================================================
-            STEP 4: CONFIRMATION & REVIEW
+            STEP 4: CONFIRMATION & REVIEW (LIVE SUPABASE PLUMBING)
             ======================================================== */}
         {currentStep === 4 && (
           <div className="space-y-8 animate-fadeIn">
@@ -825,20 +878,73 @@ export default function FindLawyerWizardPage() {
               <p className="text-xs sm:text-sm text-slate-500 font-normal">
                 {language === 'am'
                   ? 'ጥያቄዎን ከማቅረብዎ በፊት ከዚህ በታች ያሉትን ዝርዝሮች ያረጋግጡ።'
-                  : 'Confirm the details below before submitting your match request.'}
+                  : 'Confirm your details and contact information to dispatch your consultation.'}
               </p>
             </div>
+
+            {/* Error Notification */}
+            {submissionError && (
+              <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{submissionError}</span>
+              </div>
+            )}
 
             {/* Split Two-Column Summary Card */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Left Card: YOUR REQUEST */}
+              {/* Left Card: YOUR REQUEST & CONTACT DETAILS */}
               <div className="bg-white p-7 rounded-3xl border border-slate-200 shadow-xs space-y-5 text-xs">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">
-                  YOUR REQUEST
+                  YOUR REQUEST & CONTACT
                 </span>
 
-                <div className="space-y-4">
+                {/* Client Contact Inputs */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-800 mb-1">
+                      Your Full Legal Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Yibeltal Semagn"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-800 mb-1">
+                        Phone Number (Telebirr) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="0911 000 000"
+                        value={clientPhone}
+                        onChange={(e) => setClientPhone(e.target.value)}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0A1128]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-800 mb-1">
+                        Email Address (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="client@example.com"
+                        value={clientEmail}
+                        onChange={(e) => setClientEmail(e.target.value)}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0A1128]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-1">
                   <div className="flex items-start gap-3">
                     <Building2 className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                     <div>
@@ -858,8 +964,8 @@ export default function FindLawyerWizardPage() {
                   <div className="flex items-start gap-3">
                     <Languages className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-semibold block">Language</span>
-                      <strong className="text-slate-900 font-bold">{consultLanguage}</strong>
+                      <span className="text-[10px] text-slate-400 uppercase font-semibold block">Language & Mode</span>
+                      <strong className="text-slate-900 font-bold">{consultLanguage} • {consultMode}</strong>
                     </div>
                   </div>
 
@@ -982,9 +1088,18 @@ export default function FindLawyerWizardPage() {
                 onClick={handleConfirmMatchSubmission}
                 className="px-8 py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
               >
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isSubmitting ? 'Submitting to Escrow...' : 'Confirm Match'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                    <span>Saving to Supabase...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Confirm Match & Reserve</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
               </button>
             </div>
 
@@ -996,7 +1111,8 @@ export default function FindLawyerWizardPage() {
       {/* Confirmation & Telebirr USSD Success Modal */}
       {isSubmittedSuccess && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-5 animate-scaleUp text-xs relative max-h-[90vh] overflow-y-auto">
+            
             <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
               <Check className="w-8 h-8" />
             </div>
@@ -1006,28 +1122,66 @@ export default function FindLawyerWizardPage() {
                 Match Request Submitted!
               </h3>
               <p className="text-xs text-slate-500 font-normal leading-relaxed">
-                Your consultation request has been dispatched to {activeLawyerObj.name}.
+                Your consultation request has been recorded in the LegalLink database and dispatched to {activeLawyerObj.name}.
               </p>
             </div>
 
+            {bookingReference && (
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 font-mono text-left space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-slate-400">Booking Reference:</span>
+                  <strong className="text-amber-700">{bookingReference}</strong>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-slate-400">Retainer Fee:</span>
+                  <strong className="text-slate-900">ETB {activeLawyerObj.ratePerHour.toLocaleString()}</strong>
+                </div>
+              </div>
+            )}
+
+            {/* Escrow Payment Accounts */}
+            <div className="space-y-2 text-left">
+              <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-mono block">Telebirr Merchant / Phone</span>
+                  <strong className="text-slate-800 font-mono text-xs">0911 234 567 (LegalLink Escrow)</strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyText('0911234567', 'telebirr')}
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 cursor-pointer"
+                >
+                  {copiedKey === 'telebirr' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-mono block">Commercial Bank of Ethiopia (CBE)</span>
+                  <strong className="text-slate-800 font-mono text-xs">1000 4829 1048 2</strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyText('1000482910482', 'cbe')}
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 cursor-pointer"
+                >
+                  {copiedKey === 'cbe' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+
             {telebirrUssdCode && (
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 font-mono space-y-1">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Telebirr USSD Authorization</span>
-                <strong className="text-base font-black text-emerald-700 block">{telebirrUssdCode}</strong>
-                <span className="text-[10px] text-slate-500 block">Check your phone to approve the escrow pre-authorization.</span>
+              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 font-mono space-y-1">
+                <span className="text-[10px] text-amber-800 uppercase font-bold block">Telebirr USSD Authorization</span>
+                <strong className="text-sm font-black text-emerald-800 block">{telebirrUssdCode}</strong>
+                <span className="text-[10px] text-amber-900 block">Check your phone to approve the escrow pre-authorization.</span>
               </div>
             )}
 
             <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
               <Link
-                href="/escrow"
-                className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-center hover:bg-[#102A43] transition-all"
-              >
-                Track in Escrow Desk
-              </Link>
-              <Link
                 href="/"
-                className="px-6 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl text-center hover:bg-slate-200 transition-all"
+                className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-center hover:bg-[#102A43] transition-all"
               >
                 Return to Home
               </Link>
