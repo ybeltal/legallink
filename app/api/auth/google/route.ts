@@ -8,8 +8,9 @@ export async function GET(request: Request) {
     const redirect = requestUrl.searchParams.get('redirect') || (role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer');
     const origin = requestUrl.origin;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    // Hardcoded project URL to eliminate Vercel environment sync issues
+    const supabaseUrl = 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
     if (!supabaseAnonKey) {
       return NextResponse.json({
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
       }, { status: 500 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey.replace(/['"]/g, '').trim());
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

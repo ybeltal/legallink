@@ -8,11 +8,11 @@ export async function GET(request: Request) {
     const redirect = requestUrl.searchParams.get('redirect') || '/find-a-lawyer';
     const origin = requestUrl.origin;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
     if (code && supabaseAnonKey) {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      const supabase = createClient(supabaseUrl, supabaseAnonKey.replace(/['"]/g, '').trim());
       await supabase.auth.exchangeCodeForSession(code);
     }
 
