@@ -26,18 +26,25 @@ export default function SignupPage() {
 
     try {
       setGoogleLoading(true);
-      const redirectPath = role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer';
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Determine final landing page after successful auth
+      const finalDestination = role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer';
+      
+      // Route through /auth/callback to establish session correctly
+      const redirectTo = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(finalDestination)}`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}${redirectPath}`,
+          redirectTo,
         },
       });
 
       if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
       setErrorMsg(err?.message || 'Google authentication failed. Please try again.');
-    } finally {
       setGoogleLoading(false);
     }
   };
@@ -93,7 +100,7 @@ export default function SignupPage() {
         </div>
 
         {errorMsg && (
-          <div className="max-w-md mx-auto w-full p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-scaleUp">
+          <div className="max-w-md mx-auto w-full p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
