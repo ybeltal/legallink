@@ -1,10 +1,12 @@
 ﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+const PUBLIC_PATHS = ['/', '/signup', '/login', '/terms', '/privacy'];
 
-  // Always allow static assets, API routes, and auth callbacks
+export function middleware(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+
+  // Allow Next.js internals, API routes, auth callbacks, and static assets
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
@@ -12,6 +14,20 @@ export function middleware(request: NextRequest) {
     pathname.includes('.')
   ) {
     return NextResponse.next();
+  }
+
+  // Allow the landing page and public authentication/legal pages
+  if (PUBLIC_PATHS.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Require authentication before advancing into platform pages
+  const isAuthenticated = request.cookies.get('legallink_auth')?.value === 'authenticated';
+
+  if (!isAuthenticated) {
+    const signupUrl = new URL('/signup', request.url);
+    signupUrl.searchParams.set('redirect', `${pathname}${search}`);
+    return NextResponse.redirect(signupUrl);
   }
 
   return NextResponse.next();
