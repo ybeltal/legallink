@@ -10,7 +10,11 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  Check,
+  FileText,
+  BookOpen,
   Scale,
+  Users,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -37,7 +41,9 @@ function SignupContent() {
   const [agreedToTerms, setAgreedToTerms] = useState(true);
 
   // Client-Specific Task States
-  const [clientLegalNeed, setClientLegalNeed] = useState('Contract & Legal Form Drafting (LexDraft)');
+  const [clientLegalNeed, setClientLegalNeed] = useState(
+    'Draft Amharic & English Legal Forms (LexDraft)'
+  );
   const [clientLocation, setClientLocation] = useState('Addis Ababa');
 
   // Advocate-Specific Chamber & Bar States
@@ -69,7 +75,7 @@ function SignupContent() {
         'legallink_user',
         JSON.stringify({
           role: selectedRole,
-          firstName: firstName.trim() || (selectedRole === 'advocate' ? 'Advocate' : 'Client'),
+          firstName: firstName.trim() || (selectedRole === 'advocate' ? 'Advocate' : 'Member'),
           lastName: lastName.trim(),
           email: userEmail || email.trim() || `${selectedRole}@legallink.et`,
           phone: phone.trim(),
@@ -80,7 +86,7 @@ function SignupContent() {
         })
       );
     } catch {
-      // Ignore storage errors in restricted environments
+      // Ignore storage errors in restricted browsers
     }
   };
 
@@ -168,12 +174,12 @@ function SignupContent() {
   };
 
   // =========================================================================
-  // VIEW 1: UNIQUE LEGALLINK TWO-PANEL SPLIT SCREEN (ONLY TWO CHOICES VISIBLE)
+  // VIEW 1: BESPOKE LEGALLINK TWO-PANEL SPLIT SCREEN
   // =========================================================================
   if (step === 'select-role') {
     return (
-      <div className="min-h-screen flex flex-col bg-[#0A1128] font-sans selection:bg-amber-400 selection:text-[#0A1128]">
-        {/* Top Floating Bar */}
+      <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-amber-100 selection:text-[#0A1128]">
+        {/* Top Header */}
         <header className="w-full px-5 sm:px-10 py-4 bg-white border-b border-slate-200 flex items-center justify-between z-20">
           <div className="flex items-center gap-3.5">
             <button
@@ -204,29 +210,54 @@ function SignupContent() {
           </div>
         </header>
 
-        {/* Full-Height Split Screen: Left = Client (Deep Sovereign Navy) | Right = Advocate (Ethiopian Emerald) */}
+        {/* Creative Two-Panel Split Screen */}
         <main className="flex-1 grid grid-cols-1 md:grid-cols-2">
-          {/* LEFT PANEL: CLIENT */}
+          {/* LEFT PANEL: CLIENT, BUSINESS & PUBLIC ACCESS (Warm Ivory & Sovereign Navy) */}
           <section
             onClick={() => handleSelectRolePanel('client')}
-            className="relative overflow-hidden bg-[#0A1128] hover:bg-[#0E1838] text-white px-8 py-16 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group border-b md:border-b-0 md:border-r border-white/10"
+            className="relative overflow-hidden bg-gradient-to-br from-[#F8FAFC] via-white to-[#FEF3C7]/35 hover:to-[#FEF3C7]/60 text-[#0A1128] px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group border-b md:border-b-0 md:border-r border-slate-200"
           >
-            {/* Subtle Architectural Justice Watermark */}
-            <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-amber-500/5 blur-2xl pointer-events-none group-hover:bg-amber-500/10 transition-all" />
-
             <div className="max-w-md space-y-6 relative z-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-amber-300 text-[11px] font-mono uppercase tracking-widest font-bold">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Client Portal • Telebirr Escrow</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono uppercase tracking-widest font-bold">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Public, Business & Client Access • የደንበኞች መግቢያ</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-                I’m a client
-              </h1>
+              {/* Preserved Custom LegalLink Shield & Member Illustration */}
+              <div className="flex justify-center">
+                <svg className="w-24 h-24 group-hover:scale-105 transition-transform" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M60 12L95 26V58C95 82 80 102 60 108C40 102 25 82 25 58V26L60 12Z" fill="#F0FDF4" stroke="#10B981" strokeWidth="2.5" />
+                  <circle cx="60" cy="46" r="14" fill="#0A1128" />
+                  <path d="M40 78C40 68 49 64 60 64C71 64 80 68 80 78V84H40V78Z" fill="#0A1128" />
+                  <circle cx="78" cy="74" r="10" fill="#F59E0B" />
+                  <path d="M74 74L77 77L83 71" stroke="#0A1128" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
 
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-                Consult MOJ-licensed Ethiopian advocates, generate court-ready legal forms, and protect retainers in escrow.
-              </p>
+              <div className="space-y-2.5">
+                <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0A1128] leading-tight">
+                  I’m seeking legal solutions
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Draft bilingual Amharic & English legal forms, explore Ethiopian proclamations, secure agreements with Telebirr escrow, or consult verified counsel.
+                </p>
+              </div>
+
+              {/* Key Platform Advantages Pills */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                  <FileText className="w-3 h-3 text-amber-500" />
+                  LexDraft Forms (አማ / EN)
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                  <BookOpen className="w-3 h-3 text-emerald-600" />
+                  Proclamations & LegalTalk
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                  <ShieldCheck className="w-3 h-3 text-[#0A1128]" />
+                  Verified Counsel & Escrow
+                </span>
+              </div>
 
               <div className="pt-2">
                 <button
@@ -235,36 +266,62 @@ function SignupContent() {
                     e.stopPropagation();
                     handleSelectRolePanel('client');
                   }}
-                  className="px-8 py-3.5 rounded-full bg-amber-500 group-hover:bg-amber-400 text-[#0A1128] font-black text-sm inline-flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+                  className="px-8 py-3.5 rounded-full bg-[#0A1128] group-hover:bg-[#102A43] text-white font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
                 >
-                  <span>Hire an Advocate</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>Continue to LegalLink</span>
+                  <ArrowRight className="w-4 h-4 text-amber-400" />
                 </button>
               </div>
             </div>
           </section>
 
-          {/* RIGHT PANEL: ADVOCATE */}
+          {/* RIGHT PANEL: ADVOCATE & LEGAL PRACTITIONER (Sovereign Navy & Gold) */}
           <section
             onClick={() => handleSelectRolePanel('advocate')}
-            className="relative overflow-hidden bg-[#064E3B] hover:bg-[#075E47] text-white px-8 py-16 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+            className="relative overflow-hidden bg-gradient-to-br from-[#0A1128] via-[#0F1B3D] to-[#064E3B] text-white px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
           >
-            {/* Subtle Sovereign Emerald Watermark */}
-            <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-emerald-300/10 blur-2xl pointer-events-none group-hover:bg-emerald-300/15 transition-all" />
-
             <div className="max-w-md space-y-6 relative z-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-emerald-200 text-[11px] font-mono uppercase tracking-widest font-bold">
-                <Scale className="w-3.5 h-3.5" />
-                <span>Proclamation No. 1249/2021</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-mono uppercase tracking-widest font-bold">
+                <Scale className="w-3.5 h-3.5 text-amber-400" />
+                <span>Proclamation No. 1249/2021 • የጠበቆች መግቢያ</span>
               </div>
 
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-                I’m an advocate
-              </h2>
+              {/* Preserved Custom Scales of Justice & Chamber Illustration */}
+              <div className="flex justify-center">
+                <svg className="w-24 h-24 group-hover:scale-105 transition-transform" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="25" y="90" width="70" height="8" rx="2" fill="#334155" />
+                  <rect x="30" y="24" width="60" height="6" rx="2" fill="#475569" />
+                  <path d="M60 10L30 24H90L60 10Z" fill="#F59E0B" />
+                  <path d="M60 28V84" stroke="#F8FAFC" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M38 42H82" stroke="#F8FAFC" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M38 42L30 58M38 42L46 58" stroke="#F59E0B" strokeWidth="1.8" />
+                  <path d="M26 58H50C50 64 26 64 26 58Z" fill="#F59E0B" />
+                  <path d="M82 42L74 58M82 42L90 58" stroke="#F59E0B" strokeWidth="1.8" />
+                  <path d="M70 58H94C94 64 70 64 70 58Z" fill="#F59E0B" />
+                  <circle cx="60" cy="56" r="7" fill="#10B981" />
+                </svg>
+              </div>
 
-              <p className="text-sm sm:text-base text-emerald-100 leading-relaxed">
-                Verify your Federal or Regional Bar credentials, manage digital chambers, and receive secured client retainers.
-              </p>
+              <div className="space-y-2.5">
+                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+                  I’m an advocate or legal professional
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  Verify your Federal or Regional Bar credentials, manage digital chambers, publish LegalTalk insights, and mentor NextGen law interns.
+                </p>
+              </div>
+
+              {/* Advocate Capabilities Pills */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 border border-white/15 text-slate-200">
+                  <Scale className="w-3 h-3 text-amber-400" />
+                  Verified Digital Chamber
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 border border-white/15 text-slate-200">
+                  <Users className="w-3 h-3 text-emerald-400" />
+                  NextGen Mentorship
+                </span>
+              </div>
 
               <div className="pt-2">
                 <button
@@ -273,9 +330,9 @@ function SignupContent() {
                     e.stopPropagation();
                     handleSelectRolePanel('advocate');
                   }}
-                  className="px-8 py-3.5 rounded-full bg-white group-hover:bg-emerald-50 text-[#064E3B] font-black text-sm inline-flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+                  className="px-8 py-3.5 rounded-full bg-amber-500 group-hover:bg-amber-400 text-[#0A1128] font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg transition-all cursor-pointer"
                 >
-                  <span>Offer Legal Counsel</span>
+                  <span>Enter Advocate Workspace</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -287,11 +344,11 @@ function SignupContent() {
   }
 
   // =========================================================================
-  // VIEW 2: ROLE-CUSTOMIZED REGISTRATION FORM (CLIENT OR ADVOCATE)
+  // VIEW 2: ROLE-CUSTOMIZED LEGALLINK REGISTRATION FORM
   // =========================================================================
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between text-slate-900 font-sans">
-      {/* Clean Top Header with Back Button & Role Switcher */}
+      {/* Top Header with Back Button & Role Switcher */}
       <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between border-b border-slate-100">
         <div className="flex items-center gap-3.5">
           <button
@@ -313,7 +370,7 @@ function SignupContent() {
 
         <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
           <span className="hidden sm:inline">
-            {role === 'client' ? 'Are you a licensed lawyer?' : 'Seeking legal representation?'}
+            {role === 'client' ? 'Are you a licensed advocate?' : 'Looking for legal forms or counsel?'}
           </span>
           <button
             type="button"
@@ -323,7 +380,7 @@ function SignupContent() {
             }}
             className="text-emerald-700 font-bold hover:text-emerald-800 underline underline-offset-4 cursor-pointer"
           >
-            {role === 'client' ? 'Register as Advocate' : 'Join as Client'}
+            {role === 'client' ? 'Switch to Advocate' : 'Switch to Client / Member'}
           </button>
         </div>
       </header>
@@ -334,24 +391,24 @@ function SignupContent() {
           <span
             className={`inline-block text-[10px] font-mono uppercase tracking-widest font-bold px-3 py-1 rounded-full ${
               role === 'client'
-                ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-amber-50 text-amber-800 border border-amber-200'
             }`}
           >
             {role === 'client'
-              ? 'Client Registration • Telebirr Escrow Protected'
+              ? 'Client & Member Access • LexDraft, Library & Counsel'
               : 'Advocate Chamber Registration • Proclamation No. 1249/2021'}
           </span>
 
           <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight pt-1">
             {role === 'client'
-              ? 'Sign up to access legal counsel'
-              : 'Sign up to register your chambers'}
+              ? 'Create your LegalLink account'
+              : 'Register your Advocate Chamber'}
           </h1>
           <p className="text-xs text-slate-500">
             {role === 'client'
-              ? 'Create your client profile to draft legal forms, consult advocates, and manage retainers.'
-              : 'Verify your bar credentials to accept client briefs, digital retainers, and interns.'}
+              ? 'Instant access to bilingual Amharic/English legal templates, Ethiopian proclamations, and verified advocates.'
+              : 'Verify your bar credentials to manage client retainers, publish legal insights, and mentor interns.'}
           </p>
         </div>
 
@@ -373,7 +430,7 @@ function SignupContent() {
           <span>
             {googleLoading
               ? 'Connecting with Google...'
-              : `Continue with Google (${role === 'client' ? 'Client' : 'Advocate'})`}
+              : `Continue with Google (${role === 'client' ? 'Client / Member' : 'Advocate'})`}
           </span>
         </button>
 
@@ -420,7 +477,7 @@ function SignupContent() {
             </div>
           </div>
 
-          {/* Email & Ethiopian Phone */}
+          {/* Email & Phone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-800">
@@ -438,7 +495,7 @@ function SignupContent() {
 
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-800">
-                {role === 'client' ? 'Phone (Telebirr / SMS)' : 'Chamber Phone Number'}
+                {role === 'client' ? 'Phone (Optional)' : 'Chamber Phone Number'}
               </label>
               <input
                 type="tel"
@@ -450,35 +507,35 @@ function SignupContent() {
             </div>
           </div>
 
-          {/* ROLE-SPECIFIC TASK FIELDS */}
+          {/* ROLE-SPECIFIC FIELDS */}
           {role === 'client' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="space-y-1">
                 <label className="block text-xs font-bold text-slate-800">
-                  Primary Legal Task
+                  What brings you to LegalLink?
                 </label>
                 <select
                   value={clientLegalNeed}
                   onChange={(e) => setClientLegalNeed(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
                 >
-                  <option value="Contract & Legal Form Drafting (LexDraft)">
-                    Contract & Court Form Drafting (LexDraft)
+                  <option value="Draft Amharic & English Legal Forms (LexDraft)">
+                    Draft Amharic & English Legal Forms (LexDraft)
+                  </option>
+                  <option value="Explore Ethiopian Proclamations & LegalTalk">
+                    Explore Ethiopian Proclamations & LegalTalk
                   </option>
                   <option value="Book Verified Advocate Consultation">
-                    Book Verified Advocate Consultation
+                    Consult a Verified Ethiopian Advocate
                   </option>
                   <option value="Business & PLC Incorporation">
-                    Business & PLC Incorporation
+                    Business & PLC Formation (Commercial Code)
                   </option>
-                  <option value="Civil, Commercial or Cassation Litigation">
-                    Civil, Commercial or Cassation Litigation
-                  </option>
-                  <option value="Property, Land & Lease Agreement">
-                    Property, Land & Lease Agreement
+                  <option value="Court Pleadings, Appeals & Cassation">
+                    Court Pleadings, Appeals & Cassation Forms
                   </option>
                   <option value="Diaspora Power of Attorney & Representation">
-                    Diaspora Power of Attorney
+                    Diaspora Power of Attorney & Services
                   </option>
                 </select>
               </div>
@@ -544,7 +601,7 @@ function SignupContent() {
 
               <div className="space-y-1">
                 <label className="block text-xs font-bold text-slate-800">
-                  Primary Practice Area
+                  Primary Practice Specialization
                 </label>
                 <select
                   value={practiceArea}
@@ -602,22 +659,22 @@ function SignupContent() {
                   setAgreedToTerms(e.target.checked);
                   if (errorMsg) setErrorMsg(null);
                 }}
-                className="mt-0.5 w-4 h-4 rounded border-slate-300 accent-[#064E3B] cursor-pointer"
+                className="mt-0.5 w-4 h-4 rounded border-slate-300 accent-[#0A1128] cursor-pointer"
               />
               <span className="text-xs text-slate-600 leading-snug">
-                Yes, I understand and agree to the{' '}
+                I agree to the{' '}
                 <Link
                   href="/terms"
                   target="_blank"
-                  className="font-bold text-emerald-700 underline hover:text-emerald-800"
+                  className="font-bold text-[#0A1128] underline hover:text-amber-600"
                 >
                   LegalLink Terms of Service
-                </Link>
-                , including Escrow Rules and{' '}
+                </Link>{' '}
+                and{' '}
                 <Link
                   href="/privacy"
                   target="_blank"
-                  className="font-bold text-emerald-700 underline hover:text-emerald-800"
+                  className="font-bold text-[#0A1128] underline hover:text-amber-600"
                 >
                   Privacy Policy
                 </Link>
@@ -631,17 +688,13 @@ function SignupContent() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full sm:w-auto px-10 py-3.5 text-white font-bold rounded-full text-xs inline-flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-60 ${
-                role === 'client'
-                  ? 'bg-[#0A1128] hover:bg-[#102A43]'
-                  : 'bg-[#064E3B] hover:bg-[#075E47]'
-              }`}
+              className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-full text-xs inline-flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-60"
             >
               <span>
                 {loading
-                  ? 'Creating Account...'
+                  ? 'Entering LegalLink...'
                   : role === 'client'
-                  ? 'Create my Client Account'
+                  ? 'Create my Account & Continue'
                   : 'Register Advocate Chamber'}
               </span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
@@ -679,7 +732,7 @@ export default function SignupPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-white flex items-center justify-center text-xs font-bold text-slate-500">
-          Loading LegalLink Sign Up...
+          Loading LegalLink...
         </div>
       }
     >

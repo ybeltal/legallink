@@ -13,11 +13,15 @@ import {
   Printer,
   FileText,
   ShieldCheck,
+  Globe,
 } from 'lucide-react';
+
+export type DocLanguageMode = 'am' | 'en' | 'bilingual';
 
 export interface TemplateField {
   id: string;
   label: string;
+  amharicLabel?: string;
   placeholder?: string;
   type?: 'text' | 'textarea' | 'date' | 'select';
   options?: string[];
@@ -38,30 +42,82 @@ export interface LegalTemplate {
   legalBasis: string;
   description: string;
   fields: TemplateField[];
+  generateAmharicDocument: (values: Record<string, string>) => string;
   generateDocument: (values: Record<string, string>) => string;
 }
 
+export function getFormattedDocument(
+  template: LegalTemplate,
+  values: Record<string, string>,
+  mode: DocLanguageMode
+): string {
+  const amText = template.generateAmharicDocument(values);
+  const enText = template.generateDocument(values);
+
+  if (mode === 'am') return amText;
+  if (mode === 'en') return enText;
+  return `${amText}\n\n========================================================================\n\n${enText}`;
+}
+
 export const ETHIOPIAN_LEGAL_TEMPLATES: LegalTemplate[] = [
-  // 1. AGENCY & POWER OF ATTORNEY
+  // ===========================================================================
+  // 1. AGENCY & POWER OF ATTORNEY (3 ARCHIVE FORMS)
+  // ===========================================================================
   {
     id: 'agency-attorney',
-    aliases: ['power-of-attorney', 'poa', 'advocate-agency', 'agency'],
-    title: 'Power of Attorney for Legal Representation (Advocate Agency)',
-    amharicTitle: 'የጠበቃ ውክልና ማስረጃ (Power of Attorney)',
+    aliases: ['power-of-attorney', 'poa', 'advocate-agency'],
+    title: 'Power of Attorney for Advocate Representation',
+    amharicTitle: 'የጠበቃ ውክልና ማስረጃ (agency( attorney).doc)',
     category: 'Agency & Power of Attorney',
     sourceFile: 'Agency & Power of Attorney/agency( attorney).doc',
-    legalBasis: 'Ethiopian Civil Code Art. 2199–2233 & Proclamation No. 1249/2021',
+    legalBasis: 'የፍትሐ ብሔር ሕግ ቁጥር 2199–2233 እና አዋጅ ቁጥር 1249/2013',
     description:
-      'Authorizes a licensed Federal or Regional Advocate to represent a client before regular courts, cassation benches, and administrative tribunals.',
+      'Authorizes a licensed Federal or Regional Advocate to represent a client before all regular courts, cassation benches, and administrative tribunals.',
     fields: [
-      { id: 'principalName', label: 'Principal (Client) Full Name', placeholder: 'e.g., Ato Abebe Kebede Tesfaye' },
-      { id: 'principalAddress', label: 'Principal Address (City, Sub-City, Woreda, House No.)', placeholder: 'e.g., Addis Ababa, Bole Sub-City, Woreda 03, H.No. 412' },
-      { id: 'advocateName', label: 'Appointed Advocate Full Name', placeholder: 'e.g., Advocate Solomon Tadesse' },
-      { id: 'licenseNo', label: 'Ministry of Justice Advocate License No.', placeholder: 'e.g., MOJ/FED/1842/2021' },
-      { id: 'advocateAddress', label: 'Advocate Chamber Address & Phone', placeholder: 'e.g., Lideta Sub-City, Woreda 08, Tel: +251911...' },
-      { id: 'scopeOfMatter', label: 'Specific Case / Legal Matter Authorized', type: 'textarea', placeholder: 'e.g., To institute, defend, appeal, and execute judgment regarding commercial contract dispute against XYZ PLC...' },
-      { id: 'date', label: 'Date of Execution', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'principalName', label: 'Principal (Client) Full Name', amharicLabel: 'የወካይ (ደንበኛ) ሙሉ ስም', placeholder: 'ምሳሌ፡ አቶ አበበ ከበደ ተስፋዬ / Ato Abebe Kebede' },
+      { id: 'principalAddress', label: 'Principal Address (City, Sub-City, Woreda, House No.)', amharicLabel: 'የወካይ አድራሻ (ከተማ፣ ክ/ከተማ፣ ወረዳ፣ የቤት ቁጥር)', placeholder: 'ምሳሌ፡ አዲስ አበባ፣ ቦሌ ክ/ከተማ፣ ወረዳ 03፣ የቤት ቁ. 412' },
+      { id: 'advocateName', label: 'Appointed Advocate Full Name', amharicLabel: 'የተወካይ ጠበቃ ሙሉ ስም', placeholder: 'ምሳሌ፡ ጠበቃ ሰለሞን ታደሰ / Advocate Solomon Tadesse' },
+      { id: 'licenseNo', label: 'Ministry of Justice Advocate License No.', amharicLabel: 'የፍትሕ ሚኒስቴር የጥብቅና ፈቃድ ቁጥር', placeholder: 'ምሳሌ፡ MOJ/FED/1842/2021' },
+      { id: 'advocateAddress', label: 'Advocate Chamber Address & Phone', amharicLabel: 'የጠበቃው አድራሻ እና ስልክ ቁጥር', placeholder: 'ምሳሌ፡ ልደታ ክ/ከተማ፣ ወረዳ 08፣ ስልክ፡ +251911...' },
+      { id: 'scopeOfMatter', label: 'Specific Case / Legal Matter Authorized', amharicLabel: 'ውክልና የተሰጠበት የክርክር / የሕግ ጉዳይ ዝርዝር', type: 'textarea', placeholder: 'ምሳሌ፡ በፌዴራል ፍርድ ቤቶች የውል ክርክር ክስ ለመመሥረት፣ መልስ ለመስጠት፣ ይግባኝ እና ሰበር ለማቅረብ...' },
+      { id: 'date', label: 'Date of Execution', amharicLabel: 'ውክልናው የተሰጠበት ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `በኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ
+የሰነዶች ማረጋገጫና ምዝገባ አገልግሎት
+የጠበቃ ውክልና ማስረጃ
+(በፍትሐ ብሔር ሕግ ቁጥር 2199 እና በአዋጅ ቁጥር 1249/2013 መሠረት የተዘጋጀ)
+
+ቀን፡ ${v.date || '__________________'}
+
+1. ወካይ (ውክልና ሰጪ)፡
+ሙሉ ስም፡ ${v.principalName || '____________________________________'}
+አድራሻ፡ ${v.principalName ? v.principalAddress || 'አዲስ አበባ' : '____________________________________'}
+
+2. ተወካይ (ሕጋዊ ጠበቃ)፡
+ሙሉ ስም፡ ${v.advocateName || '____________________________________'}
+የጥብቅና ፈቃድ ቁጥር፡ ${v.licenseNo || '________________________'}
+አድራሻና ስልክ፡ ${v.advocateAddress || '____________________________________'}
+
+3. የተሰጠው የውክልና ሥልጣን ዝርዝር፡
+እኔ ስሜ ከላይ የተጠቀሰው ወካይ፣ ተወካይ የሆኑት ጠበቃ በእኔ ስምና ምትክ ሆነው በሚከተለው ጉዳይ ላይ እንዲወክሉኝ ሙሉ የጥብቅና ውክልና ሰጥቻቸዋለሁ፦
+${v.scopeOfMatter || 'በማናቸውም የፌዴራልም ሆነ የክልል የመጀመሪያ ደረጃ፣ ከፍተኛ እና ጠቅላይ ፍርድ ቤት (ሰበር ሰሚ ችሎትን ጨምሮ) እንዲሁም በአስተዳደር ጉባኤዎች ቀርበው እንዲከራከሩልኝ።'}
+
+4. የጠበቃው ዝርዝር ሥልጣን፡
+በፍትሐ ብሔር ሕግ ቁጥር 2204 እና 2205 መሠረት ተወካይ ጠበቃው፦
+ሀ) የክስ ማመልከቻ፣ የመከላከያ መልስ፣ የተከሳሽ ክስ፣ የይግባኝ ቅሬታ እና የሰበር አቤቱታ አዘጋጅተው የመፈረምና የማቅረብ፤
+ለ) በማናቸውም ፍርድ ቤት ቀርበው የቃልና የጽሑፍ ክርክር የማድረግ፣ ማስረጃ የማቅረብና ምስክሮችን የማሰማት፤
+ሐ) የዕግድ ትዕዛዝ፣ የንብረት ማስከበሪያ እና የፍርድ አፈጻጸም ማመልከቻ የማቅረብና የማስፈጸም፤
+መ) የፍርድ ቤት መጥሪያዎችን፣ ትዕዛዞችንና የውሳኔ ግልባጮችን የመቀበል ሙሉ ሥልጣን ተሰጥቷቸዋል።
+
+የወካይ ፊርማ፡ _______________________
+ስም፡ ${v.principalName || '_______________________'}
+
+የተወካይ (ጠበቃ) ፊርማ፡ _______________________
+ስም፡ ${v.advocateName || '_______________________'}
+
+ምስክሮች፡
+1. ___________________________   ፊርማ፡ _____________
+2. ___________________________   ፊርማ፡ _____________`,
     generateDocument: (v) => `FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA
 DOCUMENTS AUTHENTICATION AND REGISTRATION SERVICE (DARS)
 POWER OF ATTORNEY FOR ADVOCATE REPRESENTATION
@@ -98,22 +154,52 @@ WITNESSES:
   },
   {
     id: 'agency-administration',
-    aliases: ['property-agency', 'administration-agency', 'general-agency'],
+    aliases: ['property-agency', 'administration-agency'],
     title: 'General Agency for Property & Business Administration',
-    amharicTitle: 'የንብረት እና የሥራ አስተዳደር ውክልና',
+    amharicTitle: 'የንብረት እና የሥራ አስተዳደር ውክልና (Agency( for administration).docx)',
     category: 'Agency & Power of Attorney',
     sourceFile: 'Agency & Power of Attorney/Agency( for administration).docx',
-    legalBasis: 'Ethiopian Civil Code Art. 2203–2204 (Acts of Management)',
+    legalBasis: 'የፍትሐ ብሔር ሕግ ቁጥር 2203–2204 (የአስተዳደር ውክልና)',
     description:
       'Grants authority to an agent to manage immovable property, sign leases, collect rent, pay taxes, and handle municipal and utility matters.',
     fields: [
-      { id: 'principalName', label: 'Principal (Property Owner) Full Name', placeholder: 'e.g., W/ro Almaz Bekele' },
-      { id: 'principalAddress', label: 'Principal Address', placeholder: 'e.g., Addis Ababa, Kirkos Sub-City, Woreda 02' },
-      { id: 'agentName', label: 'Agent (Representative) Full Name', placeholder: 'e.g., Ato Dawit Kebede' },
-      { id: 'agentAddress', label: 'Agent Address & ID Number', placeholder: 'e.g., Addis Ababa, Yeka Sub-City, Woreda 05, ID: AA-05-9921' },
-      { id: 'propertyDetails', label: 'Property / Business Under Administration (Title Deed / Plot No.)', type: 'textarea', placeholder: 'e.g., Building located in Bole Sub-City, Woreda 04, Title Deed No. BL/10294/2018...' },
-      { id: 'date', label: 'Date of Execution', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'principalName', label: 'Principal (Property Owner) Full Name', amharicLabel: 'የወካይ (የንብረቱ ባለቤት) ሙሉ ስም', placeholder: 'ምሳሌ፡ ወ/ሮ አልማዝ በቀለ / W/ro Almaz Bekele' },
+      { id: 'principalAddress', label: 'Principal Address', amharicLabel: 'የወካይ አድራሻ', placeholder: 'ምሳሌ፡ አዲስ አበባ፣ ቂርቆስ ክ/ከተማ፣ ወረዳ 02' },
+      { id: 'agentName', label: 'Agent (Representative) Full Name', amharicLabel: 'የተወካይ ሙሉ ስም', placeholder: 'ምሳሌ፡ አቶ ዳዊት ከበደ / Ato Dawit Kebede' },
+      { id: 'agentAddress', label: 'Agent Address & ID Number', amharicLabel: 'የተወካይ አድራሻ እና መታወቂያ ቁጥር', placeholder: 'ምሳሌ፡ አዲስ አበባ፣ የካ ክ/ከተማ፣ ወረዳ 05' },
+      { id: 'propertyDetails', label: 'Property / Business Under Administration (Title Deed / Plot No.)', amharicLabel: 'የሚተዳደረው ንብረት / ድርጅት ዝርዝር (የካርታ ቁጥር)', type: 'textarea', placeholder: 'ምሳሌ፡ በቦሌ ክ/ከተማ ወረዳ 04 የሚገኝ የካርታ ቁጥር BL/10294/2018 የሆነ ሕንፃ...' },
+      { id: 'date', label: 'Date of Execution', amharicLabel: 'ውክልናው የተሰጠበት ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `በኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ
+የሰነዶች ማረጋገጫና ምዝገባ አገልግሎት
+የንብረት እና የሥራ አስተዳደር ውክልና
+(በፍትሐ ብሔር ሕግ ቁጥር 2199 እና 2204 መሠረት)
+
+ቀን፡ ${v.date || '__________________'}
+
+1. ወካይ (ውክልና ሰጪ)፡
+ሙሉ ስም፡ ${v.principalName || '____________________________________'}
+አድራሻ፡ ${v.principalAddress || '____________________________________'}
+
+2. ተወካይ (ውክልና ተቀባይ)፡
+ሙሉ ስም፡ ${v.agentName || '____________________________________'}
+አድራሻና መታወቂያ፡ ${v.agentAddress || '____________________________________'}
+
+3. ውክልና የተሰጠበት ንብረት / ሥራ ዝርዝር፡
+${v.propertyDetails || '________________________________________________________________________'}
+
+4. የተሰጠው የአስተዳደር ሥልጣን፡
+ሀ) ከላይ የተጠቀሰውን ንብረት በፍትሐ ብሔር ሕግ ቁጥር 2204 መሠረት እስከ ሦስት (3) ዓመት ለሚደርስ ጊዜ የማከራየት፣ የኪራይ ውል የመፈረምና የኪራይ ገቢ የመሰብሰብ፤
+ለ) በገቢዎች ሚኒስቴር፣ በመሬት ልማትና ማኔጅመንት፣ በውሃና ፍሳሽ፣ በኢትዮ ቴሌኮም እና በኤሌክትሪክ አገልግሎት መሥሪያ ቤቶች ወካይን ወክሎ የመቅረብ፤
+ሐ) የመሬት ግብር፣ የኪራይ ገቢ ግብርና የአገልግሎት ክፍያዎችን የመክፈልና ክሊራንስ የመቀበል፤
+መ) ንብረቱን የመጠበቅ፣ የማሳደስ እና ንብረቱን በሚመለከት ክርክር ሲነሳ ሕጋዊ እርምጃ የመውሰድ ሥልጣን ተሰጥቷል።
+
+የወካይ ፊርማ፡ _______________________
+የተወካይ ፊርማ፡ _______________________
+
+ምስክሮች፡
+1. ___________________________   ፊርማ፡ _____________
+2. ___________________________   ፊርማ፡ _____________`,
     generateDocument: (v) => `INSTRUMENT OF AGENCY FOR PROPERTY & BUSINESS ADMINISTRATION
 (Executed Pursuant to Articles 2199 & 2204 of the Ethiopian Civil Code)
 
@@ -143,26 +229,112 @@ WITNESSES:
 1. ___________________________   Signature: _____________
 2. ___________________________   Signature: _____________`,
   },
+  {
+    id: 'general-special-agency',
+    aliases: ['agency', 'special-agency'],
+    title: 'Special & General Power of Attorney (ውክልና)',
+    amharicTitle: 'ልዩ እና አጠቃላይ የውክልና ማስረጃ (agency.doc)',
+    category: 'Agency & Power of Attorney',
+    sourceFile: 'Agency & Power of Attorney/agency.doc',
+    legalBasis: 'የፍትሐ ብሔር ሕግ ቁጥር 2205 (ልዩ ውክልና)',
+    description:
+      'Comprehensive Power of Attorney authorizing specific acts of disposition, banking operations, contract signing, and representation before government organs.',
+    fields: [
+      { id: 'principalName', label: 'Principal Full Name & Nationality', amharicLabel: 'የወካይ ሙሉ ስም እና ዜግነት', placeholder: 'ምሳሌ፡ አቶ ይበልጣል ሰማኝ / Ato Ybeltal Semagn' },
+      { id: 'principalAddress', label: 'Principal Address', amharicLabel: 'የወካይ አድራሻ', placeholder: 'ምሳሌ፡ አዲስ አበባ፣ ቦሌ ክ/ከተማ' },
+      { id: 'agentName', label: 'Appointed Agent Full Name', amharicLabel: 'የተወካይ ሙሉ ስም', placeholder: 'ምሳሌ፡ አቶ ዳንኤል ተሾመ' },
+      { id: 'agentAddress', label: 'Agent Address & Phone', amharicLabel: 'የተወካይ አድራሻ እና ስልክ', placeholder: 'ምሳሌ፡ አዲስ አበባ፣ ንፋስ ስልክ ላፍቶ ክ/ከተማ' },
+      { id: 'specialMandate', label: 'Specific Acts Authorized (Sale, Purchase, Bank, Vehicle, etc.)', amharicLabel: 'ተወካዩ እንዲፈጽም የተሰጠው ዝርዝር ሥልጣን', type: 'textarea', placeholder: 'ምሳሌ፡ በወካይ ስም የሚገኝ ተሽከርካሪ/ቤት ለመሸጥ፣ ውል ለመዋዋል፣ ገንዘብ ከባንክ ለማውጣትና ለማስገባት...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+    ],
+    generateAmharicDocument: (v) => `በኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ
+የሰነዶች ማረጋገጫና ምዝገባ አገልግሎት
+ልዩ እና አጠቃላይ የውክልና ማስረጃ
+(በፍትሐ ብሔር ሕግ ቁጥር 2199 እና 2205 መሠረት)
 
-  // 2. APPEAL FORMS
+ቀን፡ ${v.date || '__________________'}
+
+ወካይ፡ ${v.principalName || '____________________________________'}
+አድራሻ፡ ${v.principalAddress || '____________________________________'}
+
+ተወካይ፡ ${v.agentName || '____________________________________'}
+አድራሻ፡ ${v.agentAddress || '____________________________________'}
+
+የውክልናው ዝርዝር ጭብጥ፡
+እኔ ወካይ በፍትሐ ብሔር ሕግ ቁጥር 2205 መሠረት ተወካዬ በእኔ ስምና ምትክ ሆነው የሚከተሉትን ተግባራት እንዲፈጽሙ ልዩና ሙሉ የውክልና ሥልጣን ሰጥቻለሁ፦
+${v.specialMandate || '________________________________________________________________________'}
+
+ከዚህ በላይ ለተገለጸው ጉዳይ አስፈላጊ የሆኑ ሰነዶችን እንዲፈርሙ፣ ክፍያ እንዲፈጽሙና እንዲቀበሉ፣ በሰነዶች ማረጋገጫና ምዝገባ አገልግሎት እና በሚመለከታቸው የመንግሥት መሥሪያ ቤቶች ቀርበው ጉዳዩን እንዲያስፈጽሙ ወክያቸዋለሁ።
+
+የወካይ ፊርማ፡ _______________________
+የተወካይ ፊርማ፡ _______________________
+
+ምስክሮች፡
+1. ___________________________   ፊርማ፡ _____________
+2. ___________________________   ፊርማ፡ _____________`,
+    generateDocument: (v) => `SPECIAL AND GENERAL POWER OF ATTORNEY
+(Pursuant to Articles 2199 & 2205 of the Civil Code of Ethiopia)
+
+Date: ${v.date || '__________________'}
+
+Principal: ${v.principalName || '____________________________________'}
+Address: ${v.principalAddress || '____________________________________'}
+
+Agent (Attorney-in-Fact): ${v.agentName || '____________________________________'}
+Address: ${v.agentAddress || '____________________________________'}
+
+SPECIAL MANDATE GRANTED:
+Pursuant to Article 2205 of the Ethiopian Civil Code, the Principal hereby grants express authority to the Agent to execute the following acts on the Principal's behalf:
+${v.specialMandate || '________________________________________________________________________'}
+
+The Agent is authorized to sign all required contracts, authenticate documents before DARS, make and receive payments, and appear before any government authority to give full effect to this mandate.
+
+Principal Signature: _______________________   Agent Signature: _______________________`,
+  },
+
+  // ===========================================================================
+  // 2. APPEAL FORMS (4 ARCHIVE FORMS)
+  // ===========================================================================
   {
     id: 'petition-leave-to-appeal',
     aliases: ['leave-to-appeal'],
     title: 'Petition for Leave to Appeal',
-    amharicTitle: 'ይግባኝ ለማቅረብ ፈቃድ መጠየቂያ አቤቱታ',
+    amharicTitle: 'ይግባኝ ለማቅረብ ፈቃድ መጠየቂያ አቤቱታ (0987b-petition-for-leave-to-appeal.docx)',
     category: 'Appeal',
     sourceFile: 'Appeal/0987b-petition-for-leave-to-appeal.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 325–326',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 325–326',
     description:
       'Formal petition requesting leave to file an appeal out of time or where special leave of the appellate court is procedurally required.',
     fields: [
-      { id: 'appellateCourt', label: 'Appellate Court Name', placeholder: 'e.g., Federal High Court, Civil Appellate Bench — Addis Ababa' },
-      { id: 'applicantName', label: 'Applicant (Intended Appellant) Name & Address', placeholder: 'e.g., Ato Girma Tadesse, Bole Sub-City, Woreda 06' },
-      { id: 'respondentName', label: 'Respondent Name & Address', placeholder: 'e.g., Horizon Trading PLC, Kirkos Sub-City, Woreda 01' },
-      { id: 'lowerCourtFile', label: 'Lower Court Name, File No. & Judgment Date', placeholder: 'e.g., Federal First Instance Court File No. 142890, Judgment dated Oct 02, 2026' },
-      { id: 'groundsForLeave', label: 'Grounds / Good Cause for Requesting Leave to Appeal', type: 'textarea', placeholder: 'e.g., Certified copy of judgment was delayed by the court registry until..., preventing filing within the 60-day statutory period...' },
-      { id: 'date', label: 'Filing Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'appellateCourt', label: 'Appellate Court Name', amharicLabel: 'ይግባኙ የሚቀርብለት ፍርድ ቤት ስም', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት ይግባኝ ሰሚ ችሎት — አዲስ አበባ' },
+      { id: 'applicantName', label: 'Applicant (Intended Appellant) Name & Address', amharicLabel: 'የአመልካች (ይግባኝ ባይ) ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቶ ግርማ ታደሰ፣ ቦሌ ክ/ከተማ፣ ወረዳ 06' },
+      { id: 'respondentName', label: 'Respondent Name & Address', amharicLabel: 'የተጠሪ (መልስ ሰጪ) ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ ሆራይዘን ትሬዲንግ ኃ/የተ/የግ/ማኅበር' },
+      { id: 'lowerCourtFile', label: 'Lower Court Name, File No. & Judgment Date', amharicLabel: 'ውሳኔ የሰጠው የሥር ፍርድ ቤት፣ የመዝገብ ቁጥር እና ቀን', placeholder: 'ምሳሌ፡ የፌዴራል የመጀመሪያ ደረጃ ፍ/ቤት መዝገብ ቁ. 142890፣ ጥቅምት 2 ቀን 2019 ዓ.ም.' },
+      { id: 'groundsForLeave', label: 'Grounds / Good Cause for Requesting Leave to Appeal', amharicLabel: 'ይግባኝ በጊዜው ያልቀረበበት በቂ ምክንያት / የፈቃድ መጠየቂያ ዝርዝር', type: 'textarea', placeholder: 'ምሳሌ፡ የውሳኔ ግልባጭ ከፍርድ ቤቱ ሬጅስትራር በወቅቱ ባለመድረሱ ምክንያት...' },
+      { id: 'date', label: 'Filing Date', amharicLabel: 'ማመልከቻው የቀረበበት ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.appellateCourt || 'ለፌዴራል ከፍተኛ ፍርድ ቤት ይግባኝ ሰሚ ችሎት'}
+አዲስ አበባ
+
+የመዝገብ ቁጥር፡ ____________________
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች፡ ${v.applicantName || '____________________________________'}
+ተጠሪ፡ ${v.respondentName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 325 እና 326 መሠረት
+ይግባኝ ለማቅረብ ፈቃድ እንዲሰጥ የቀረበ አቤቱታ
+
+1. ይግባኝ የሚባልበት የሥር ፍርድ ቤት ውሳኔ፡
+ይህ አቤቱታ የቀረበው በ${v.lowerCourtFile || '________________________'} ላይ ይግባኝ ለማቅረብ እንዲፈቀድልኝ ነው።
+
+2. ይግባኝ ለማቅረብ ፈቃድ የተጠየቀበት በቂና ሕጋዊ ምክንያት፡
+${v.groundsForLeave || '________________________________________________________________________'}
+
+3. አመልካች የሚጠይቀው ዳኝነት፡
+ፍርድ ቤቱ ከላይ የቀረበውን በቂ ምክንያትና ከዚህ አቤቱታ ጋር የተያያዘውን ማስረጃ መርምሮ፣ አብሮ የቀረበውን የይግባኝ ቅሬታ ተቀብሎ መዝገብ እንዲከፈትና ለተጠሪ መጥሪያ እንዲላክ ትዕዛዝ እንዲሰጥልኝ በአክብሮት አመለክታለሁ።
+
+አመልካች / የአመልካች ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.appellateCourt?.toUpperCase() || 'FEDERAL HIGH COURT OF ETHIOPIA'}
 ADDIS ABABA
 
@@ -191,20 +363,46 @@ Applicant / Licensed Advocate for Applicant`,
     id: 'application-for-cassation',
     aliases: ['cassation', 'cassation-petition'],
     title: 'Application for Cassation to the Federal Supreme Court',
-    amharicTitle: 'ለፌዴራል ጠቅላይ ፍርድ ቤት ሰበር ሰሚ ችሎት የቀረበ አቤቱታ',
+    amharicTitle: 'ለፌዴራል ጠቅላይ ፍርድ ቤት ሰበር ሰሚ ችሎት የቀረበ አቤቱታ (b953b-application-for-cassation.docx)',
     category: 'Appeal',
     sourceFile: 'Appeal/b953b-application-for-cassation.docx',
-    legalBasis: 'FDRE Constitution Art. 80(3)(a) & Proclamation No. 1234/2021',
+    legalBasis: 'የኢ.ፌ.ዲ.ሪ ሕገ-መንግሥት አንቀጽ 80(3)(ሀ) እና አዋጅ ቁጥር 1234/2013',
     description:
       'Petition to the Federal Supreme Court Cassation Division alleging a basic and fundamental error of law (መሠረታዊ የሕግ ስህተት) in a final decision.',
     fields: [
-      { id: 'applicantName', label: 'Applicant (Petitioner) Name & Address', placeholder: 'e.g., Nile Construction PLC, Addis Ababa' },
-      { id: 'respondentName', label: 'Respondent Name & Address', placeholder: 'e.g., Ato Teshome Hailu, Addis Ababa' },
-      { id: 'contestedDecisions', label: 'Lower Courts & File Numbers Being Challenged', placeholder: 'e.g., Federal High Court File No. 98210 & Federal Supreme Court File No. 20194' },
-      { id: 'fundamentalError', label: 'Statement of Fundamental Error of Law (መሠረታዊ የሕግ ስህተት)', type: 'textarea', placeholder: 'Specify the exact proclamation/code articles violated and any binding Cassation Bench precedent disregarded...' },
-      { id: 'reliefSought', label: 'Specific Cassation Relief Sought', type: 'textarea', placeholder: 'e.g., Reverse the decision of the Appellate Bench and dismiss the claim with costs...' },
-      { id: 'date', label: 'Date of Application', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'applicantName', label: 'Applicant (Petitioner) Name & Address', amharicLabel: 'የአመልካች ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ ናይል ኮንስትራክሽን ኃ/የተ/የግ/ማኅበር፣ አዲስ አበባ' },
+      { id: 'respondentName', label: 'Respondent Name & Address', amharicLabel: 'የተጠሪ ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቶ ተሾመ ኃይሉ፣ አዲስ አበባ' },
+      { id: 'contestedDecisions', label: 'Lower Courts & File Numbers Being Challenged', amharicLabel: 'ቅሬታ የቀረበባቸው የሥር ፍርድ ቤቶችና የመዝገብ ቁጥሮች', placeholder: 'ምሳሌ፡ የፌዴራል ከፍተኛ ፍ/ቤት መዝገብ ቁ. 98210 እና ጠቅላይ ፍ/ቤት መዝገብ ቁ. 20194' },
+      { id: 'fundamentalError', label: 'Statement of Fundamental Error of Law (መሠረታዊ የሕግ ስህተት)', amharicLabel: 'የተፈጸመው መሠረታዊ የሕግ ስህተት ዝርዝር', type: 'textarea', placeholder: 'የተጣሰውን የሕግ አንቀጽ ወይም አስገዳጅ የሰበር ውሳኔ በዝርዝር ይግለጹ...' },
+      { id: 'reliefSought', label: 'Specific Cassation Relief Sought', amharicLabel: 'አመልካች የሚጠይቀው የሰበር ዳኝነት', type: 'textarea', placeholder: 'ምሳሌ፡ የሥር ፍርድ ቤት ውሳኔ ተሽሮ ክሱ ውድቅ እንዲደረግልኝ...' },
+      { id: 'date', label: 'Date of Application', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `ለኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ
+ፌዴራል ጠቅላይ ፍርድ ቤት ሰበር ሰሚ ችሎት
+አዲስ አበባ
+
+የሰበር መዝገብ ቁጥር፡ ____________________
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች፡ ${v.applicantName || '____________________________________'}
+ተጠሪ፡ ${v.respondentName || '____________________________________'}
+
+በኢ.ፌ.ዲ.ሪ ሕገ-መንግሥት አንቀጽ 80(3)(ሀ) እና በፌዴራል ፍርድ ቤቶች አዋጅ ቁጥር 1234/2013 መሠረት
+የቀረበ የሰበር አቤቱታ
+
+1. የሰበር አቤቱታ የቀረበበት የመጨረሻ ውሳኔ፡
+${v.contestedDecisions || '________________________________________________________________________'}
+(የሥር ፍርድ ቤቶች ውሳኔ ግልባጭ ከዚህ አቤቱታ ጋር ተያይዟል።)
+
+2. የተፈጸመው መሠረታዊ የሕግ ስህተት ዝርዝር (መሠረታዊ የሕግ ስህተት)፡
+በሥር ፍርድ ቤት የተሰጠው የመጨረሻ ውሳኔ የሚከተሉትን መሠረታዊ የሕግ ስህተቶች የፈጸመ ነው፦
+${v.fundamentalError || '________________________________________________________________________'}
+
+3. አመልካች የሚጠይቀው ዳኝነት፡
+ก) አቤቱታው መሠረታዊ የሕግ ስህተት የተፈጸመበት መሆኑ ታይቶ ለሰበር ሰሚ ችሎት እንዲቀርብና ተጠሪ መልስ እንዲሰጥበት እንዲታዘዝ፤
+ለ) ${v.reliefSought || 'የሥር ፍርድ ቤት ውሳኔ ተሻሽሎ/ተሽሮ በሕጉ መሠረት ውሳኔ እንዲሰጥልኝና ወጪና ኪሳራ እንዲከፈለኝ በአክብሮት አመለክታለሁ።'}
+
+አመልካች / የአመልካች ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `TO THE FEDERAL SUPREME COURT OF ETHIOPIA
 CASSATION DIVISION — ADDIS ABABA
 
@@ -235,22 +433,47 @@ Applicant / Advocate for Applicant`,
     id: 'memorandum-of-appeal',
     aliases: ['appeal', 'civil-appeal'],
     title: 'Memorandum of Appeal (Statement of Appeal)',
-    amharicTitle: 'የይግባኝ ቅሬታ ማቅረቢያ (Memorandum of Appeal)',
+    amharicTitle: 'የይግባኝ ቅሬታ ማቅረቢያ (d01e9-memorandum-of-appeal.docx)',
     category: 'Appeal',
     sourceFile: 'Appeal/d01e9-memorandum-of-appeal.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 323 & Art. 327',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 323 እና 327',
     description:
       'Appellate pleading setting forth the concise grounds of objection to a lower court judgment and the specific appellate relief sought.',
     fields: [
-      { id: 'appellateCourt', label: 'Appellate Court Name', placeholder: 'e.g., Federal Supreme Court Appellate Bench / Federal High Court' },
-      { id: 'appellantName', label: 'Appellant Full Name & Address', placeholder: 'e.g., Abyssinia Logistics PLC, Addis Ababa' },
-      { id: 'respondentName', label: 'Respondent Full Name & Address', placeholder: 'e.g., Ato Samuel Mekonnen, Addis Ababa' },
-      { id: 'lowerCourtDetails', label: 'Lower Court Name, File No. & Date of Judgment', placeholder: 'e.g., Federal High Court Commercial Bench, File No. 88312, Judgment dated Oct 20, 2026' },
-      { id: 'claimValue', label: 'Value of Subject Matter in Dispute (ETB)', placeholder: 'e.g., ETB 2,450,000.00' },
-      { id: 'groundsOfAppeal', label: 'Concise Grounds of Appeal (Art. 327)', type: 'textarea', placeholder: '1. The trial court erred in holding that...\n2. The trial court improperly rejected documentary evidence...' },
-      { id: 'reliefSought', label: 'Appellate Relief Sought', type: 'textarea', placeholder: 'e.g., Set aside the lower court decree in its entirety and enter judgment in favor of the Appellant.' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'appellateCourt', label: 'Appellate Court Name', amharicLabel: 'ይግባኙ የሚቀርብለት ፍርድ ቤት', placeholder: 'ምሳሌ፡ ለፌዴራል ጠቅላይ ፍርድ ቤት ይግባኝ ሰሚ ችሎት' },
+      { id: 'appellantName', label: 'Appellant Full Name & Address', amharicLabel: 'የይግባኝ ባይ ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቢሲኒያ ሎጂስቲክስ ኃ/የተ/የግ/ማኅበር' },
+      { id: 'respondentName', label: 'Respondent Full Name & Address', amharicLabel: 'የመልስ ሰጪ ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቶ ሳሙኤል መኮንን' },
+      { id: 'lowerCourtDetails', label: 'Lower Court Name, File No. & Date of Judgment', amharicLabel: 'ውሳኔ የሰጠው ፍርድ ቤት፣ የመዝገብ ቁጥር እና የውሳኔ ቀን', placeholder: 'ምሳሌ፡ የፌዴራል ከፍተኛ ፍ/ቤት መዝገብ ቁ. 88312' },
+      { id: 'claimValue', label: 'Value of Subject Matter in Dispute (ETB)', amharicLabel: 'የክርክሩ የገንዘብ ግምት (በብር)', placeholder: 'ምሳሌ፡ ብር 2,450,000.00' },
+      { id: 'groundsOfAppeal', label: 'Concise Grounds of Appeal (Art. 327)', amharicLabel: 'የይግባኝ ቅሬታ ነጥቦች ዝርዝር (አንቀጽ 327)', type: 'textarea', placeholder: '1. የሥር ፍርድ ቤት የቀረበውን የሰነድ ማስረጃ ሳይመረምር ማለፉ...\n2. የሕጉን ድንጋጌ በተሳሳተ መንገድ መተርጎሙ...' },
+      { id: 'reliefSought', label: 'Appellate Relief Sought', amharicLabel: 'ይግባኝ ባይ የሚጠይቀው ዳኝነት', type: 'textarea', placeholder: 'ምሳሌ፡ የሥር ፍርድ ቤት ውሳኔ ተሽሮ በይግባኝ ባይ ላይ የተወሰነው ክፍያ እንዲቀር...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.appellateCourt || 'ለፌዴራል ጠቅላይ ፍርድ ቤት ይግባኝ ሰሚ ችሎት'}
+አዲስ አበባ
+
+የይግባኝ መዝገብ ቁጥር፡ ____________________
+ቀን፡ ${v.date || '__________________'}
+
+ይግባኝ ባይ፡ ${v.appellantName || '____________________________________'}
+መልስ ሰጪ፡ ${v.respondentName || '____________________________________'}
+የጉዳዩ ግምት፡ ${v.claimValue || '____________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 323 እና 327 መሠረት የቀረበ
+የይግባኝ ቅሬታ ማመልከቻ
+
+1. ይግባኝ የተባለበት ውሳኔ፡
+ይህ ይግባኝ የቀረበው በ${v.lowerCourtDetails || '____________________________________'} በተሰጠው ውሳኔ ላይ ነው።
+
+2. የይግባኝ ቅሬታ ነጥቦች ዝርዝር፡
+${v.groundsOfAppeal || '________________________________________________________________________'}
+
+3. ይግባኝ ባይ የሚጠይቀው ዳኝነት፡
+${v.reliefSought || 'የሥር ፍርድ ቤት ውሳኔ ተሽሮ ወጪና ኪሳራ ለይግባኝ ባይ እንዲወሰን በአክብሮት አመለክታለሁ።'}
+
+ማረጋገጫ፡ በዚህ የይግባኝ ማመልከቻ ላይ የተገለጹት ፍሬ ነገሮች እውነት መሆናቸውን አረጋግጣለሁ።
+
+ይግባኝ ባይ / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.appellateCourt?.toUpperCase() || 'FEDERAL APPELLATE COURT OF ETHIOPIA'}
 ADDIS ABABA
 
@@ -280,20 +503,41 @@ Appellant / Advocate for Appellant`,
     id: 'appeal-administrative-decisions',
     aliases: ['administrative-appeal', 'tax-appeal'],
     title: 'Appeal Against Administrative Decisions',
-    amharicTitle: 'በአስተዳደር ውሳኔ ላይ የሚቀርብ ይግባኝ',
+    amharicTitle: 'በአስተዳደር ውሳኔ ላይ የሚቀርብ ይግባኝ (ee1bf-appeal-against-administrative-decisions.docx)',
     category: 'Appeal',
     sourceFile: 'Appeal/ee1bf-appeal-against-administrative-decisions.docx',
-    legalBasis: 'Federal Administrative Procedure Proclamation No. 1183/2020',
+    legalBasis: 'የፌዴራል አስተዳደር ሥነ-ሥርዓት አዋጅ ቁጥር 1183/2012',
     description:
       'Judicial review / statutory appeal challenging an unlawful or procedurally defective decision of a government ministry, tax authority, or regulatory agency.',
     fields: [
-      { id: 'courtName', label: 'Reviewing Court / Bench', placeholder: 'e.g., Federal High Court — Administrative & Tax Appellate Bench' },
-      { id: 'appellantName', label: 'Appellant Name & Address', placeholder: 'e.g., Ethio-Agro Exports PLC, Addis Ababa' },
-      { id: 'agencyName', label: 'Respondent Administrative Agency / Authority', placeholder: 'e.g., Ministry of Revenues / Ethiopian Customs Commission' },
-      { id: 'decisionRef', label: 'Administrative Decision Ref No. & Date', placeholder: 'e.g., Ref. No. MOR/441/2026 dated Oct 15, 2026' },
-      { id: 'groundsOfIllegality', label: 'Grounds of Administrative Illegality / Ultra Vires', type: 'textarea', placeholder: 'Detail lack of jurisdiction, violation of hearing rights, or error of law under Proclamation No. 1183/2020...' },
-      { id: 'date', label: 'Filing Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Reviewing Court / Bench', amharicLabel: 'ይግባኙ የሚቀርብለት ፍርድ ቤት / ችሎት', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት የአስተዳደርና ታክስ ይግባኝ ሰሚ ችሎት' },
+      { id: 'appellantName', label: 'Appellant Name & Address', amharicLabel: 'የይግባኝ ባይ ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ ኢትዮ-አግሮ ኤክስፖርት ኃ/የተ/የግ/ማኅበር' },
+      { id: 'agencyName', label: 'Respondent Administrative Agency / Authority', amharicLabel: 'መልስ ሰጪ የአስተዳደር ተቋም ስም', placeholder: 'ምሳሌ፡ የገቢዎች ሚኒስቴር / የጉምሩክ ኮሚሽን' },
+      { id: 'decisionRef', label: 'Administrative Decision Ref No. & Date', amharicLabel: 'የአስተዳደር ውሳኔው ቁጥር እና ቀን', placeholder: 'ምሳሌ፡ ቁጥር MOR/441/2019፣ ጥቅምት 5 ቀን 2019 ዓ.ም.' },
+      { id: 'groundsOfIllegality', label: 'Grounds of Administrative Illegality / Ultra Vires', amharicLabel: 'የአስተዳደር ውሳኔው ሕገ-ወጥ የሆነበት ምክንያት ዝርዝር', type: 'textarea', placeholder: 'የሥልጣን ገደብ ማለፍ፣ የመሰማት መብት መጣስ ወይም የሕግ ስህተት መፈጸሙን ይግለጹ...' },
+      { id: 'date', label: 'Filing Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ከፍተኛ ፍርድ ቤት'}
+አዲስ አበባ
+
+ቀን፡ ${v.date || '__________________'}
+
+ይግባኝ ባይ፡ ${v.appellantName || '____________________________________'}
+መልስ ሰጪ የአስተዳደር አካል፡ ${v.agencyName || '____________________________________'}
+
+በአስተዳደር ውሳኔ ላይ የቀረበ የይግባኝ ማመልከቻ
+(በፌዴራል አስተዳደር ሥነ-ሥርዓት አዋጅ ቁጥር 1183/2012 መሠረት)
+
+1. ይግባኝ የቀረበበት የአስተዳደር ውሳኔ፡
+መልስ ሰጪው በቁጥር ${v.decisionRef || '________________________'} የሰጠው የአስተዳደር ውሳኔ። ይግባኝ ባይ በተቋሙ ውስጥ ያሉ የቅሬታ ማቅረቢያ ደረጃዎችን አሟልቶ ጨርሷል።
+
+2. የአስተዳደር ውሳኔው ሊሻር የሚገባበት የሕግና የፍሬ ነገር ምክንያቶች፡
+${v.groundsOfIllegality || '________________________________________________________________________'}
+
+3. የሚጠየቅ ዳኝነት፡
+ፍርድ ቤቱ መልስ ሰጪው በቁጥር ${v.decisionRef || '____________'} የሰጠውን የአስተዳደር ውሳኔ እንዲሽርልኝና የይግባኝ ባይን ሕጋዊ መብት እንዲያስከብርልኝ በአክብሮት አመለክታለሁ።
+
+ይግባኝ ባይ / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL HIGH COURT OF ETHIOPIA'}
 ADDIS ABABA
 
@@ -318,26 +562,47 @@ ____________________________________
 Appellant / Advocate for Appellant`,
   },
 
-  // 3. COURT APPLICATIONS & PLEADINGS
+  // ===========================================================================
+  // 3. COURT APPLICATIONS & PLEADINGS (7 ARCHIVE FORMS)
+  // ===========================================================================
   {
     id: 'petition-for-intervention',
     aliases: ['intervention'],
     title: 'Petition for Intervention in a Pending Proceeding',
-    amharicTitle: 'በክርክር ውስጥ ጣልቃ ለመግባት የቀረበ አቤቱታ',
+    amharicTitle: 'በክርክር ውስጥ ጣልቃ ለመግባት የቀረበ አቤቱታ (12dd5-petition-for-intervention-in-a-proceeding.docx)',
     category: 'Application',
     sourceFile: 'Application/12dd5-petition-for-intervention-in-a-proceeding.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 41',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 41',
     description:
       'Application by an interested third party to intervene in an ongoing civil suit before judgment to protect their legal rights or property interest.',
     fields: [
-      { id: 'courtName', label: 'Court & Bench Handling the Suit', placeholder: 'e.g., Federal High Court, 4th Civil Bench' },
-      { id: 'fileNo', label: 'Existing Court File Number', placeholder: 'e.g., File No. 219402' },
-      { id: 'intervenorName', label: 'Third-Party Intervenor Name & Address', placeholder: 'e.g., W/ro Tigist Alemu, Bole Sub-City' },
-      { id: 'plaintiffName', label: 'Plaintiff in Main Suit', placeholder: 'e.g., Ato Kebede Mamo' },
-      { id: 'defendantName', label: 'Defendant in Main Suit', placeholder: 'e.g., Ato Yohannes Taye' },
-      { id: 'interestStatement', label: 'Grounds Showing Direct Legal Interest (Art. 41(2))', type: 'textarea', placeholder: 'Explain how the outcome of the pending suit directly affects the Intervenor’s ownership or rights...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court & Bench Handling the Suit', amharicLabel: 'ክርክሩ የተያዘበት ፍርድ ቤት እና ችሎት', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት 4ኛ ፍትሐ ብሔር ችሎት' },
+      { id: 'fileNo', label: 'Existing Court File Number', amharicLabel: 'የመዝገብ ቁጥር', placeholder: 'ምሳሌ፡ የመዝገብ ቁጥር 219402' },
+      { id: 'intervenorName', label: 'Third-Party Intervenor Name & Address', amharicLabel: 'ጣልቃ ገቢ አመልካች ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ ወ/ሮ ትዕግሥት ዓለሙ፣ ቦሌ ክ/ከተማ' },
+      { id: 'plaintiffName', label: 'Plaintiff in Main Suit', amharicLabel: 'ከሳሽ (በዋናው መዝገብ)', placeholder: 'ምሳሌ፡ አቶ ከበደ ማሞ' },
+      { id: 'defendantName', label: 'Defendant in Main Suit', amharicLabel: 'ተከሳሽ (በዋናው መዝገብ)', placeholder: 'ምሳሌ፡ አቶ ዮሐንስ ታዬ' },
+      { id: 'interestStatement', label: 'Grounds Showing Direct Legal Interest (Art. 41(2))', amharicLabel: 'ጣልቃ ለመግባት የሚያበቃው የመብት/ጥቅም ዝርዝር (አንቀጽ 41(2))', type: 'textarea', placeholder: 'በከሳሽና ተከሳሽ መካከል የተያዘው ክርክር ውጤት በጣልቃ ገቢው መብት ወይም ንብረት ላይ የሚያሳድረውን ተጽዕኖ ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ከፍተኛ ፍርድ ቤት'}
+የመዝገብ ቁጥር፡ ${v.fileNo || '____________________'}
+ቀን፡ ${v.date || '__________________'}
+
+ጣልቃ ገቢ አመልካች፡ ${v.intervenorName || '________________________'}
+በከሳሽ፡ ${v.plaintiffName || '________________________'}
+እና በተከሳሽ፡ ${v.defendantName || '________________________'} መካከል
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 41 መሠረት
+በክርክሩ ውስጥ ጣልቃ ለመግባት የቀረበ አቤቱታ
+
+1. ጣልቃ ለመግባት የሚያበቃው የመብትና ጥቅም መግለጫ፡
+በመዝገብ ቁጥር ${v.fileNo || '____________'} በከሳሽና በተከሳሽ መካከል በመካሄድ ላይ ያለው ክርክር የጣልቃ ገቢ አመልካችን ሕጋዊ መብትና ጥቅም በቀጥታ የሚነካ ስለሆነ በፍ/ብ/ሥ/ሥ/ሕግ ቁጥር 41(1) እና (2) መሠረት የሚከተለውን አقدمአለሁ፦
+${v.interestStatement || '________________________________________________________________________'}
+
+2. የሚጠየቅ ዳኝነት፡
+ፍርድ ቤቱ አመልካች በመዝገብ ቁጥር ${v.fileNo || '____________'} ውስጥ በጣልቃ ገቢነት እንድካተት ፈቅዶ፣ በክርክሩ ላይ ያለኝን መብት እንዲያስከብርልኝ በአክብሮት አመለክታለሁ።
+
+ጣልቃ ገቢ አመልካች / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 File No.: ${v.fileNo || '____________________'}
 Date: ${v.date || '__________________'}
@@ -361,20 +626,37 @@ Third-Party Intervenor / Advocate`,
     id: 'cancellation-ex-parte-order',
     aliases: ['ex-parte-cancellation', 'set-aside-ex-parte'],
     title: 'Application for Cancellation of Ex-Parte Order / Decree',
-    amharicTitle: 'በሌለሁበት የተሰጠ ትዕዛዝ/ውሳኔ እንዲነሳ የቀረበ ማመልከቻ',
+    amharicTitle: 'በሌለሁበት የተሰጠ ትዕዛዝ/ውሳኔ እንዲነሳ የቀረበ ማመልከቻ (14966-application-for-cancellation-of-ex-parte-order.docx)',
     category: 'Application',
     sourceFile: 'Application/14966-application-for-cancellation-of-ex-parte-order.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 78',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 78',
     description:
       'Application by a defendant to set aside an ex-parte order or decree within one month by proving non-service of summons or sufficient cause for non-appearance.',
     fields: [
-      { id: 'courtName', label: 'Court Name & Bench', placeholder: 'e.g., Federal First Instance Court, Lideta Bench' },
-      { id: 'fileNo', label: 'Court File Number & Ex-Parte Order Date', placeholder: 'e.g., File No. 110482, Order dated Oct 25, 2026' },
-      { id: 'applicantName', label: 'Applicant (Defendant) Full Name', placeholder: 'e.g., Ato Bereket Assefa' },
-      { id: 'respondentName', label: 'Respondent (Plaintiff) Full Name', placeholder: 'e.g., Dashen Microfinance Institution' },
-      { id: 'sufficientCause', label: 'Reasons for Non-Appearance / Improper Service of Summons (Art. 78)', type: 'textarea', placeholder: 'State why summons was not duly served or the unavoidable cause that prevented appearance...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court Name & Bench', amharicLabel: 'ፍርድ ቤቱ እና ችሎቱ', placeholder: 'ምሳሌ፡ ለፌዴራል የመጀመሪያ ደረጃ ፍርድ ቤት ልደታ ምድብ ችሎት' },
+      { id: 'fileNo', label: 'Court File Number & Ex-Parte Order Date', amharicLabel: 'የመዝገብ ቁጥር እና ትዕዛዙ የተሰጠበት ቀን', placeholder: 'ምሳሌ፡ መዝገብ ቁ. 110482፣ ጥቅምት 15 ቀን 2019 ዓ.ም.' },
+      { id: 'applicantName', label: 'Applicant (Defendant) Full Name', amharicLabel: 'አመልካች (ተከሳሽ) ሙሉ ስም', placeholder: 'ምሳሌ፡ አቶ በረከት አሰፋ' },
+      { id: 'respondentName', label: 'Respondent (Plaintiff) Full Name', amharicLabel: 'ተጠሪ (ከሳሽ) ሙሉ ስም', placeholder: 'ምሳሌ፡ ዳሽን ማይክሮ ፋይናንስ ተቋም' },
+      { id: 'sufficientCause', label: 'Reasons for Non-Appearance / Improper Service of Summons (Art. 78)', amharicLabel: 'በችሎት ያልተገኘሁበት በቂ ምክንያት / መጥሪያ ያልደረሰ ስለመሆኑ (አንቀጽ 78)', type: 'textarea', placeholder: 'መጥሪያ በሕጉ መሠረት ያልደረሰ መሆኑን ወይም ከአቅም በላይ በሆነ ምክንያት በቀጠሮው ቀን አለመገኘትዎን ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል የመጀመሪያ ደረጃ ፍርድ ቤት'}
+የመዝገብ ቁጥር፡ ${v.fileNo || '____________________'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች (ተከሳሽ)፡ ${v.applicantName || '____________________________________'}
+ተጠሪ (ከሳሽ)፡ ${v.respondentName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 78 መሠረት
+በሌለሁበት የተሰጠ ትዕዛዝ / ውሳኔ እንዲነሳልኝ የቀረበ ማመልከቻ
+
+1. በችሎት ለመገኘት ያልቻልኩበት በቂና ሕጋዊ ምክንያት፡
+${v.sufficientCause || '________________________________________________________________________'}
+
+2. የሚጠየቅ ትዕዛዝ፡
+ፍርድ ቤቱ የቀረበውን በቂ ምክንያትና ማስረጃ ተመልክቶ በፍ/ብ/ሥ/ሥ/ሕግ ቁጥር 78(2) መሠረት ክርክሩ በሌለሁበት እንዲታይ የተሰጠውን ትዕዛዝ/ውሳኔ አንስቶ፣ የመከላከያ መልሴን ተቀብሎ ክርክሩን እንዲሰማልኝ በአክብሮት አመለክታለሁ።
+
+አመልካች / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 File No.: ${v.fileNo || '____________________'}
 Date: ${v.date || '__________________'}
@@ -398,21 +680,41 @@ Applicant / Advocate for Applicant`,
     id: 'stay-of-execution-on-appeal',
     aliases: ['stay-of-execution'],
     title: 'Application for Stay of Execution Pending Appeal',
-    amharicTitle: 'ይግባኝ እስኪታይ አፈጻጸም እንዲታገድ የቀረበ ማመልከቻ',
+    amharicTitle: 'ይግባኝ እስኪታይ አፈጻጸም እንዲታገድ የቀረበ ማመልከቻ (6aac2-application-for-stay-of-execution-on-appeal.docx)',
     category: 'Application',
     sourceFile: 'Application/6aac2-application-for-stay-of-execution-on-appeal.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 332–335',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 332–335',
     description:
       'Urgent motion requesting the Appellate Court to stay execution of a decree pending appeal to prevent substantial and irreparable loss.',
     fields: [
-      { id: 'courtName', label: 'Appellate Court Name', placeholder: 'e.g., Federal High Court Appellate Bench' },
-      { id: 'appealFileNo', label: 'Appellate File No. & Execution File No.', placeholder: 'e.g., Appeal File No. 55421 (Execution File No. 12904)' },
-      { id: 'applicantName', label: 'Applicant (Judgment-Debtor / Appellant)', placeholder: 'e.g., Zemen Engineering PLC' },
-      { id: 'respondentName', label: 'Respondent (Decree-Holder)', placeholder: 'e.g., Ato Kassahun Bekele' },
-      { id: 'substantialLoss', label: 'Proof of Substantial & Irreparable Loss if Executed (Art. 334)', type: 'textarea', placeholder: 'Explain how immediate execution will cause substantial loss and render the pending appeal nugatory...' },
-      { id: 'securityOffered', label: 'Security / Guarantee Offered (Art. 334(1)(c))', placeholder: 'e.g., Bank Guarantee / Title Deed security covering the decree amount' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Appellate Court Name', amharicLabel: 'ይግባኝ ሰሚው ፍርድ ቤት', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት ይግባኝ ሰሚ ችሎት' },
+      { id: 'appealFileNo', label: 'Appellate File No. & Execution File No.', amharicLabel: 'የይግባኝ መዝገብ ቁጥር እና የአፈጻጸም መዝገብ ቁጥር', placeholder: 'ምሳሌ፡ የይግባኝ መዝገብ ቁ. 55421 (የአፈጻጸም መዝገብ ቁ. 12904)' },
+      { id: 'applicantName', label: 'Applicant (Judgment-Debtor / Appellant)', amharicLabel: 'አመልካች (ይግባኝ ባይ)', placeholder: 'ምሳሌ፡ ዘመን ኢንጂነሪንግ ኃ/የተ/የግ/ማኅበር' },
+      { id: 'respondentName', label: 'Respondent (Decree-Holder)', amharicLabel: 'ተጠሪ (የፍርድ ባለገንዘብ)', placeholder: 'ምሳሌ፡ አቶ ካሣሁን በቀለ' },
+      { id: 'substantialLoss', label: 'Proof of Substantial & Irreparable Loss if Executed (Art. 334)', amharicLabel: 'አፈጻጸሙ ባይታገድ የሚደርሰው ከባድና የማይተካ ጉዳት (አንቀጽ 334)', type: 'textarea', placeholder: 'ይግባኙ ታይቶ ውሳኔ ከማግኘቱ በፊት አፈጻጸሙ ቢቀጥል የሚደርሰውን የማይተካ ጉዳት ይግለጹ...' },
+      { id: 'securityOffered', label: 'Security / Guarantee Offered (Art. 334(1)(c))', amharicLabel: 'ለአፈጻጸም ማስተማመኛ የሚቀርብ ዋስትና (አንቀጽ 334(1)(ሐ))', placeholder: 'ምሳሌ፡ የባንክ ዋስትና ወይም የማይንቀሳቀስ ንብረት ካርታ ማስያዣ' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ይግባኝ ሰሚ ፍርድ ቤት'}
+የመዝገብ ቁጥር፡ ${v.appealFileNo || '____________________'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች (ይግባኝ ባይ)፡ ${v.applicantName || '____________________________________'}
+ተጠሪ፡ ${v.respondentName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 332–335 መሠረት
+የፍርድ አፈጻጸም እንዲታገድልኝ የቀረበ አስቸኳይ ማመልከቻ
+
+1. አፈጻጸሙ ባይታገድ የሚደርስ ከባድና የማይተካ ጉዳት (አንቀጽ 334(1)(ሀ))፡
+${v.substantialLoss || '________________________________________________________________________'}
+
+2. ስለ ዋስትና ማስያዣ (አንቀጽ 334(1)(ሐ))፡
+${v.securityOffered || 'ፍርድ ቤቱ የሚያዘውን ማናቸውንም የዋስትና ማስያዣ ለማቅረብ ዝግጁ ነኝ።'}
+
+3. የሚጠየቅ የዕግድ ትዕዛዝ፡
+የይግባኝ ክርክሩ ተሰምቶ የመጨረሻ ውሳኔ እስኪሰጥ ድረስ የሥር ፍርድ ቤት የአፈጻጸም ሂደት እንዲታገድ ትዕዛዝ እንዲሰጥልኝ በአክብሮት አመለክታለሁ።
+
+አመልካች / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL APPELLATE COURT OF ETHIOPIA'}
 File No.: ${v.appealFileNo || '____________________'}
 Date: ${v.date || '__________________'}
@@ -439,20 +741,39 @@ Applicant / Advocate for Applicant`,
     id: 'paupers-petition',
     aliases: ['pauper', 'in-forma-pauperis'],
     title: "Pauper's Petition (Application to Sue In Forma Pauperis)",
-    amharicTitle: 'በድህነት (ያለ ዳኝነት ክፍያ) ክስ ለማቅረብ የሚቀርብ ማመልከቻ',
+    amharicTitle: 'በድህነት (ያለ ዳኝነት ክፍያ) ክስ ለማቅረብ የሚቀርብ ማመልከቻ (7549a-paupers-petition.docx)',
     category: 'Application',
     sourceFile: 'Application/7549a-paupers-petition.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 467–476',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 467–476',
     description:
       'Application supported by affidavit requesting exemption from court filing fees due to lack of sufficient financial means.',
     fields: [
-      { id: 'courtName', label: 'Court Name', placeholder: 'e.g., Federal First Instance Court' },
-      { id: 'applicantName', label: 'Applicant Full Name & Address', placeholder: 'e.g., W/ro Marta Tadesse, Kolfe Keranio Sub-City' },
-      { id: 'respondentName', label: 'Intended Defendant Name', placeholder: 'e.g., ABC Transport Share Company' },
-      { id: 'claimAmount', label: 'Amount of Claim & Required Court Fee', placeholder: 'e.g., Claim of ETB 850,000.00' },
-      { id: 'financialStatus', label: 'Declaration of Income & Property (Affidavit of Means)', type: 'textarea', placeholder: 'State current monthly income and confirm inability to pay the prescribed court fee...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court Name', amharicLabel: 'ፍርድ ቤቱ', placeholder: 'ምሳሌ፡ ለፌዴራል የመጀመሪያ ደረጃ ፍርድ ቤት' },
+      { id: 'applicantName', label: 'Applicant Full Name & Address', amharicLabel: 'የአመልካች ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ ወ/ሮ ማርታ ታደሰ፣ ኮልፌ ቀራኒዮ ክ/ከተማ' },
+      { id: 'respondentName', label: 'Intended Defendant Name', amharicLabel: 'የተጠሪ (ተከሳሽ) ስም', placeholder: 'ምሳሌ፡ ኤቢሲ ትራንስፖርት አ.ማ.' },
+      { id: 'claimAmount', label: 'Amount of Claim & Required Court Fee', amharicLabel: 'የክሱ የገንዘብ መጠን እና የዳኝነት ክፍያ', placeholder: 'ምሳሌ፡ የክሱ መጠን ብር 850,000.00' },
+      { id: 'financialStatus', label: 'Declaration of Income & Property (Affidavit of Means)', amharicLabel: 'የአመልካች የገቢና የንብረት ሁኔታ መግለጫ (ቃለ-መሐላ)', type: 'textarea', placeholder: 'የዳኝነት ክፍያውን ለመክፈል የሚያስችል ገቢና ንብረት የሌለዎት መሆኑን ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ፍርድ ቤት'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች፡ ${v.applicantName || '____________________________________'}
+ተጠሪ፡ ${v.respondentName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 467–470 መሠረት
+በድህነት (ያለ ዳኝነት ክፍያ) ክስ ለማቅረብ እንዲፈቀድ የቀረበ ማመልከቻ
+
+1. የክሱ ጭብጥና የገንዘብ መጠን፡
+ከዚህ ማመልከቻ ጋር ተያይዞ የቀረበው ክስ መጠን ${v.claimAmount || '________________________'} ነው።
+
+2. የአቅም ማጣት መግለጫና ቃለ-መሐላ፡
+${v.financialStatus || '________________________________________________________________________'}
+
+3. የሚጠየቅ ትዕዛዝ፡
+ፍርድ ቤቱ የቀረበውን የማኅበራዊ ፍርድ ቤት/የወረዳ ማስረጃና ቃለ-መሐላ መርምሮ ክሱን ያለ ዳኝነት ክፍያ በድህነት እንድከታተል እንዲፈቅድልኝ አመለክታለሁ።
+
+የአመልካች ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
 
@@ -477,20 +798,37 @@ Sworn and signed by Applicant: ___________________________`,
     id: 'joinder-of-third-party',
     aliases: ['third-party-joinder'],
     title: 'Petition for Joinder of Third Party',
-    amharicTitle: 'ሦስተኛ ወገን ወደ ክርክሩ እንዲገባ የሚቀርብ ማመልከቻ',
+    amharicTitle: 'ሦስተኛ ወገን ወደ ክርክሩ እንዲገባ የሚቀርብ ማመልከቻ (75ee1-petition-for-joinder-of-thrid-party.docx)',
     category: 'Application',
     sourceFile: 'Application/75ee1-petition-for-joinder-of-thrid-party.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 43',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 43',
     description:
       'Application by a defendant requesting the court to join a third party from whom the defendant claims contribution or indemnity.',
     fields: [
-      { id: 'courtName', label: 'Court Name & File No.', placeholder: 'e.g., Federal High Court, File No. 176320' },
-      { id: 'defendantApplicant', label: 'Applicant (Defendant) Name', placeholder: 'e.g., Awash Insurance S.C.' },
-      { id: 'plaintiffName', label: 'Plaintiff Name', placeholder: 'e.g., Ato Ephrem Alemu' },
-      { id: 'thirdPartyName', label: 'Third Party to be Joined (Name & Address)', placeholder: 'e.g., Ato Tarekegn Bekele, Addis Ababa' },
-      { id: 'indemnityGrounds', label: 'Grounds for Contribution or Indemnity (Art. 43(1))', type: 'textarea', placeholder: 'State the contractual or statutory basis showing why the Third Party is liable to indemnify the Defendant...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court Name & File No.', amharicLabel: 'ፍርድ ቤቱ እና የመዝገብ ቁጥር', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት፣ መዝገብ ቁ. 176320' },
+      { id: 'defendantApplicant', label: 'Applicant (Defendant) Name', amharicLabel: 'አመልካች (ተከሳሽ) ስም', placeholder: 'ምሳሌ፡ አዋሽ ኢንሹራንስ አ.ማ.' },
+      { id: 'plaintiffName', label: 'Plaintiff Name', amharicLabel: 'ከሳሽ ስም', placeholder: 'ምሳሌ፡ አቶ ኤፍሬም ዓለሙ' },
+      { id: 'thirdPartyName', label: 'Third Party to be Joined (Name & Address)', amharicLabel: 'ወደ ክርክሩ እንዲገባ የተጠየቀው 3ኛ ወገን ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቶ ታረቀኝ በቀለ፣ አዲስ አበባ' },
+      { id: 'indemnityGrounds', label: 'Grounds for Contribution or Indemnity (Art. 43(1))', amharicLabel: 'ሦስተኛው ወገን ካሳ የመክፈል ወይም የመተካት ግዴታ ያለበት ምክንያት (አንቀጽ 43)', type: 'textarea', placeholder: 'ሦስተኛው ወገን በውል ወይም በሕግ ለተከሳሽ ኃላፊነት የሚጋራበትን ምክንያት ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ፍርድ ቤት'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች (ተከሳሽ)፡ ${v.defendantApplicant || '____________________________________'}
+ከሳሽ፡ ${v.plaintiffName || '____________________________________'}
+ወደ ክርክሩ እንዲገባ የተጠየቀ 3ኛ ወገን፡ ${v.thirdPartyName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 43 መሠረት
+ሦስተኛ ወገን ወደ ክርክሩ እንዲገባ የቀረበ ማመልከቻ
+
+1. ሦስተኛው ወገን ወደ ክርክሩ እንዲገባ የተጠየቀበት ምክንያት፡
+${v.indemnityGrounds || '________________________________________________________________________'}
+
+2. የሚጠየቅ ትዕዛዝ፡
+በፍ/ብ/ሥ/ሥ/ሕግ ቁጥር 43(2) መሠረት ለሦስተኛው ወገን (${v.thirdPartyName || '____________________'}) የክሱና የመከላከያ መልሱ ግልባጭ ተያይዞ መጥሪያ እንዲላክለትና ወደ ክርክሩ እንዲገባ እንዲታዘዝልኝ አመለክታለሁ።
+
+ተከሳሽ / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
 
@@ -514,20 +852,39 @@ Defendant / Advocate for Defendant`,
     id: 'attachment-property-defendant',
     aliases: ['attachment-of-property', 'property-attachment'],
     title: 'Application for Attachment of Property of Defendant Before Judgment',
-    amharicTitle: 'ከፍርድ በፊት የተከሳሽ ንብረት እንዲከበር የሚቀርብ ማመልከቻ',
+    amharicTitle: 'ከፍርድ በፊት የተከሳሽ ንብረት እንዲከበር የሚቀርብ ማመልከቻ (7c4d5-application-for-attachment-property-of-defendant.docx)',
     category: 'Application',
     sourceFile: 'Application/7c4d5-application-for-attachment-property-of-defendant.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 151–153',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 151–153',
     description:
       'Urgent application to attach the defendant’s movable/immovable property or bank accounts before judgment to prevent asset disposal.',
     fields: [
-      { id: 'courtName', label: 'Court Name & File No.', placeholder: 'e.g., Federal High Court Commercial Bench, File No. 204811' },
-      { id: 'applicantName', label: 'Applicant (Plaintiff) Name', placeholder: 'e.g., Hibret Bank S.C. / Commercial Claimant' },
-      { id: 'respondentName', label: 'Respondent (Defendant) Name', placeholder: 'e.g., Rift Valley Coffee Exporters PLC' },
-      { id: 'propertyToAttach', label: 'Specific Property / Vehicle / Bank Account to be Attached & Value', type: 'textarea', placeholder: 'e.g., Vehicle Plate No. Code 3-A88219 AA and funds up to ETB 3,500,000.00...' },
-      { id: 'riskOfDisposal', label: 'Facts Showing Intent to Obstruct or Delay Execution (Art. 151(1))', type: 'textarea', placeholder: 'Detail evidence that the Defendant is about to dispose of or remove property from the jurisdiction...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court Name & File No.', amharicLabel: 'ፍርድ ቤቱ እና የመዝገብ ቁጥር', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት የንግድ ችሎት፣ መዝገብ ቁ. 204811' },
+      { id: 'applicantName', label: 'Applicant (Plaintiff) Name', amharicLabel: 'አመልካች (ከሳሽ) ስም', placeholder: 'ምሳሌ፡ ኅብረት ባንክ አ.ማ.' },
+      { id: 'respondentName', label: 'Respondent (Defendant) Name', amharicLabel: 'ተጠሪ (ተከሳሽ) ስም', placeholder: 'ምሳሌ፡ ሪፍት ቫሊ ቡና ላኪ ኃ/የተ/የግ/ማኅበር' },
+      { id: 'propertyToAttach', label: 'Specific Property / Vehicle / Bank Account to be Attached & Value', amharicLabel: 'እንዲከበር የተጠየቀው ንብረት / ተሽከርካሪ / የባንክ ሂሳብ ዝርዝርና ግምት', type: 'textarea', placeholder: 'ምሳሌ፡ የሰሌዳ ቁጥሩ ኮድ 3-A88219 አ.አ የሆነ ተሽከርካሪ እና በንግድ ባንክ የሚገኝ ብር 3,500,000.00...' },
+      { id: 'riskOfDisposal', label: 'Facts Showing Intent to Obstruct or Delay Execution (Art. 151(1))', amharicLabel: 'ተጠሪው ንብረቱን ለማሸሽ ወይም ለማባከን ስለመሞከሩ መግለጫ (አንቀጽ 151)', type: 'textarea', placeholder: 'ተጠሪው የፍርድ አፈጻጸምን ለማሰናከል ንብረቱን ለመሸጥ ወይም ለማሸሽ በዝግጅት ላይ መሆኑን ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ከፍተኛ ፍርድ ቤት'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች (ከሳሽ)፡ ${v.applicantName || '____________________________________'}
+ተጠሪ (ተከሳሽ)፡ ${v.respondentName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 151–153 መሠረት
+ከፍርድ በፊት የተጠሪ ንብረት ተከብሮ እንዲቆይ የቀረበ ማመልከቻ
+
+1. እንዲከበር የተጠየቀው የተጠሪ ንብረት ዝርዝርና ግምት (አንቀጽ 151(2))፡
+${v.propertyToAttach || '________________________________________________________________________'}
+
+2. ንብረቱ እንዲከበር የተጠየቀበት ምክንያት (በቃለ-መሐላ የተደገፈ)፡
+${v.riskOfDisposal || '________________________________________________________________________'}
+
+3. የሚጠየቅ ትዕዛዝ፡
+በፍ/ብ/ሥ/ሥ/ሕግ ቁጥር 151(3) መሠረት ተጠሪው በቂ ዋስትና እስኪያቀርብ ወይም ክሱ የመጨረሻ ውሳኔ እስኪያገኝ ድረስ ከላይ የተገለጸው ንብረት/ገንዘብ ተከብሮ እንዲቆይ አስቸኳይ ትዕዛዝ እንዲሰጥልኝ አመለክታለሁ።
+
+አመልካች / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
 
@@ -553,19 +910,35 @@ Applicant / Advocate for Applicant`,
     id: 'pleading-injunction-exparte',
     aliases: ['injunction-exparte'],
     title: 'Pleading for Injunction of Enforcement of Ex-Parte Judgment',
-    amharicTitle: 'በሌለበት የተሰጠ ፍርድ አፈጻጸም እንዲታገድ የቀረበ ማመልከቻ',
+    amharicTitle: 'በሌለበት የተሰጠ ፍርድ አፈጻጸም እንዲታገድ የቀረበ ማመልከቻ (9c685-pleading-for-injuction-of-enforcememnt-of-exparte-judgement.docx)',
     category: 'Application',
     sourceFile: 'Application/9c685-pleading-for-injuction-of-enforcememnt-of-exparte-judgement.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 78 & Art. 154',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 78 እና 154',
     description:
       'Emergency motion to restrain enforcement and auction of assets while an application to set aside an ex-parte judgment is pending.',
     fields: [
-      { id: 'courtName', label: 'Court Name & File No.', placeholder: 'e.g., Federal High Court, File No. 190332' },
-      { id: 'applicantName', label: 'Applicant (Judgment-Debtor) Name', placeholder: 'e.g., Ato Henok Desta' },
-      { id: 'respondentName', label: 'Respondent (Judgment-Creditor) Name', placeholder: 'e.g., Ato Mulugeta Taye' },
-      { id: 'enforcementThreat', label: 'Imminent Enforcement Action & Irreparable Harm', type: 'textarea', placeholder: 'Describe the pending attachment/auction order and confirm that an Art. 78 petition has been filed...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court Name & File No.', amharicLabel: 'ፍርድ ቤቱ እና የመዝገብ ቁጥር', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት፣ መዝገብ ቁ. 190332' },
+      { id: 'applicantName', label: 'Applicant (Judgment-Debtor) Name', amharicLabel: 'አመልካች ስም', placeholder: 'ምሳሌ፡ አቶ ሄኖክ ደስታ' },
+      { id: 'respondentName', label: 'Respondent (Judgment-Creditor) Name', amharicLabel: 'ተጠሪ ስም', placeholder: 'ምሳሌ፡ አቶ ሙሉጌታ ታዬ' },
+      { id: 'enforcementThreat', label: 'Imminent Enforcement Action & Irreparable Harm', amharicLabel: 'የአፈጻጸም ሂደቱ ያለበት ደረጃ እና የሚደርሰው ጉዳት', type: 'textarea', placeholder: 'በሌለሁበት የተሰጠው ውሳኔ እንዲነሳ በአንቀጽ 78 ማመልከቻ መቅረቡንና አፈጻጸሙ ባይታገድ የሚደርሰውን ጉዳት ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ፍርድ ቤት'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች፡ ${v.applicantName || '____________________________________'}
+ተጠሪ፡ ${v.respondentName || '____________________________________'}
+
+በሌለሁበት የተሰጠው ፍርድ አፈጻጸም እንዲታገድ የቀረበ ማመልከቻ
+(በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 78 እና 154 መሠረት)
+
+1. የማመልከቻው ዝርዝር ምክንያት፡
+${v.enforcementThreat || '________________________________________________________________________'}
+
+2. የሚጠየቅ ትዕዛዝ፡
+በፍ/ብ/ሥ/ሥ/ሕግ ቁጥር 78 መሠረት ያቀረብኩት ውሳኔው ይነሳልኝ አቤቱታ ተመርምሮ ውሳኔ እስኪሰጥ ድረስ የፍርድ አፈጻጸሙ እንዲታገድ ትዕዛዝ እንዲሰጥልኝ አመለክታለሁ።
+
+አመልካች / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
 
@@ -587,23 +960,44 @@ Applicant / Advocate for Applicant`,
   {
     id: 'application-for-execution',
     aliases: ['execution', 'decree-execution'],
-    title: 'Application for Execution of Decree (የፍርድ አፈጻጸም ማመልከቻ)',
-    amharicTitle: 'የፍርድ አፈጻጸም መጠየቂያ ማመልከቻ',
+    title: 'Application for Execution of Decree',
+    amharicTitle: 'የፍርድ አፈጻጸም መጠየቂያ ማመልከቻ (aa66b-application-for-execution.docx)',
     category: 'Application',
     sourceFile: 'Application/aa66b-application-for-execution.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 378',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 378',
     description:
       'Statutory application to execute a final court judgment by attachment and sale of property or transfer of funds.',
     fields: [
-      { id: 'courtName', label: 'Execution Court Name', placeholder: 'e.g., Federal High Court Execution Bench' },
-      { id: 'suitNo', label: 'Original Suit File No. & Date of Decree', placeholder: 'e.g., Civil File No. 164920, Decree dated Sept 18, 2026' },
-      { id: 'decreeHolder', label: 'Decree-Holder (Applicant) Name & Address', placeholder: 'e.g., Lucy Trading PLC, Addis Ababa' },
-      { id: 'judgmentDebtor', label: 'Judgment-Debtor (Respondent) Name & Address', placeholder: 'e.g., Ato Alemayehu Bekele, Addis Ababa' },
-      { id: 'whetherAppeal', label: 'Whether Any Appeal Has Been Preferred From the Decree', placeholder: 'e.g., No appeal or stay order issued', defaultValue: 'No appeal or stay of execution order has been issued.' },
-      { id: 'amountDue', label: 'Total Amount of Debt / Compensation & Costs Due (ETB)', placeholder: 'e.g., Principal ETB 1,200,000 + 9% Legal Interest' },
-      { id: 'modeOfAssistance', label: 'Mode in Which Court Assistance is Required (Art. 378(3)(j))', type: 'textarea', placeholder: 'e.g., Issue execution summons under Art. 386 and attach/transfer funds...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Execution Court Name', amharicLabel: 'አፈጻጸሙ የሚቀርብለት ፍርድ ቤት', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት የአፈጻጸም ችሎት' },
+      { id: 'suitNo', label: 'Original Suit File No. & Date of Decree', amharicLabel: 'ፍርድ የተሰጠበት የመዝገብ ቁጥር እና ቀን', placeholder: 'ምሳሌ፡ የመዝገብ ቁጥር 164920፣ መስከረም 8 ቀን 2019 ዓ.ም.' },
+      { id: 'decreeHolder', label: 'Decree-Holder (Applicant) Name & Address', amharicLabel: 'የፍርድ ባለገንዘብ (አመልካች) ስምና አድራሻ', placeholder: 'ምሳሌ፡ ሉሲ ትሬዲንግ ኃ/የተ/የግ/ማኅበር' },
+      { id: 'judgmentDebtor', label: 'Judgment-Debtor (Respondent) Name & Address', amharicLabel: 'የፍርድ ባለዕዳ (ተጠሪ) ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቶ አለማየሁ በቀለ' },
+      { id: 'whetherAppeal', label: 'Whether Any Appeal Has Been Preferred From the Decree', amharicLabel: 'በውሳኔው ላይ ይግባኝ መቅረብ አለመቅረቡ', placeholder: 'ምሳሌ፡ ይግባኝ ወይም የዕግድ ትዕዛዝ አልቀረበም', defaultValue: 'ይግባኝ ወይም የዕግድ ትዕዛዝ አልቀረበም / No appeal or stay issued.' },
+      { id: 'amountDue', label: 'Total Amount of Debt / Compensation & Costs Due (ETB)', amharicLabel: 'በፍርዱ መሠረት የሚጠየቀው ጠቅላላ የገንዘብ መጠን፣ ወለድና ወጪ (በብር)', placeholder: 'ምሳሌ፡ ዋና ገንዘብ ብር 1,200,000 + 9% ሕጋዊ ወለድ + ብር 45,000 ወጪ' },
+      { id: 'modeOfAssistance', label: 'Mode in Which Court Assistance is Required (Art. 378(3)(j))', amharicLabel: 'ፍርዱ እንዲፈጸም የሚጠየቅበት መንገድ (አንቀጽ 378(3)(י))', type: 'textarea', placeholder: 'ምሳሌ፡ በፍ/ብ/ሥ/ሥ/ሕግ ቁጥር 386 መጥሪያ ተልኮ የፍርድ ባለዕዳው ንብረት/የባንክ ሂሳብ ተከብሮ እንዲከፈለኝ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል የአፈጻጸም ፍርድ ቤት'}
+አዲስ አበባ
+
+የአፈጻጸም መዝገብ ቁጥር፡ ____________________
+ቀን፡ ${v.date || '__________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 378 መሠረት የቀረበ
+የፍርድ አፈጻጸም ማመልከቻ
+
+1. ፍርድ የተሰጠበት የመዝገብ ቁጥርና ቀን፡ ${v.suitNo || '____________________________________'}
+2. የፍርድ ባለገንዘብ (አመልካች) ስምና አድራሻ፡ ${v.decreeHolder || '____________________________________'}
+3. የፍርድ ባለዕዳ (ተጠሪ) ስምና አድራሻ፡ ${v.judgmentDebtor || '____________________________________'}
+4. በውሳኔው ላይ ይግባኝ መቅረብ አለመቅረቡ፡ ${v.whetherAppeal || 'አልቀረበም'}
+5. ከፍርዱ በኋላ የተከፈለ ወይም የተስተካከለ ነገር መኖር አለመኖሩ፡ የለም
+6. በፍርዱ መሠረት የሚጠየቀው ጠቅላላ የገንዘብ መጠንና ወጪ፡ ${v.amountDue || '____________________________________'}
+7. የፍርድ ቤቱ ድጋፍ የሚጠየቅበት የአፈጻጸም ዓይነት (አንቀጽ 378(3)(י))፡
+   ${v.modeOfAssistance || '________________________________________________________________________'}
+
+ከላይ የተገለጸው ሁሉ እውነት መሆኑን አረጋግጣለሁ።
+
+የፍርድ ባለገንዘብ / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL EXECUTION COURT OF ETHIOPIA'}
 Execution File No.: ____________________
 Date: ${v.date || '__________________'}
@@ -624,21 +1018,40 @@ Decree-Holder / Advocate`,
   {
     id: 'injunction-order',
     aliases: ['temporary-injunction', 'injunction'],
-    title: 'Application for Temporary Injunction Order (የዕግድ ትዕዛዝ ማመልከቻ)',
-    amharicTitle: 'ጊዜያዊ የዕግድ ትዕዛዝ እንዲሰጥ የቀረበ ማመልከቻ',
+    title: 'Application for Temporary Injunction Order',
+    amharicTitle: 'ጊዜያዊ የዕግድ ትዕዛዝ እንዲሰጥ የቀረበ ማመልከቻ (b94e6-injunction-order.docx)',
     category: 'Application',
     sourceFile: 'Application/b94e6-injunction-order.docx',
-    legalBasis: 'Ethiopian Civil Procedure Code Art. 154–155',
+    legalBasis: 'የፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 154–155',
     description:
       'Application for a temporary injunction to restrain a party from wasting, damaging, alienating, or wrongfully selling property in dispute.',
     fields: [
-      { id: 'courtName', label: 'Court Name & File No.', placeholder: 'e.g., Federal High Court, File No. 221094' },
-      { id: 'applicantName', label: 'Applicant Name', placeholder: 'e.g., Ato Yared Tsegaye' },
-      { id: 'respondentName', label: 'Respondent Name', placeholder: 'e.g., W/ro Roman Gebre' },
-      { id: 'propertyInDispute', label: 'Description of Disputed Property / Subject Matter', placeholder: 'e.g., Residential property in Bole Sub-City, Woreda 09, Plot No. 882/09' },
-      { id: 'groundsForInjunction', label: 'Grounds Showing Danger of Alienation, Waste, or Damage (Art. 154)', type: 'textarea', placeholder: 'State the specific acts showing that the property in dispute is in danger of being wasted or alienated...' },
-      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'courtName', label: 'Court Name & File No.', amharicLabel: 'ፍርድ ቤቱ እና የመዝገብ ቁጥር', placeholder: 'ምሳሌ፡ ለፌዴራል ከፍተኛ ፍርድ ቤት፣ መዝገብ ቁ. 221094' },
+      { id: 'applicantName', label: 'Applicant Name', amharicLabel: 'አመልካች ስም', placeholder: 'ምሳሌ፡ አቶ ያሬድ ፀጋዬ' },
+      { id: 'respondentName', label: 'Respondent Name', amharicLabel: 'ተጠሪ ስም', placeholder: 'ምሳሌ፡ ወ/ሮ ሮማን ገብሬ' },
+      { id: 'propertyInDispute', label: 'Description of Disputed Property / Subject Matter', amharicLabel: 'ክርክር የተነሳበት ንብረት አድራሻና መለያ', placeholder: 'ምሳሌ፡ በቦሌ ክ/ከተማ ወረዳ 09 የሚገኝ የካርታ ቁጥር 882/09 የሆነ መኖሪያ ቤት' },
+      { id: 'groundsForInjunction', label: 'Grounds Showing Danger of Alienation, Waste, or Damage (Art. 154)', amharicLabel: 'ንብረቱ እንዳይሸጥ/እንዳይለወጥ ዕግድ የተጠየቀበት ምክንያት (አንቀጽ 154)', type: 'textarea', placeholder: 'ተጠሪው ክርክር የተነሳበትን ንብረት ለሦስተኛ ወገን ለማስተላለፍ ወይም ለማባከን በሂደት ላይ መሆኑን ይግለጹ...' },
+      { id: 'date', label: 'Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `${v.courtName || 'ለፌዴራል ፍርድ ቤት'}
+ቀን፡ ${v.date || '__________________'}
+
+አመልካች፡ ${v.applicantName || '____________________________________'}
+ተጠሪ፡ ${v.respondentName || '____________________________________'}
+
+በፍትሐ ብሔር ሥነ-ሥርዓት ሕግ ቁጥር 154 እና 155 መሠረት
+ጊዜያዊ የዕግድ ትዕዛዝ እንዲሰጥልኝ የቀረበ ማመልከቻ
+
+1. ክርክር የተነሳበት ንብረት መግለጫ፡
+${v.propertyInDispute || '________________________________________________________________________'}
+
+2. የዕግድ ትዕዛዝ የተጠየቀበት ምክንያት (በቃለ-መሐላ የተደገፈ)፡
+${v.groundsForInjunction || '________________________________________________________________________'}
+
+3. የሚጠየቅ ትዕዛዝ፡
+የተጀመረው ክርክር የመጨረሻ ውሳኔ እስኪያገኝ ድረስ ክርክር የተነሳበት ንብረት ለሦስተኛ ወገን እንዳይተላለፍ፣ በዋስትና እንዳይያዝና ባለበት ሁኔታ ተከብሮ እንዲቆይ ጊዜያዊ የዕግድ ትዕዛዝ እንዲሰጥልኝ አመለክታለሁ።
+
+አመልካች / ጠበቃ ፊርማ፡ ___________________________`,
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
 
@@ -660,26 +1073,53 @@ ____________________________________
 Applicant / Advocate for Applicant`,
   },
 
-  // 4. BUSINESS & COMMERCIAL FORMS
+  // ===========================================================================
+  // 4. BUSINESS FORMS (ARCHIVE PLC ARTICLES + COMMERCIAL CONTRACTS)
+  // ===========================================================================
   {
     id: 'plc-articles-of-association',
     aliases: ['plc', 'articles-of-association', 'memorandum-of-association', 'company-formation', 'corporate'],
     title: 'Memorandum & Articles of Association for Private Limited Company (PLC)',
-    amharicTitle: 'ኃላፊነቱ የተወሰነ የግል ማኅበር መመሥረቻ ጽሑፍ',
+    amharicTitle: 'ኃላፊነቱ የተወሰነ የግል ማኅበር መመሥረቻ ጽሑፍ (article of association for plc.doc)',
     category: 'Business Forms',
     sourceFile: 'Business Forms/article of association for plc.doc',
-    legalBasis: 'Commercial Code Proclamation No. 1243/2021 (Art. 495–533)',
+    legalBasis: 'የኢትዮጵያ የንግድ ሕግ አዋጅ ቁጥር 1243/2013 (አንቀጽ 495–533)',
     description:
       'Complete corporate formation instrument for a Private Limited Company (PLC) ready for DARS authentication and Ministry of Trade registration.',
     fields: [
-      { id: 'companyName', label: 'Company Name (PLC)', placeholder: 'e.g., Blue Nile Tech Solutions Private Limited Company' },
-      { id: 'headOffice', label: 'Head Office Address', placeholder: 'e.g., Addis Ababa, Bole Sub-City, Woreda 03' },
-      { id: 'businessObjectives', label: 'Business Objectives / Purposes of the Company', type: 'textarea', placeholder: 'e.g., 1. Software development and IT consultancy;\n2. Import and distribution of equipment...' },
-      { id: 'capitalAmount', label: 'Total Paid-Up Capital (ETB) & Par Value of Shares', placeholder: 'e.g., ETB 500,000.00 divided into 500 shares of ETB 1,000.00 each' },
-      { id: 'shareholdersList', label: 'Founding Shareholders & Share Allocation', type: 'textarea', placeholder: '1. Ato Abebe Kebede — 300 Shares (ETB 300,000)\n2. W/ro Sara Tadesse — 200 Shares (ETB 200,000)' },
-      { id: 'generalManager', label: 'Appointed General Manager Full Name', placeholder: 'e.g., Ato Abebe Kebede' },
-      { id: 'date', label: 'Execution Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'companyName', label: 'Company Name (PLC)', amharicLabel: 'የማኅበሩ ስም (ኃ/የተ/የግ/ማኅበር)', placeholder: 'ምሳሌ፡ ብሉ ናይል ቴክ ሶሉሽንስ ኃላፊነቱ የተወሰነ የግል ማኅበር' },
+      { id: 'headOffice', label: 'Head Office Address', amharicLabel: 'የማኅበሩ ዋና መሥሪያ ቤት አድራሻ', placeholder: 'ምሳሌ፡ አዲስ አበባ፣ ቦሌ ክ/ከተማ፣ ወረዳ 03' },
+      { id: 'businessObjectives', label: 'Business Objectives / Purposes of the Company', amharicLabel: 'የማኅበሩ የንግድ ዓላማዎች ዝርዝር', type: 'textarea', placeholder: 'ምሳሌ፡ 1. የሶፍትዌር ልማትና የቴክኖሎጂ ማማከር አገልግሎት፤\n2. የንግድ ዕቃዎች አስመጪና አከፋፋይ...' },
+      { id: 'capitalAmount', label: 'Total Paid-Up Capital (ETB) & Par Value of Shares', amharicLabel: 'የማኅበሩ ዋና ገንዘብ (ካፒታል) እና የአክሲዮን ዋጋ', placeholder: 'ምሳሌ፡ ብር 500,000.00 (እያንዳንዳቸው ብር 1,000 ዋጋ ባላቸው 500 አክሲዮኖች የተከፈለ)' },
+      { id: 'shareholdersList', label: 'Founding Shareholders & Share Allocation', amharicLabel: 'የመሥራች አባላት ስም፣ ዜግነት እና የአክሲዮን ድርሻ', type: 'textarea', placeholder: '1. አቶ አበበ ከበደ — 300 አክሲዮኖች (ብር 300,000)\n2. ወ/ሮ ሳራ ታደሰ — 200 አክሲዮኖች (ብር 200,000)' },
+      { id: 'generalManager', label: 'Appointed General Manager Full Name', amharicLabel: 'የተሾመው ዋና ሥራ አስኪያጅ ሙሉ ስም', placeholder: 'ምሳሌ፡ አቶ አበበ ከበደ' },
+      { id: 'date', label: 'Execution Date', amharicLabel: 'ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `የ${v.companyName || '____________________________________'}
+ኃላፊነቱ የተወሰነ የግል ማኅበር መመሥረቻ ጽሑፍ
+(በኢትዮጵያ የንግድ ሕግ አዋጅ ቁጥር 1243/2013 መሠረት የተዘጋጀ)
+
+አንቀጽ 1 — የማኅበሩ ምሥረታና ስያሜ፡
+ከዚህ በታች ስማችንና ፊርማችን የተመለከተው መሥራች አባላት በኢትዮጵያ የንግድ ሕግ አዋጅ ቁጥር 1243/2013 መሠረት "${v.companyName || '________________________ ኃላፊነቱ የተወሰነ የግል ማኅበር'}" ተብሎ የሚጠራ ማኅበር መሥርተናል።
+
+አንቀጽ 2 — የማኅበሩ ዋና መሥሪያ ቤት፡
+የማኅበሩ ዋና መሥሪያ ቤት በ${v.headOffice || 'አዲስ አበባ ከተማ'} ሆኖ፣ እንደ አስፈላጊነቱ በኢትዮጵያ ውስጥም ሆነ ከኢትዮጵያ ውጪ ቅርንጫፍ መሥሪያ ቤቶች ሊከፍት ይችላል።
+
+አንቀጽ 3 — የማኅበሩ የንግድ ዓላማዎች፡
+ማኅበሩ የተቋቋመባቸው የንግድ ዓላማዎች የሚከተሉት ናቸው፦
+${v.businessObjectives || '________________________________________________________________________'}
+
+አንቀጽ 4 — የማኅበሩ ካፒታል እና የአክሲዮን ክፍፍል፡
+የማኅበሩ ጠቅላላ ካፒታል ${v.capitalAmount || 'ብር ________________'} ሲሆን፣ ይኸውም በሙሉ በጥሬ ገንዘብ ተከፍሏል። የአባላቱ የአክሲዮን ድርሻ እንደሚከተለው ተደልድሏል፦
+${v.shareholdersList || '________________________________________________________________________'}
+
+አንቀጽ 5 — የማኅበሩ አመራርና የዋና ሥራ አስኪያጅ ሥልጣን፡
+የማኅበሩ የመጀመሪያ ዋና ሥራ አስኪያጅ ሆነው ${v.generalManager || '________________________'} ተሾመዋል። ዋና ሥራ አስኪያጁ ማኅበሩን በመወከል የባንክ ሂሳብ የመክፈትና የማንቀሳቀስ፣ ውሎችን የመፈረምና የማኅበሩን የዕለት ተዕለት ሥራ የመምራት ሥልጣን አላቸው።
+
+ይህ የመመሥረቻ ጽሑፍ በዛሬው ዕለት ${v.date || '__________________'} በመሥራች አባላት ተፈርሟል።
+
+የመሥራች አባላት ፊርማ፡
+1. ___________________________   2. ___________________________`,
     generateDocument: (v) => `MEMORANDUM OF ASSOCIATION OF
 ${v.companyName?.toUpperCase() || '____________________________________ PLC'}
 (Pursuant to Commercial Code Proclamation No. 1243/2021)
@@ -706,19 +1146,31 @@ FOUNDING SHAREHOLDERS SIGNATURES:
     id: 'employment-agreement',
     aliases: ['employment', 'employment-contract', 'labor', 'labour'],
     title: 'Bilingual Employment Contract (Proclamation No. 1156/2019)',
-    amharicTitle: 'የቅጥር ውል ስምምነት (በአዋጅ ቁጥር 1156/2011 መሠረት)',
+    amharicTitle: 'የቅጥር ውል ስምምነት (በአሠሪና ሠራተኛ አዋጅ ቁጥር 1156/2011 መሠረት)',
     category: 'Business Forms',
     sourceFile: 'Business Forms/Employment Agreement',
-    legalBasis: 'Ethiopian Labour Proclamation No. 1156/2019 (Art. 4, 6 & 7)',
+    legalBasis: 'የአሠሪና ሠራተኛ ጉዳይ አዋጅ ቁጥር 1156/2011 (አንቀጽ 4፣ 6 እና 7)',
     description:
       'Compliant employment contract specifying job title, place of work, probation period, basic salary, leave entitlements, and termination notice.',
     fields: [
-      { id: 'employerName', label: 'Employer Company Name & Address', placeholder: 'e.g., Ethio-FinTech Solutions PLC, Addis Ababa' },
-      { id: 'employeeName', label: 'Employee Full Name & Address', placeholder: 'e.g., Ato Daniel Bekele, Addis Ababa' },
-      { id: 'jobTitle', label: 'Job Title / Position & Place of Work', placeholder: 'e.g., Senior Operations Officer — Addis Ababa Head Office' },
-      { id: 'monthlySalary', label: 'Gross Monthly Salary (ETB) & Allowances', placeholder: 'e.g., ETB 35,000.00 + ETB 3,000 Transport Allowance' },
-      { id: 'startDate', label: 'Commencement Date (60 Working Days Probation per Art. 11)', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
+      { id: 'employerName', label: 'Employer Company Name & Address', amharicLabel: 'የአሠሪው ድርጅት ስምና አድራሻ', placeholder: 'ምሳሌ፡ ኢትዮ-ፊንቴክ ኃ/የተ/የግ/ማኅበር፣ አዲስ አበባ' },
+      { id: 'employeeName', label: 'Employee Full Name & Address', amharicLabel: 'የተቀጣሪ (ሠራተኛ) ሙሉ ስምና አድራሻ', placeholder: 'ምሳሌ፡ አቶ ዳንኤል በቀለ፣ አዲስ አበባ' },
+      { id: 'jobTitle', label: 'Job Title / Position & Place of Work', amharicLabel: 'የሥራ መደብ እና የሥራ ቦታ', placeholder: 'ምሳሌ፡ ከፍተኛ የኦፕሬሽን ባለሙያ — አዲስ አበባ' },
+      { id: 'monthlySalary', label: 'Gross Monthly Salary (ETB) & Allowances', amharicLabel: 'ወርሃዊ ደመወዝ (በብር) እና ጥቅማጥቅም', placeholder: 'ምሳሌ፡ ብር 35,000.00 + ብር 3,000 የትራንስፖርት አበል' },
+      { id: 'startDate', label: 'Commencement Date (60 Working Days Probation)', amharicLabel: 'ሥራ የሚጀመርበት ቀን', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
+    generateAmharicDocument: (v) => `የሥራ ቅጥር ውል ስምምነት
+(በአሠሪና ሠራተኛ ጉዳይ አዋጅ ቁጥር 1156/2011 መሠረት የተዘጋጀ)
+
+ቀን፡ ${v.startDate || '__________________'}
+
+1. አሠሪ፡ ${v.employerName || '____________________________________'}
+2. ሠራተኛ፡ ${v.employeeName || '____________________________________'}
+3. የሥራ መደብና የሥራ ቦታ፡ ${v.jobTitle || '____________________________________'}
+4. ደመወዝና ክፍያ፡ የሠራተኛው ወርሃዊ ناጠቃላይ ደመወዝ ${v.monthlySalary || 'ብር ________________'} ሲሆን፣ የሥራ ግብርና የጡረታ መዋጮ (7% ከሠራተኛው፣ 11% ከአሠሪው) በሕጉ መሠረት ተቀናሽ ይደረጋል።
+5. የሙከራ ጊዜ፡ በአዋጅ ቁጥር 1156/2011 አንቀጽ 11(3) መሠረት ሥራ ከተጀመረበት ከ${v.startDate || '____________'} ጀምሮ ለስድሳ (60) የሥራ ቀናት የሙከራ ጊዜ ይሆናል።
+
+የአሠሪው ፊርማ፡ _______________________   የሠራተኛው ፊርማ፡ _______________________`,
     generateDocument: (v) => `CONTRACT OF EMPLOYMENT
 (Executed Pursuant to Labour Proclamation No. 1156/2019)
 
@@ -729,7 +1181,6 @@ Date: ${v.startDate || '__________________'}
 3. POSITION & WORKPLACE: ${v.jobTitle || '____________________________________'}
 4. REMUNERATION: Gross monthly salary of ${v.monthlySalary || 'ETB ________________'}, subject to statutory income tax and pension contributions (7% employee / 11% employer).
 5. PROBATION PERIOD: The first sixty (60) working days from ${v.startDate || '____________'} shall constitute a probation period pursuant to Article 11(3) of Proclamation No. 1156/2019.
-6. WORKING HOURS & LEAVE: Standard working hours (8 hours/day, 48 hours/week maximum) and annual leave (16 working days for the first year) shall be governed by Proclamation No. 1156/2019.
 
 Employer Signature: _______________________   Employee Signature: _______________________`,
   },
@@ -737,19 +1188,30 @@ Employer Signature: _______________________   Employee Signature: ______________
     id: 'commercial-lease',
     aliases: ['lease', 'real-estate', 'rent', 'lease-agreement'],
     title: 'Commercial & Office Property Lease Agreement',
-    amharicTitle: 'የንግድ ቤት ኪራይ ውል ስምምነት',
+    amharicTitle: 'የንግድ ቤት / የቢሮ ኪራይ ውል ስምምነት',
     category: 'Business Forms',
     sourceFile: 'Business Forms/Commercial Lease Agreement',
-    legalBasis: 'Ethiopian Civil Code Art. 2896–2974',
+    legalBasis: 'የኢትዮጵያ የፍትሐ ብሔር ሕግ ቁጥር 2896–2974',
     description:
-      'Bilingual-ready lease contract for office, retail, or residential premises covering lease term, advance rent payment, withholding tax, and maintenance.',
+      'Bilingual lease contract for office, retail, or residential premises covering lease term, advance rent payment, withholding tax, and maintenance.',
     fields: [
-      { id: 'lessorName', label: 'Lessor (Landlord) Full Name & TIN', placeholder: 'e.g., Ato Kebede Tadesse, TIN: 001928374' },
-      { id: 'lesseeName', label: 'Lessee (Tenant) Full Name & TIN', placeholder: 'e.g., Addis Consulting PLC, TIN: 004829102' },
-      { id: 'premisesAddress', label: 'Leased Premises Location & Floor/Area', placeholder: 'e.g., Bole Sub-City, Woreda 03, 3rd Floor (180 sq.m)' },
-      { id: 'monthlyRent', label: 'Monthly Rent (ETB) & Advance Payment Schedule', placeholder: 'e.g., ETB 65,000.00/month paid every 6 months in advance' },
-      { id: 'leaseDuration', label: 'Lease Term (Start & End Date)', placeholder: 'e.g., Two (2) Years starting Nov 15, 2026' },
+      { id: 'lessorName', label: 'Lessor (Landlord) Full Name & TIN', amharicLabel: 'የአከራይ ሙሉ ስም እና የግብር ከፋይ መለያ ቁጥር (TIN)', placeholder: 'ምሳሌ፡ አቶ ከበደ ታደሰ፣ TIN: 001928374' },
+      { id: 'lesseeName', label: 'Lessee (Tenant) Full Name & TIN', amharicLabel: 'የተከራይ ሙሉ ስም እና የግብር ከፋይ መለያ ቁጥር (TIN)', placeholder: 'ምሳሌ፡ አዲስ ኮንሰልቲንግ ኃ/የተ/የግ/ማኅበር' },
+      { id: 'premisesAddress', label: 'Leased Premises Location & Floor/Area', amharicLabel: 'የሚከራየው ቤት/ቢሮ አድራሻ እና ስፋት', placeholder: 'ምሳሌ፡ ቦሌ ክ/ከተማ፣ ወረዳ 03፣ 3ኛ ፎቅ (180 ካ.ሜ)' },
+      { id: 'monthlyRent', label: 'Monthly Rent (ETB) & Advance Payment Schedule', amharicLabel: 'ወርሃዊ የኪራይ ዋጋ (በብር) እና የአከፋፈል ሁኔታ', placeholder: 'ምሳሌ፡ በወር ብር 65,000.00 (በየ6 ወሩ በቅድሚያ የሚከፈል)' },
+      { id: 'leaseDuration', label: 'Lease Term (Start & End Date)', amharicLabel: 'የኪራይ ውሉ የሚቆይበት ጊዜ', placeholder: 'ምሳሌ፡ ለሁለት (2) ዓመት' },
     ],
+    generateAmharicDocument: (v) => `የንግድ ቤት / የቢሮ ኪራይ ውል ስምምነት
+(በፍትሐ ብሔር ሕግ ቁጥር 2896–2974 መሠረት)
+
+1. አከራይ፡ ${v.lessorName || '____________________________________'}
+2. ተከራይ፡ ${v.lesseeName || '____________________________________'}
+3. የሚከራየው ቤት አድራሻና ሁኔታ፡ ${v.premisesAddress || '____________________________________'}
+4. የኪራይ ዘመን፡ ${v.leaseDuration || '____________________________________'}
+5. የኪራይ ዋጋና አከፋፈል፡ ${v.monthlyRent || '____________________________________'}
+6. የተከራይ ግዴታ፡ ተከራይ ቤቱን ለተከራየበት ሕጋዊ የሥራ ዓላማ ብቻ የመጠቀምና ያለ አከራይ የጽሑፍ ፈቃድ ለሦስተኛ ወገን አሳልፎ ያለማከራየት ግዴታ አለበት።
+
+የአከራይ ፊርማ፡ _______________________   የተከራይ ፊርማ፡ _______________________`,
     generateDocument: (v) => `COMMERCIAL PROPERTY LEASE AGREEMENT
 (Pursuant to Articles 2896–2974 of the Civil Code of Ethiopia)
 
@@ -789,6 +1251,7 @@ function LexDraftContent() {
   const [activeTemplate, setActiveTemplate] = useState<LegalTemplate | null>(() =>
     findTemplateByIdOrQuery(initialTemplateParam)
   );
+  const [docLang, setDocLang] = useState<DocLanguageMode>('bilingual');
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
 
@@ -826,7 +1289,9 @@ function LexDraftContent() {
     setFormValues((prev) => ({ ...prev, [id]: value }));
   };
 
-  const generatedText = activeTemplate ? activeTemplate.generateDocument(formValues) : '';
+  const generatedText = activeTemplate
+    ? getFormattedDocument(activeTemplate, formValues, docLang)
+    : '';
 
   const handleCopy = () => {
     if (!generatedText) return;
@@ -840,14 +1305,14 @@ function LexDraftContent() {
     const htmlContent = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><title>${activeTemplate.title}</title></head>
-      <body style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; white-space: pre-wrap;">${generatedText}</body>
+      <body style="font-family: 'Nyala', 'Abyssinica SIL', 'Times New Roman', serif; font-size: 12pt; line-height: 1.65; white-space: pre-wrap;">${generatedText}</body>
       </html>
     `;
     const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${activeTemplate.id}.doc`;
+    a.download = `${activeTemplate.id}-${docLang}.doc`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -923,12 +1388,39 @@ function LexDraftContent() {
               <span>Back to Legal Templates List</span>
             </button>
 
-            <Link
-              href="/"
-              className="text-xs font-semibold text-slate-500 hover:text-[#0A1128]"
-            >
-              Return to Landing Page →
-            </Link>
+            {/* Document Output Language Switcher */}
+            <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <Globe className="w-3.5 h-3.5 text-slate-500 ml-2" />
+              <button
+                type="button"
+                onClick={() => setDocLang('am')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  docLang === 'am' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                አማርኛ ብቻ
+              </button>
+              <button
+                type="button"
+                onClick={() => setDocLang('bilingual')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  docLang === 'bilingual'
+                    ? 'bg-[#0A1128] text-white'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                አማርኛ + English
+              </button>
+              <button
+                type="button"
+                onClick={() => setDocLang('en')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  docLang === 'en' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                English Only
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -949,13 +1441,20 @@ function LexDraftContent() {
 
               <div className="space-y-4">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-500">
-                  Step 1: Fill in the Required Details
+                  Step 1: Fill in the Required Details / መረጃዎችን ይሙሉ
                 </h2>
 
                 {activeTemplate.fields.map((field) => (
-                  <div key={field.id} className="space-y-1.5">
+                  <div key={field.id} className="space-y-1">
                     <label className="block text-xs font-bold text-slate-800">
-                      {field.label}
+                      {field.amharicLabel ? (
+                        <>
+                          <span className="text-emerald-800">{field.amharicLabel}</span>
+                          <span className="text-slate-500 font-semibold"> — {field.label}</span>
+                        </>
+                      ) : (
+                        field.label
+                      )}
                     </label>
                     {field.type === 'textarea' ? (
                       <textarea
@@ -984,7 +1483,7 @@ function LexDraftContent() {
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
                 <div>
                   <h2 className="text-sm font-black text-[#0A1128]">
-                    Step 2: Completed Document Preview
+                    Step 2: Completed Document Preview ({docLang === 'am' ? 'አማርኛ' : docLang === 'en' ? 'English' : 'አማርኛ + English'})
                   </h2>
                   <p className="text-[11px] text-slate-500">
                     Ready to download in Microsoft Word (.doc) or print
@@ -1033,13 +1532,13 @@ function LexDraftContent() {
           <div className="max-w-2xl space-y-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-              <span>Ethiopian Legal Templates, Contracts & Court Forms</span>
+              <span>Ethiopian Legal Templates, Contracts & Court Forms (አማርኛ እና እንግሊዝኛ)</span>
             </span>
             <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
               Select a Legal Form to Draft
             </h1>
             <p className="text-xs sm:text-sm text-slate-500">
-              Click any court form, appeal, power of attorney, or contract below to answer the guided questions and download your ready-to-use document.
+              Click any court pleading, appeal, power of attorney, or contract below to answer the guided questions and download your ready-to-use document in Amharic (`አማርኛ`) or English.
             </p>
           </div>
 
@@ -1068,7 +1567,7 @@ function LexDraftContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search forms (e.g. Cassation, PLC, Agency)..."
+                placeholder="Search forms (e.g. ውክልና, ሰበር, PLC)..."
                 className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0A1128] focus:bg-white"
               />
             </div>
@@ -1106,7 +1605,7 @@ function LexDraftContent() {
                     {template.legalBasis}
                   </span>
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-[#0A1128] group-hover:text-amber-600">
-                    <span>Start Form</span>
+                    <span>አዘጋጅ / Draft</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>

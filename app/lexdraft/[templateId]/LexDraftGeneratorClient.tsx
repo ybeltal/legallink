@@ -11,11 +11,14 @@ import {
   Check,
   Printer,
   FileText,
+  Globe,
 } from 'lucide-react';
 import {
   ETHIOPIAN_LEGAL_TEMPLATES,
   LegalTemplate,
+  DocLanguageMode,
   findTemplateByIdOrQuery,
+  getFormattedDocument,
 } from '../page';
 
 export default function LexDraftGeneratorClient({ templateId }: { templateId: string }) {
@@ -24,6 +27,7 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
   const template: LegalTemplate =
     findTemplateByIdOrQuery(templateId) || ETHIOPIAN_LEGAL_TEMPLATES[0];
 
+  const [docLang, setDocLang] = useState<DocLanguageMode>('bilingual');
   const [formValues, setFormValues] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     template.fields.forEach((f) => {
@@ -38,7 +42,7 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
     setFormValues((prev) => ({ ...prev, [id]: value }));
   };
 
-  const generatedText = template.generateDocument(formValues);
+  const generatedText = getFormattedDocument(template, formValues, docLang);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedText);
@@ -50,14 +54,14 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
     const htmlContent = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><title>${template.title}</title></head>
-      <body style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; white-space: pre-wrap;">${generatedText}</body>
+      <body style="font-family: 'Nyala', 'Abyssinica SIL', 'Times New Roman', serif; font-size: 12pt; line-height: 1.65; white-space: pre-wrap;">${generatedText}</body>
       </html>
     `;
     const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${template.id}.doc`;
+    a.download = `${template.id}-${docLang}.doc`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -118,12 +122,39 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
             <span>View All Legal Templates</span>
           </Link>
 
-          <Link
-            href="/"
-            className="text-xs font-semibold text-slate-500 hover:text-[#0A1128]"
-          >
-            ← Back to Home Page
-          </Link>
+          {/* Language Toggle */}
+          <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <Globe className="w-3.5 h-3.5 text-slate-500 ml-2" />
+            <button
+              type="button"
+              onClick={() => setDocLang('am')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                docLang === 'am' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              አማርኛ ብቻ
+            </button>
+            <button
+              type="button"
+              onClick={() => setDocLang('bilingual')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                docLang === 'bilingual'
+                  ? 'bg-[#0A1128] text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              አማርኛ + English
+            </button>
+            <button
+              type="button"
+              onClick={() => setDocLang('en')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                docLang === 'en' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              English Only
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -142,12 +173,21 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
 
             <div className="space-y-4">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-500">
-                Step 1: Fill in the Required Details
+                Step 1: Fill in the Required Details / መረጃዎችን ይሙሉ
               </h2>
 
               {template.fields.map((field) => (
-                <div key={field.id} className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-800">{field.label}</label>
+                <div key={field.id} className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-800">
+                    {field.amharicLabel ? (
+                      <>
+                        <span className="text-emerald-800">{field.amharicLabel}</span>
+                        <span className="text-slate-500 font-semibold"> — {field.label}</span>
+                      </>
+                    ) : (
+                      field.label
+                    )}
+                  </label>
                   {field.type === 'textarea' ? (
                     <textarea
                       rows={3}
@@ -175,7 +215,9 @@ export default function LexDraftGeneratorClient({ templateId }: { templateId: st
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-4">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#0A1128]" />
-                <h2 className="text-sm font-black text-[#0A1128]">Step 2: Completed Legal Draft</h2>
+                <h2 className="text-sm font-black text-[#0A1128]">
+                  Step 2: Completed Legal Draft ({docLang === 'am' ? 'አማርኛ' : docLang === 'en' ? 'English' : 'አማርኛ + English'})
+                </h2>
               </div>
 
               <div className="flex items-center gap-2">
