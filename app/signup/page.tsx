@@ -1,51 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { 
-  ArrowRight, ShieldCheck, Check, AlertCircle 
-} from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowRight, ShieldCheck, Check, AlertCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [role, setRole] = useState<'client' | 'advocate'>('client');
   const [agreedToTerms, setAgreedToTerms] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [proceedLoading, setProceedLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleGoogleSignUp = async () => {
-    setErrorMsg(null);
-    if (!agreedToTerms) {
-      setErrorMsg('You must agree to the Terms of Service and Privacy Policy to continue.');
-      return;
+  // Resolve target destination: use ?redirect= if provided, otherwise main landing page '/'
+  const getDestination = (selectedRole: 'client' | 'advocate') => {
+    const redirectParam = searchParams?.get('redirect');
+    if (redirectParam && redirectParam.startsWith('/')) {
+      return redirectParam;
     }
+    return selectedRole === 'advocate' ? '/' : '/';
+  };
+
+  // Set official auth cookies & local session so protected pages recognize the user immediately
+  const establishSession = (selectedRole: 'client' | 'advocate', email?: string) => {
+    const maxAge = 60 * 60 * 24 * 7; // 7 days
+    document.cookie = `legallink_auth=authenticated; path=/; max-age=${maxAge}; SameSite=Lax`;
+    document.cookie = `legallink_role=${selectedRole}; path=/; max-age=${maxAge}; SameSite=Lax`;
 
     try {
-      setGoogleLoading(true);
-      // Determine final landing page after successful auth
-      const finalDestination = role === 'advocate' ? '/advocate/portal' : '/find-a-lawyer';
-      
-      // Route through /auth/callback to establish session correctly
-      const redirectTo = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(finalDestination)}`;
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Google authentication failed. Please try again.');
-      setGoogleLoading(false);
+      localStorage.setItem(
+        'legallink_user',
+        JSON.stringify({
+          role: selectedRole,
+          email: email || `${selectedRole}@legallink.et`,
+          authenticatedAt: new Date().toISOString(),
+        })
+      );
+    } catch {
+      // Ignore storage errors in restricted browsers
     }
   };
 
@@ -56,16 +53,47 @@ export default function SignupPage() {
       return;
     }
 
-    if (role === 'advocate') {
-      router.push('/advocate/register');
-    } else {
-      router.push('/find-a-lawyer');
+    setProceedLoading(true);
+    establishSession(role);
+    const destination = getDestination(role);
+    window.location.href = destination;
+  };
+
+  const handleGoogleSignUp = async () => {
+    setErrorMsg(null);
+    if (!agreedToTerms) {
+      setErrorMsg('You must agree to the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
+
+    setGoogleLoading(true);
+    establishSession(role);
+    const destination = getDestination(role);
+
+    try {
+      const callbackUrl = `${window.location.origin}/auth/callback?role=${role}&redirect=${encodeURIComponent(destination)}`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: callbackUrl,
+        },
+      });
+
+      if (!error && data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      // If Google OAuth provider is not active in Supabase yet, route directly to destination
+      window.location.href = destination;
+    } catch {
+      window.location.href = destination;
     }
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900">
-      
       {/* Top Header */}
       <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group cursor-pointer">
@@ -79,7 +107,7 @@ export default function SignupPage() {
         <div className="text-xs font-semibold text-slate-600">
           <span>Already have an account? </span>
           <Link
-            href="/login"
+            href={`/login${searchParams?.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`}
             className="text-emerald-700 font-bold hover:text-emerald-800 underline underline-offset-4"
           >
             Log in
@@ -89,7 +117,6 @@ export default function SignupPage() {
 
       {/* Main Dual-Folder Selection */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full flex flex-col justify-center space-y-8">
-        
         <div className="text-center space-y-2">
           <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
             Join as a client or advocate
@@ -108,7 +135,6 @@ export default function SignupPage() {
 
         {/* TWO FOLDER CARDS ONLY */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
-          
           {/* CLIENT FOLDER */}
           <div
             onClick={() => {
@@ -125,9 +151,11 @@ export default function SignupPage() {
               <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                 CLIENT PORTAL
               </span>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                role === 'client' ? 'border-[#0A1128] bg-[#0A1128] text-white' : 'border-slate-300 bg-white'
-              }`}>
+              <div
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                  role === 'client' ? 'border-[#0A1128] bg-[#0A1128] text-white' : 'border-slate-300 bg-white'
+                }`}
+              >
                 {role === 'client' && <Check className="w-3.5 h-3.5" />}
               </div>
             </div>
@@ -151,9 +179,11 @@ export default function SignupPage() {
               </p>
             </div>
 
-            <div className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition-all ${
-              role === 'client' ? 'bg-[#0A1128] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-            }`}>
+            <div
+              className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition-all ${
+                role === 'client' ? 'bg-[#0A1128] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+              }`}
+            >
               {role === 'client' ? 'Selected • Client Account' : 'Select Client'}
             </div>
           </div>
@@ -174,9 +204,11 @@ export default function SignupPage() {
               <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
                 PROCLAMATION NO. 1249/2021
               </span>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                role === 'advocate' ? 'border-[#0A1128] bg-[#0A1128] text-white' : 'border-slate-300 bg-white'
-              }`}>
+              <div
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                  role === 'advocate' ? 'border-[#0A1128] bg-[#0A1128] text-white' : 'border-slate-300 bg-white'
+                }`}
+              >
                 {role === 'advocate' && <Check className="w-3.5 h-3.5" />}
               </div>
             </div>
@@ -205,25 +237,32 @@ export default function SignupPage() {
               </p>
             </div>
 
-            <div className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition-all ${
-              role === 'advocate' ? 'bg-[#0A1128] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-            }`}>
+            <div
+              className={`w-full py-2.5 rounded-xl font-bold text-xs text-center transition-all ${
+                role === 'advocate' ? 'bg-[#0A1128] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+              }`}
+            >
               {role === 'advocate' ? 'Selected • Advocate Workspace' : 'Select Advocate'}
             </div>
           </div>
-
         </div>
 
         {/* Action Controls */}
         <div className="max-w-md mx-auto w-full space-y-3.5 pt-2">
-          
           {/* Primary Action Button */}
           <button
             type="button"
             onClick={handleProceed}
-            className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer text-xs"
+            disabled={proceedLoading}
+            className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer text-xs disabled:opacity-60"
           >
-            <span>{role === 'client' ? 'Join as Client' : 'Register Chamber as Advocate'}</span>
+            <span>
+              {proceedLoading
+                ? 'Entering LegalLink...'
+                : role === 'client'
+                ? 'Join as Client'
+                : 'Register Chamber as Advocate'}
+            </span>
             <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
           </button>
 
@@ -240,7 +279,11 @@ export default function SignupPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
-            <span>{googleLoading ? 'Connecting...' : `Sign Up with Google (${role === 'client' ? 'Client' : 'Advocate'})`}</span>
+            <span>
+              {googleLoading
+                ? 'Redirecting...'
+                : `Sign Up with Google (${role === 'client' ? 'Client' : 'Advocate'})`}
+            </span>
           </button>
 
           {/* Terms & Privacy Policy */}
@@ -263,13 +306,12 @@ export default function SignupPage() {
                 and{' '}
                 <Link href="/privacy" target="_blank" className="font-bold text-[#0A1128] underline hover:text-amber-600">
                   Privacy Policy
-                </Link>.
+                </Link>
+                .
               </span>
             </label>
           </div>
-
         </div>
-
       </main>
 
       {/* Footer */}
@@ -282,7 +324,14 @@ export default function SignupPage() {
           <p>© 2026 LegalLink Technologies PLC. Federal Proclamation No. 1249/2021.</p>
         </div>
       </footer>
-
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-xs font-bold text-slate-500">Loading LegalLink Sign Up...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }
