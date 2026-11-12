@@ -3,11 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  FileText,
-  Scale,
-  Building2,
-  Gavel,
-  UserCheck,
   Search,
   ArrowRight,
   Download,
@@ -21,7 +16,7 @@ import {
 export interface TemplateField {
   id: string;
   label: string;
-  placeholder: string;
+  placeholder?: string;
   type?: 'text' | 'textarea' | 'date' | 'select';
   options?: string[];
   defaultValue?: string;
@@ -52,11 +47,11 @@ export const ETHIOPIAN_LEGAL_TEMPLATES: LegalTemplate[] = [
     fields: [
       { id: 'principalName', label: 'Principal (Client) Full Name', placeholder: 'e.g., Ato Abebe Kebede Tesfaye' },
       { id: 'principalAddress', label: 'Principal Address (City, Sub-City, Woreda, House No.)', placeholder: 'e.g., Addis Ababa, Bole Sub-City, Woreda 03, H.No. 412' },
-      { id: 'advocateName', label: 'Appointed Advocate Full Name', placeholder: 'e.g., AdvocateSolomon Tadesse' },
+      { id: 'advocateName', label: 'Appointed Advocate Full Name', placeholder: 'e.g., Advocate Solomon Tadesse' },
       { id: 'licenseNo', label: 'Ministry of Justice Advocate License No.', placeholder: 'e.g., MOJ/FED/1842/2021' },
       { id: 'advocateAddress', label: 'Advocate Chamber Address & Phone', placeholder: 'e.g., Lideta Sub-City, Woreda 08, Sengatera Bldg 4th Floor, Tel: +251911...' },
       { id: 'scopeOfMatter', label: 'Specific Case / Legal Matter Authorized', type: 'textarea', placeholder: 'e.g., To institute, defend, appeal, and execute judgment regarding commercial contract dispute against XYZ PLC...' },
-      { id: 'date', label: 'Date of Execution', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date of Execution', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA
 DOCUMENTS AUTHENTICATION AND REGISTRATION SERVICE (DARS)
@@ -108,10 +103,10 @@ WITNESSES:
     fields: [
       { id: 'principalName', label: 'Principal (Property Owner) Full Name', placeholder: 'e.g., W/ro Almaz Bekele' },
       { id: 'principalAddress', label: 'Principal Address', placeholder: 'e.g., Addis Ababa, Kirkos Sub-City, Woreda 02' },
-      { id: 'agentName', label: 'Agent (Representative) Full Name', placeholder: 'e.g., Ato DawitKebede' },
+      { id: 'agentName', label: 'Agent (Representative) Full Name', placeholder: 'e.g., Ato Dawit Kebede' },
       { id: 'agentAddress', label: 'Agent Address & ID Number', placeholder: 'e.g., Addis Ababa, Yeka Sub-City, Woreda 05, ID: AA-05-9921' },
       { id: 'propertyDetails', label: 'Property / Business Under Administration (Title Deed / Plot No.)', type: 'textarea', placeholder: 'e.g., Residential/Commercial Building located in Bole Sub-City, Woreda 04, Title Deed No. BL/10294/2018...' },
-      { id: 'date', label: 'Date of Execution', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date of Execution', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `INSTRUMENT OF AGENCY FOR PROPERTY & BUSINESS ADMINISTRATION
 (Executed Pursuant to Articles 2199 & 2204 of the Ethiopian Civil Code)
@@ -160,7 +155,7 @@ WITNESSES:
       { id: 'respondentName', label: 'Respondent Name & Address', placeholder: 'e.g., Horizon Trading PLC, Kirkos Sub-City, Woreda 01' },
       { id: 'lowerCourtFile', label: 'Lower Court Name, File No. & Judgment Date', placeholder: 'e.g., Federal First Instance Court File No. 142890, Judgment dated Oct 02, 2026' },
       { id: 'groundsForLeave', label: 'Grounds / Good Cause for Requesting Leave to Appeal', type: 'textarea', placeholder: 'e.g., The certified copy of the judgment was delayed by the registry until..., preventing filing within the 60-day statutory period...' },
-      { id: 'date', label: 'Filing Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Filing Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.appellateCourt?.toUpperCase() || 'FEDERAL HIGH COURT OF ETHIOPIA'}
 ADDIS ABABA
@@ -208,7 +203,7 @@ Applicant / Licensed Advocate for Applicant`,
       { id: 'contestedDecisions', label: 'Lower Courts & File Numbers Being Challenged', placeholder: 'e.g., Federal High Court File No. 98210 & Federal Supreme Court Appellate File No. 20194' },
       { id: 'fundamentalError', label: 'Statement of Fundamental Error of Law (መሠረታዊ የሕግ ስህተት)', type: 'textarea', placeholder: 'Specify the exact proclamation/code articles violated or misapplied and any binding Cassation Bench precedent disregarded...' },
       { id: 'reliefSought', label: 'Specific Cassation Relief Sought', type: 'textarea', placeholder: 'e.g., To reverse the decision of the Appellate Bench and dismiss the claim with costs...' },
-      { id: 'date', label: 'Date of Application', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date of Application', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `TO THE FEDERAL SUPREME COURT OF ETHIOPIA
 CASSATION DIVISION
@@ -234,7 +229,7 @@ ${v.fundamentalError || '_______________________________________________________
 
 3. PRAYER FOR RELIEF:
 WHEREFORE, the Applicant prays that this Honorable Cassation Division:
-a)Declare that the contested decision contains a prima facie fundamental error of law and refer the file to the full Cassation Bench;
+a) Declare that the contested decision contains a prima facie fundamental error of law and refer the file to the full Cassation Bench;
 b) ${v.reliefSought || 'Reverse/modify the lower court judgment in accordance with the law and award costs to the Applicant.'}
 
 Respectfully submitted,
@@ -258,7 +253,7 @@ Applicant / Advocate for Applicant`,
       { id: 'claimValue', label: 'Value of Subject Matter in Dispute (ETB)', placeholder: 'e.g., ETB 2,450,000.00' },
       { id: 'groundsOfAppeal', label: 'Concise Grounds of Appeal (Art. 327)', type: 'textarea', placeholder: '1. The trial court erred in holding that...\n2. The trial court improperly rejected documentary evidence...' },
       { id: 'reliefSought', label: 'Appellate Relief Sought', type: 'textarea', placeholder: 'e.g., Set aside the lower court decree in its entirety and enter judgment in favor of the Appellant with costs.' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.appellateCourt?.toUpperCase() || 'FEDERAL APPELLATE COURT OF ETHIOPIA'}
 ADDIS ABABA
@@ -303,7 +298,7 @@ Appellant / Advocate for Appellant`,
       { id: 'agencyName', label: 'Respondent Administrative Agency / Authority', placeholder: 'e.g., Ministry of Revenues / Ethiopian Customs Commission' },
       { id: 'decisionRef', label: 'Administrative Decision Ref No. & Date', placeholder: 'e.g., Ref. No. MOR/appl/441/2026 dated Oct 15, 2026' },
       { id: 'groundsOfIllegality', label: 'Grounds of Administrative Illegality / Ultra Vires', type: 'textarea', placeholder: 'Detail lack of jurisdiction, violation of due process/hearing rights, or error of law under Proclamation No. 1183/2020...' },
-      { id: 'date', label: 'Filing Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Filing Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL HIGH COURT OF ETHIOPIA'}
 ADDIS ABABA
@@ -350,7 +345,7 @@ Appellant / Advocate for Appellant`,
       { id: 'plaintiffName', label: 'Plaintiff in Main Suit', placeholder: 'e.g., Ato Kebede Mamo' },
       { id: 'defendantName', label: 'Defendant in Main Suit', placeholder: 'e.g., Ato Yohannes Taye' },
       { id: 'interestStatement', label: 'Grounds Showing Direct Legal Interest (Art. 41(2))', type: 'textarea', placeholder: 'Explain how the outcome of the pending suit between the Plaintiff and Defendant directly affects the Intervenor’s ownership or rights...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 File No.: ${v.fileNo || '____________________'}
@@ -391,7 +386,7 @@ Third-Party Intervenor / Advocate`,
       { id: 'applicantName', label: 'Applicant (Defendant) Full Name', placeholder: 'e.g., Ato Bereket Assefa' },
       { id: 'respondentName', label: 'Respondent (Plaintiff) Full Name', placeholder: 'e.g., Dashen Microfinance Institution' },
       { id: 'sufficientCause', label: 'Reasons for Non-Appearance / Improper Service of Summons (Art. 78)', type: 'textarea', placeholder: 'State why summons was not duly served or the unavoidable cause (illness, travel, force majeure) that prevented appearance on the hearing date...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 File No.: ${v.fileNo || '____________________'}
@@ -433,7 +428,7 @@ Applicant / Advocate for Applicant`,
       { id: 'respondentName', label: 'Respondent (Decree-Holder)', placeholder: 'e.g., Ato Kassahun Bekele' },
       { id: 'substantialLoss', label: 'Proof of Substantial & Irreparable Loss if Executed (Art. 334)', type: 'textarea', placeholder: 'Explain how immediate execution (sale of attached business assets/bank accounts) will cause substantial loss and render the appeal nugatory...' },
       { id: 'securityOffered', label: 'Security / Guarantee Offered for Due Performance (Art. 334(1)(c))', placeholder: 'e.g., Bank Guarantee / Title Deed security covering the full decree amount' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL APPELLATE COURT OF ETHIOPIA'}
 File No.: ${v.appealFileNo || '____________________'}
@@ -476,7 +471,7 @@ Applicant / Advocate for Applicant`,
       { id: 'respondentName', label: 'Intended Defendant Name', placeholder: 'e.g., ABC Transport Share Company' },
       { id: 'claimAmount', label: 'Amount of Claim & Required Court Fee', placeholder: 'e.g., Claim of ETB 850,000.00 (Court Fee: ETB 18,200.00)' },
       { id: 'financialStatus', label: 'Declaration of Income & Property (Affidavit of Means)', type: 'textarea', placeholder: 'State current monthly income (if any), dependents, and confirm that the Applicant possesses no disposable property other than basic personal apparel...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
@@ -514,7 +509,7 @@ Sworn and signed by Applicant: ___________________________`,
       { id: 'plaintiffName', label: 'Plaintiff Name', placeholder: 'e.g., Ato Ephrem Alemu' },
       { id: 'thirdPartyName', label: 'Third Party to be Joined (Name & Address)', placeholder: 'e.g., Ato Tarekegn Bekele, Addis Ababa, Nifas Silk Lafto' },
       { id: 'indemnityGrounds', label: 'Grounds for Contribution or Indemnity (Art. 43(1))', type: 'textarea', placeholder: 'State the legal or contractual basis showing why the Third Party is liable to indemnify or contribute to the Defendant...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
@@ -550,7 +545,7 @@ Defendant / Advocate for Defendant`,
       { id: 'respondentName', label: 'Respondent (Defendant) Name', placeholder: 'e.g., Rift Valley Coffee Exporters PLC' },
       { id: 'propertyToAttach', label: 'Specific Property / Vehicle / Bank Account to be Attached & Value', type: 'textarea', placeholder: 'e.g., Toyota Land Cruiser Plate No. Code 3-A88219 AA and funds up to ETB 3,500,000.00 held in Commercial Bank of Ethiopia...' },
       { id: 'riskOfDisposal', label: 'Facts Showing Intent to Obstruct or Delay Execution (Art. 151(1))', type: 'textarea', placeholder: 'Detail evidence that the Defendant is about to dispose of the whole or part of their property or remove it from the court’s jurisdiction...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
@@ -588,7 +583,7 @@ Applicant / Advocate for Applicant`,
       { id: 'applicantName', label: 'Applicant (Judgment-Debtor) Name', placeholder: 'e.g., Ato Henok Desta' },
       { id: 'respondentName', label: 'Respondent (Judgment-Creditor) Name', placeholder: 'e.g., Ato Mulugeta Taye' },
       { id: 'enforcementThreat', label: 'Imminent Enforcement Action & Irreparable Harm', type: 'textarea', placeholder: 'Describe the pending attachment/auction order and confirm that an Art. 78 application to set aside the ex-parte judgment has been duly filed...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
@@ -624,10 +619,10 @@ Applicant / Advocate for Applicant`,
       { id: 'suitNo', label: 'Original Suit File No. & Date of Decree', placeholder: 'e.g., Civil File No. 164920, Decree dated Sept 18, 2026' },
       { id: 'decreeHolder', label: 'Decree-Holder (Applicant) Name & Address', placeholder: 'e.g., Lucy Trading PLC, Addis Ababa' },
       { id: 'judgmentDebtor', label: 'Judgment-Debtor (Respondent) Name & Address', placeholder: 'e.g., Ato Alemayehu Bekele, Addis Ababa' },
-      { id: 'whetherAppeal', label: 'Whether Any Appeal Has Been Preferred From the Decree', defaultValue: 'No appeal or stay of execution order has been issued.' },
+      { id: 'whetherAppeal', label: 'Whether Any Appeal Has Been Preferred From the Decree', placeholder: 'e.g., No appeal or stay of execution order has been issued', defaultValue: 'No appeal or stay of execution order has been issued.' },
       { id: 'amountDue', label: 'Total Amount of Debt / Compensation & Costs Due (ETB)', placeholder: 'e.g., Principal ETB 1,200,000 + 9% Legal Interest + ETB 45,000 Costs' },
       { id: 'modeOfAssistance', label: 'Mode in Which Court Assistance is Required (Art. 378(3)(j))', type: 'textarea', placeholder: 'e.g., Issue execution summons under Art. 386 and attach/transfer funds from Judgment-Debtor’s bank accounts or auction attached property...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL EXECUTION COURT OF ETHIOPIA'}
 ADDIS ABABA
@@ -670,7 +665,7 @@ Decree-Holder / Advocate`,
       { id: 'respondentName', label: 'Respondent Name', placeholder: 'e.g., W/ro Roman Gebre' },
       { id: 'propertyInDispute', label: 'Description of Disputed Property / Subject Matter', placeholder: 'e.g., Immovable residential property in Bole Sub-City, Woreda 09, Plot No. 882/09' },
       { id: 'groundsForInjunction', label: 'Grounds Showing Danger of Alienation, Waste, or Damage (Art. 154)', type: 'textarea', placeholder: 'State the specific acts showing that the property in dispute is in danger of being wasted, damaged, or alienated by the Respondent...' },
-      { id: 'date', label: 'Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `IN THE ${v.courtName?.toUpperCase() || 'FEDERAL COURT OF ETHIOPIA'}
 Date: ${v.date || '__________________'}
@@ -711,7 +706,7 @@ Applicant / Advocate for Applicant`,
       { id: 'capitalAmount', label: 'Total Paid-Up Capital (ETB) & Par Value of Shares', placeholder: 'e.g., ETB 500,000.00 divided into 500 shares of ETB 1,000.00 par value each' },
       { id: 'shareholdersList', label: 'Founding Shareholders, Nationality & Share Allocation', type: 'textarea', placeholder: '1. Ato Abebe Kebede (Ethiopian) — 300 Shares (ETB 300,000)\n2. W/ro Sara Tadesse (Ethiopian) — 200 Shares (ETB 200,000)' },
       { id: 'generalManager', label: 'Appointed General Manager Full Name', placeholder: 'e.g., Ato Abebe Kebede' },
-      { id: 'date', label: 'Execution Date', type: 'date', defaultValue: '2026-11-13' },
+      { id: 'date', label: 'Execution Date', type: 'date', placeholder: 'YYYY-MM-DD', defaultValue: '2026-11-13' },
     ],
     generateDocument: (v) => `MEMORANDUM OF ASSOCIATION OF
 ${v.companyName?.toUpperCase() || '____________________________________ PLC'}
@@ -993,7 +988,7 @@ export default function LexDraftPage() {
                           rows={3}
                           value={formValues[field.id] || ''}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                          placeholder={field.placeholder}
+                          placeholder={field.placeholder || ''}
                           className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128] focus:bg-white"
                         />
                       ) : (
@@ -1001,7 +996,7 @@ export default function LexDraftPage() {
                           type={field.type || 'text'}
                           value={formValues[field.id] || field.defaultValue || ''}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                          placeholder={field.placeholder}
+                          placeholder={field.placeholder || ''}
                           className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128] focus:bg-white"
                         />
                       )}
