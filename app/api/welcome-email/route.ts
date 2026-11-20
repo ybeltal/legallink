@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
   try {
-    const { email, fullName } = await request.json();
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
-    }
-
-    if (!process.env.RESEND_API_KEY) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
         { error: 'RESEND_API_KEY is not configured' },
         { status: 500 }
       );
+    }
+
+    const resend = new Resend(apiKey);
+    const { email, fullName } = await request.json();
+
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
     const displayName = fullName?.trim() || email.split('@')[0] || 'Member';
@@ -34,7 +34,6 @@ export async function POST(request: Request) {
               <tr>
                 <td align="center">
                   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
-                    <!-- Header -->
                     <tr>
                       <td style="background-color:#0f172a;padding:28px 32px;text-align:left;">
                         <span style="display:inline-block;background-color:#f59e0b;color:#0f172a;font-weight:700;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;">
@@ -48,17 +47,11 @@ export async function POST(request: Request) {
                         </p>
                       </td>
                     </tr>
-
-                    <!-- Body -->
                     <tr>
                       <td style="padding:28px 32px;font-size:15px;line-height:1.65;color:#334155;">
                         <p style="margin-top:0;">
                           Your LegalLink account (<strong>${email}</strong>) is now active on Ethiopia’s first digital legal marketplace.
                         </p>
-                        <p style="margin-bottom:20px;">
-                          Here is what you can do right away:
-                        </p>
-
                         <ul style="padding-left:20px;margin:0 0 24px;color:#1e293b;">
                           <li style="margin-bottom:10px;">
                             <strong>Find MOJ-Verified Advocates:</strong> Book fixed-fee consultations across corporate, family, property, and labor law.
@@ -70,7 +63,6 @@ export async function POST(request: Request) {
                             <strong>Explore Proclamations:</strong> Search Ethiopian federal proclamations and LegalTalk guides anytime.
                           </li>
                         </ul>
-
                         <table cellpadding="0" cellspacing="0" style="margin:24px 0;">
                           <tr>
                             <td style="padding-right:12px;">
@@ -85,14 +77,8 @@ export async function POST(request: Request) {
                             </td>
                           </tr>
                         </table>
-
-                        <p style="margin-bottom:0;font-size:13px;color:#64748b;">
-                          Need assistance? Reply to this email or visit <a href="${appUrl}" style="color:#0f172a;font-weight:600;">legallink-two.vercel.app</a>.
-                        </p>
                       </td>
                     </tr>
-
-                    <!-- Footer -->
                     <tr>
                       <td style="background-color:#f1f5f9;padding:18px 32px;font-size:12px;color:#64748b;text-align:center;">
                         LegalLink Ethiopia &bull; Addis Ababa, Ethiopia &bull; Secure Legal Access
