@@ -1,12 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  Scale, ShieldCheck, ArrowRight, CheckCircle2, 
-  AlertCircle, Lock, Mail, Phone, User, Building2
-} from 'lucide-react';
+import { Scale, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { createClient } from '@/lib/supabase/client';
 
@@ -19,8 +16,9 @@ export default function AdvocateRegisterPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
+  const [specialization, setSpecialization] = useState('Corporate & Commercial Law');
   const [courtStanding, setCourtStanding] = useState('Federal High Court');
-  const [hourlyRate, setHourlyRate] = useState<number>(2000);
+  const [experienceYears, setExperienceYears] = useState<number>(5);
   const [location, setLocation] = useState('Addis Ababa');
   const [offersPupillage, setOffersPupillage] = useState(true);
 
@@ -28,47 +26,78 @@ export default function AdvocateRegisterPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Pre-fill from authenticated session if available
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        const meta = data.user.user_metadata || {};
+        if (meta.full_name) setFullName((prev) => prev || meta.full_name);
+        if (data.user.email) setEmail((prev) => prev || data.user.email || '');
+        if (meta.phone) setPhone((prev) => prev || meta.phone);
+        if (meta.bar_license_no) setLicenseNumber((prev) => prev || meta.bar_license_no);
+      }
+    });
+  }, []);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
 
     try {
-      const advId = licenseNumber.trim().toUpperCase().startsWith('ETH-BAR') 
-        ? licenseNumber.trim().toUpperCase() 
+      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedLicense = licenseNumber.trim().toUpperCase();
+      const advId = normalizedLicense.startsWith('ETH-BAR')
+        ? normalizedLicense
         : `ETH-BAR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('lawyer_profiles')
         .insert({
           id: advId,
           name: fullName.trim(),
           amharic_name: amharicName.trim() || fullName.trim(),
-          title: `${courtStanding} Advocate`,
-          email: email.trim().toLowerCase(),
+          title: `${specialization} • ${courtStanding}`,
+          email: normalizedEmail,
           phone: phone.trim(),
-          license_number: licenseNumber.trim().toUpperCase(),
+          license_number: normalizedLicense,
           court_jurisdiction: courtStanding,
-          hourly_rate_etb: hourlyRate,
+          hourly_rate_etb: 0,
           location: location.trim(),
           is_verified: false,
           vetting_status: 'pending',
           offers_pupillage: offersPupillage,
-          experience_years: 5,
+          experience_years: Number(experienceYears) || 1,
           rating: 5.0,
-          reviews_count: 0
+          reviews_count: 0,
         })
         .select()
         .single();
 
       if (error) {
-        if (error.message.includes('unique constraint') || error.message.includes('duplicate key')) {
-          throw new Error('An advocate profile with this Email or Bar License number already exists.');
+        if (
+          error.message.includes('unique constraint') ||
+          error.message.includes('duplicate key')
+        ) {
+          throw new Error(
+            'An advocate profile with this Email or Bar License number already exists. Sign in to access your portal.'
+          );
         }
         throw error;
       }
 
-      // Dispatches Telegram alert asynchronously
+      // Send advocate welcome email (non-blocking)
+      fetch('/api/welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          fullName: fullName.trim(),
+          role: 'advocate',
+        }),
+      }).catch(() => {});
+
+      // Notify admin Telegram channel (non-blocking)
       fetch('/api/telegram-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,17 +106,18 @@ export default function AdvocateRegisterPage() {
           data: {
             name: fullName.trim(),
             amharic_name: amharicName.trim(),
-            license_number: licenseNumber.trim().toUpperCase(),
+            license_number: normalizedLicense,
             court_jurisdiction: courtStanding,
-            hourly_rate_etb: hourlyRate,
-            phone: phone.trim(),
-            email: email.trim(),
-            location: location.trim()
-          }
-        })
-      }).catch((tgErr) => console.warn('Telegram registration alert error:', tgErr));
+            location: location.trim(),
+          },
+        }),
+      }).catch(() => {});
 
-      sessionStorage.setItem('ll_active_advocate_id', advId);
+      try {
+        sessionStorage.setItem('ll_active_advocate_id', advId);
+      } catch {
+        // Ignore storage errors
+      }
       setIsSuccess(true);
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to register advocate profile.');
@@ -102,7 +132,6 @@ export default function AdvocateRegisterPage() {
 
       <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-12 w-full">
         <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-xs space-y-6">
-          
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto">
               <Scale className="w-6 h-6" />
@@ -110,8 +139,8 @@ export default function AdvocateRegisterPage() {
             <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
               Advocate Chamber Registration
             </h1>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Join the verified LegalLink advocate registry under Federal Advocacy Proclamation No. 1249/2021.
+            <p className="text-xs text-slate-600 max-w-md mx-auto">
+              Register your practice for free on LegalLink under Federal Advocacy Proclamation No. 1249/2021.
             </p>
           </div>
 
@@ -123,14 +152,16 @@ export default function AdvocateRegisterPage() {
           )}
 
           {isSuccess ? (
-            <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-4 animate-scaleUp">
+            <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-black text-emerald-950">Chamber Profile Registered!</h3>
-                <p className="text-xs text-emerald-800">
-                  Your credentials have been recorded. You can now access your private workspace to manage retainers and view NextGen applicants.
+                <h3 className="text-base font-black text-emerald-950">
+                  Chamber Profile Submitted!
+                </h3>
+                <p className="text-xs text-emerald-900 leading-relaxed">
+                  Your credentials have been recorded for MOJ verification. You can now open your Advocate Portal to manage incoming client inquiries and edit your profile.
                 </p>
               </div>
               <button
@@ -138,12 +169,11 @@ export default function AdvocateRegisterPage() {
                 onClick={() => router.push('/advocate/portal')}
                 className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
-                Enter My Advocate Workspace →
+                Open My Advocate Portal →
               </button>
             </div>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4 text-xs">
-              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
@@ -190,12 +220,12 @@ export default function AdvocateRegisterPage() {
 
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
-                    Telebirr Phone Number *
+                    Direct Phone / WhatsApp *
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     required
-                    placeholder="0911 000 000"
+                    placeholder="+251 911 000 000"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
@@ -206,7 +236,7 @@ export default function AdvocateRegisterPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
-                    Federal Bar License Number *
+                    MOJ / Regional Bar License Number *
                   </label>
                   <input
                     type="text"
@@ -229,53 +259,78 @@ export default function AdvocateRegisterPage() {
                   >
                     <option value="Federal First Instance">Federal First Instance</option>
                     <option value="Federal High Court">Federal High Court</option>
-                    <option value="Federal Supreme Court & Cassation">Federal Supreme Court & Cassation</option>
+                    <option value="Federal Supreme Court & Cassation">
+                      Federal Supreme Court & Cassation
+                    </option>
+                    <option value="Regional High / Supreme Court">
+                      Regional High / Supreme Court
+                    </option>
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
                   <label className="block font-bold text-slate-800 mb-1">
-                    Hourly Retainer Rate (ETB) *
+                    Primary Practice Specialization *
                   </label>
-                  <input
-                    type="number"
-                    step="100"
-                    required
-                    value={hourlyRate}
-                    onChange={(e) => setHourlyRate(Number(e.target.value))}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-emerald-800 focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                  />
+                  <select
+                    value={specialization}
+                    onChange={(e) => setSpecialization(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                  >
+                    <option value="Corporate & Commercial Law">Corporate & Commercial Law</option>
+                    <option value="Property & Real Estate Law">Property & Real Estate Law</option>
+                    <option value="Family & Inheritance Law">Family & Inheritance Law</option>
+                    <option value="Employment & Labor Law">Employment & Labor Law</option>
+                    <option value="Criminal Defense & Litigation">Criminal Defense & Litigation</option>
+                    <option value="Immigration & Diaspora Law">Immigration & Diaspora Law</option>
+                    <option value="Intellectual Property & Tech">Intellectual Property & Tech</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
-                    Chambers Location *
+                    Years of Experience *
                   </label>
                   <input
-                    type="text"
+                    type="number"
+                    min={1}
+                    max={50}
                     required
-                    placeholder="Bole, Kazanchis, Gotera..."
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    value={experienceYears}
+                    onChange={(e) => setExperienceYears(Number(e.target.value))}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold focus:bg-white focus:outline-none focus:border-[#0A1128]"
                   />
                 </div>
               </div>
 
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
+              <div>
+                <label className="block font-bold text-slate-800 mb-1">
+                  Chambers Location *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Bole, Kazanchis, Hawassa, Bahir Dar..."
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                />
+              </div>
+
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between gap-4">
                 <div>
                   <strong className="text-[#0A1128] block">NextGen Apprenticeship</strong>
                   <span className="text-amber-900 text-[11px]">
-                    Accept law graduate interns under Proclamation No. 1249/2021.
+                    Opt in to review law graduate intern applications under Proclamation No. 1249/2021.
                   </span>
                 </div>
                 <input
                   type="checkbox"
                   checked={offersPupillage}
                   onChange={(e) => setOffersPupillage(e.target.checked)}
-                  className="w-4 h-4 accent-[#0A1128] cursor-pointer"
+                  className="w-4 h-4 accent-[#0A1128] cursor-pointer shrink-0"
                 />
               </div>
 
@@ -284,19 +339,17 @@ export default function AdvocateRegisterPage() {
                 disabled={loading}
                 className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
               >
-                <span>{loading ? 'Registering with Supreme Court Register...' : 'Complete Advocate Registration'}</span>
+                <span>{loading ? 'Submitting Profile...' : 'Complete Free Advocate Registration'}</span>
                 <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
               </button>
 
               <div className="text-center pt-2">
-                <Link href="/login" className="text-xs text-slate-500 hover:text-slate-800 font-semibold">
-                  Already registered? Sign In to Workspace →
+                <Link href="/login?role=advocate" className="text-xs text-slate-600 hover:text-slate-900 font-semibold">
+                  Already registered? Sign In to Advocate Portal →
                 </Link>
               </div>
-
             </form>
           )}
-
         </div>
       </main>
     </div>

@@ -7,9 +7,9 @@ import WelcomeBanner from '@/components/WelcomeBanner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'LegalLink | Ethiopia’s First Digital Legal Marketplace',
+  title: 'LegalLink | Ethiopia’s Digital Legal Directory & Drafting Hub',
   description:
-    'Connect with MOJ-verified Ethiopian advocates, draft bilingual Amharic & English legal forms, explore proclamations, and protect retainers in Telebirr escrow.',
+    'Connect directly with MOJ-verified Ethiopian advocates for free, draft bilingual Amharic & English legal forms on LexDraft, and explore 122 federal proclamations.',
 };
 
 export default function RootLayout({

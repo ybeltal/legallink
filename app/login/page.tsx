@@ -10,6 +10,7 @@ import {
   Lock,
   Mail,
   AlertCircle,
+  CheckCircle2,
   Eye,
   EyeOff,
 } from 'lucide-react';
@@ -20,96 +21,140 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  const [role, setRole] = useState<'client' | 'advocate'>('client');
+  const [role, setRole] = useState<'client' | 'advocate'>(
+    searchParams?.get('role') === 'advocate' ? 'advocate' : 'client'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(
+    searchParams?.get('error') ? 'Sign-in could not be completed. Please try again.' : null
+  );
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
 
   const redirectParam = searchParams?.get('redirect');
   const signupHref = `/signup${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''}`;
 
-  const getDestination = () => {
+  const getDestination = (resolvedRole: 'client' | 'advocate') => {
     if (redirectParam && redirectParam.startsWith('/')) {
       return redirectParam;
     }
-    return '/';
+    return resolvedRole === 'advocate' ? '/advocate/portal' : '/';
   };
 
-  const establishOfficialSession = (selectedRole: 'client' | 'advocate', userEmail?: string) => {
+  const syncUiSession = (
+    selectedRole: 'client' | 'advocate',
+    userEmail: string,
+    displayName: string
+  ) => {
     const maxAge = 60 * 60 * 24 * 7;
     document.cookie = `legallink_auth=authenticated; path=/; max-age=${maxAge}; SameSite=Lax`;
     document.cookie = `legallink_role=${selectedRole}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    document.cookie = `legallink_user_name=${encodeURIComponent(displayName)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    document.cookie = `legallink_user_email=${encodeURIComponent(userEmail)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    document.cookie = `legallink_welcome=true; path=/; max-age=300; SameSite=Lax`;
 
     try {
       localStorage.setItem(
         'legallink_user',
         JSON.stringify({
           role: selectedRole,
-          email: userEmail || email.trim() || `${selectedRole}@legallink.et`,
+          firstName: displayName,
+          email: userEmail,
           authenticatedAt: new Date().toISOString(),
         })
       );
     } catch {
-      // Ignore storage errors
+      // Ignore storage restrictions
     }
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setInfoMsg(null);
 
-    if (!email.trim()) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) {
       setErrorMsg('Please enter your email address.');
+      return;
+    }
+    if (!password) {
+      setErrorMsg('Please enter your password.');
       return;
     }
 
     setLoading(true);
-    establishOfficialSession(role, email);
-    const destination = getDestination();
-
     try {
-      if (password) {
-        await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      }
-    } catch {
-      // Proceed with established session
-    }
-
-    window.location.href = destination;
-  };
-
-  const handleGoogleLogin = async () => {
-    setErrorMsg(null);
-    setGoogleLoading(true);
-    establishOfficialSession(role);
-    const destination = getDestination();
-
-    try {
-      const callbackUrl = `${window.location.origin}/auth/callback?role=${role}&redirect=${encodeURIComponent(destination)}`;
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: callbackUrl,
-        },
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password,
       });
 
-      if (!error && data?.url) {
-        window.location.href = data.url;
+      if (error || !data?.user) {
+        setErrorMsg(error?.message || 'Invalid email or password. Please check your credentials.');
+        setLoading(false);
         return;
       }
 
-      window.location.href = destination;
+      const meta = data.user.user_metadata || {};
+      const resolvedRole: 'client' | 'advocate' =
+        meta.role === 'advocate' || role === 'advocate' ? 'advocate' : 'client';
+      const displayName =
+        meta.full_name ||
+        meta.first_name ||
+        trimmedEmail.split('@')[0] ||
+        (resolvedRole === 'advocate' ? 'Advocate' : 'Member');
+
+      syncUiSession(resolvedRole, trimmedEmail, displayName);
+      window.location.href = getDestination(resolvedRole);
     } catch {
-      window.location.href = destination;
+      setErrorMsg('Network error while signing in. Please try again.');
+      setLoading(false);
     }
+  };
+
+  const handleForgotPassword = async () => {
+    setErrorMsg(null);
+    setInfoMsg(null);
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) {
+      setErrorMsg('Enter your email address above first, then click Forgot password.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        setInfoMsg(`Password reset instructions have been sent to ${trimmedEmail}.`);
+      }
+    } catch {
+      setErrorMsg('Could not send password reset email right now.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    setErrorMsg(null);
+    setInfoMsg(null);
+    setGoogleLoading(true);
+    const destination = getDestination(role);
+    window.location.href = `/api/auth/google?role=${role}&redirect=${encodeURIComponent(destination)}`;
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between text-slate-900 font-sans">
-      {/* Header with Back Arrow */}
+      {/* Header */}
       <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between border-b border-slate-100">
         <div className="flex items-center gap-3.5">
           <button
@@ -124,13 +169,13 @@ function LoginContent() {
           <Link href="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
             <span className="font-black text-lg tracking-tight text-[#0A1128]">
-              Legal<span className="text-amber-500">Link</span>
+              Legal<span className="text-amber-600">Link</span>
             </span>
           </Link>
         </div>
 
         <div className="text-xs font-semibold text-slate-600">
-          <span>Don’t have a LegalLink account? </span>
+          <span className="hidden sm:inline">Don’t have a LegalLink account? </span>
           <Link
             href={signupHref}
             className="text-emerald-700 font-bold hover:text-emerald-800 underline underline-offset-4"
@@ -147,7 +192,7 @@ function LoginContent() {
             <h1 className="text-2xl font-black text-[#0A1128] tracking-tight">
               Log in to LegalLink
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               Select your workspace and sign in with Google or your registered email.
             </p>
           </div>
@@ -178,7 +223,7 @@ function LoginContent() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            disabled={googleLoading}
+            disabled={googleLoading || loading}
             className="w-full py-3 px-4 bg-[#0A1128] hover:bg-[#102A43] text-white rounded-full text-xs font-bold flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-60"
           >
             <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
@@ -205,6 +250,13 @@ function LoginContent() {
             </div>
           )}
 
+          {infoMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{infoMsg}</span>
+            </div>
+          )}
+
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-800">Email address</label>
@@ -222,11 +274,22 @@ function LoginContent() {
             </div>
 
             <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-800">Password</label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-800">Password</label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading}
+                  className="text-[11px] font-bold text-amber-700 hover:text-amber-800 underline underline-offset-2 cursor-pointer disabled:opacity-50"
+                >
+                  {resetLoading ? 'Sending...' : 'Forgot password?'}
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
@@ -235,6 +298,7 @@ function LoginContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -244,7 +308,7 @@ function LoginContent() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || googleLoading}
               className={`w-full py-3.5 text-white font-bold rounded-full flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer text-xs disabled:opacity-60 ${
                 role === 'client'
                   ? 'bg-[#0A1128] hover:bg-[#102A43]'
@@ -275,7 +339,7 @@ function LoginContent() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Compliant with Ethiopian Commercial Code & Telebirr USSD Escrow</span>
+            <span>Verified Ethiopian Advocate Directory • Free Public Access</span>
           </div>
           <p>© 2026 LegalLink Technologies PLC. Federal Proclamation No. 1249/2021.</p>
         </div>

@@ -1,12 +1,12 @@
 ﻿import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/', '/signup', '/login', '/terms', '/privacy'];
+const PROTECTED_PREFIXES = ['/advocate/portal', '/admin'];
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  // Allow Next.js internals, API routes, auth callbacks, and static assets
+  // Skip Next.js internals, API routes, auth callbacks, and static assets
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
@@ -16,18 +16,24 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Allow the landing page and public authentication/legal pages
-  if (PUBLIC_PATHS.includes(pathname)) {
+  const requiresAuth = PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+
+  if (!requiresAuth) {
     return NextResponse.next();
   }
 
-  // Require authentication before advancing into platform pages
-  const isAuthenticated = request.cookies.get('legallink_auth')?.value === 'authenticated';
+  // Check for either Supabase auth cookie or LegalLink session cookie
+  const hasSupabaseSession = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'));
+  const hasAppCookie = request.cookies.get('legallink_auth')?.value === 'authenticated';
 
-  if (!isAuthenticated) {
-    const signupUrl = new URL('/signup', request.url);
-    signupUrl.searchParams.set('redirect', `${pathname}${search}`);
-    return NextResponse.redirect(signupUrl);
+  if (!hasSupabaseSession && !hasAppCookie) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirect', `${pathname}${search}`);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

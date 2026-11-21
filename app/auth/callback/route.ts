@@ -1,53 +1,104 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const role = requestUrl.searchParams.get('role') || 'client';
-  const redirect = requestUrl.searchParams.get('redirect') || '/';
+  const roleParam = requestUrl.searchParams.get('role');
+  const role: 'client' | 'advocate' = roleParam === 'advocate' ? 'advocate' : 'client';
+  const redirectParam = requestUrl.searchParams.get('redirect') || '/';
   const origin = requestUrl.origin;
 
-  const supabaseUrl = 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
+  if (!code) {
+    return NextResponse.redirect(`${origin}/login?error=missing_auth_code`);
+  }
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
   const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
     .replace(/['"]/g, '')
     .trim();
 
-  let userName = role === 'advocate' ? 'Advocate' : 'Member';
-  let userEmail = '';
+  if (!supabaseAnonKey) {
+    return NextResponse.redirect(`${origin}/login?error=auth_not_configured`);
+  }
 
-  if (code && supabaseAnonKey) {
+  const cookieStore = await cookies();
+  const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> = [];
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(list) {
+        list.forEach((c) => cookiesToSet.push(c));
+      },
+    },
+  });
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error || !data?.user) {
+    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  }
+
+  const user = data.user;
+  const meta = user.user_metadata || {};
+  const userEmail = user.email || '';
+  const userName =
+    meta.full_name ||
+    meta.name ||
+    (meta.first_name ? `${meta.first_name} ${meta.last_name || ''}`.trim() : '') ||
+    (userEmail ? userEmail.split('@')[0] : role === 'advocate' ? 'Advocate' : 'Member');
+
+  const resolvedRole: 'client' | 'advocate' =
+    meta.role === 'advocate' || role === 'advocate' ? 'advocate' : 'client';
+
+  // Send welcome email once per user account
+  if (userEmail && meta.welcome_email_sent !== true) {
     try {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { data } = await supabase.auth.exchangeCodeForSession(code);
-      const user = data?.user;
-      const meta = user?.user_metadata || {};
+      const emailRes = await fetch(`${origin}/api/welcome-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          fullName: userName,
+          role: resolvedRole,
+        }),
+      });
 
-      userEmail = user?.email || '';
-      userName =
-        meta.full_name ||
-        meta.name ||
-        (userEmail ? userEmail.split('@')[0] : '') ||
-        userName;
-    } catch {
-      // Proceed cleanly even if session exchange already completed
+      if (emailRes.ok) {
+        await supabase.auth.updateUser({
+          data: {
+            role: resolvedRole,
+            welcome_email_sent: true,
+          },
+        });
+      }
+    } catch (emailErr) {
+      console.error('Welcome email dispatch error:', emailErr);
     }
   }
 
-  const destination = redirect.startsWith('/') ? `${origin}${redirect}` : `${origin}/`;
-  const response = NextResponse.redirect(destination);
-  const maxAge = 60 * 60 * 24 * 7; // 7 days
+  const safeRedirect = redirectParam.startsWith('/') ? redirectParam : '/';
+  const destination =
+    safeRedirect === '/' && resolvedRole === 'advocate'
+      ? `${origin}/advocate/portal`
+      : `${origin}${safeRedirect}`;
 
-  response.cookies.set('legallink_auth', 'authenticated', {
-    path: '/',
-    maxAge,
-    sameSite: 'lax',
+  const response = NextResponse.redirect(destination);
+
+  // Attach Supabase SSR session cookies
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
   });
-  response.cookies.set('legallink_role', role, {
-    path: '/',
-    maxAge,
-    sameSite: 'lax',
-  });
+
+  // Attach lightweight UI cookies for Navbar & WelcomeBanner
+  const maxAge = 60 * 60 * 24 * 7;
+  response.cookies.set('legallink_auth', 'authenticated', { path: '/', maxAge, sameSite: 'lax' });
+  response.cookies.set('legallink_role', resolvedRole, { path: '/', maxAge, sameSite: 'lax' });
   response.cookies.set('legallink_user_name', encodeURIComponent(userName), {
     path: '/',
     maxAge,
@@ -62,7 +113,7 @@ export async function GET(request: Request) {
   }
   response.cookies.set('legallink_welcome', 'true', {
     path: '/',
-    maxAge: 60 * 5, // Show welcome banner for 5 minutes after login
+    maxAge: 60 * 5,
     sameSite: 'lax',
   });
 
