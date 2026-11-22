@@ -14,6 +14,7 @@ import {
   LogOut,
   Briefcase,
   User,
+  Scale,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { createClient } from '@/lib/supabase/client';
@@ -47,6 +48,16 @@ export default function Navbar() {
   ];
 
   const moreDropdownLinks = [
+    {
+      title: language === 'am' ? 'የህግ መረጃ ማዕከል' : 'Legal Center & Dictionary',
+      description:
+        language === 'am'
+          ? 'የህግ መዝገበ ቃላት፣ የጠበቃ መምረጫ ምክሮችና ነፃ ጥያቄ'
+          : 'Bilingual legal dictionary, hiring tips & free Q&A',
+      href: '/legal-center',
+      icon: Scale,
+      badge: 'New',
+    },
     {
       title: language === 'am' ? 'የህግ ማውጫ' : 'Legal Library',
       description:
@@ -265,7 +276,7 @@ export default function Navbar() {
 
           {/* Right Header Utilities */}
           <div className="hidden sm:flex items-center gap-3">
-            {/* Language Switcher (Higher contrast inactive state) */}
+            {/* Language Switcher */}
             <div className="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200 text-xs font-bold">
               <button
                 type="button"
