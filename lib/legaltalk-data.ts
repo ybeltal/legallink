@@ -14,6 +14,7 @@ export interface Article {
   theme: 'navy' | 'gold' | 'slate';
   categoryParam: string;
   audioDuration?: string;
+  imageUrl: string; // Thematic visual backdrops
   content: {
     lead: string;
     sections: {
@@ -56,6 +57,7 @@ export const LEGAL_ARTICLES: Article[] = [
     theme: 'navy',
     categoryParam: 'employment',
     audioDuration: '2:45',
+    imageUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=800&auto=format&fit=crop', // Workspace conflict resolution / HR discussion
     content: {
       lead: "Ethiopia's Labour Proclamation No. 1156/2019 sets out clear rules on when an employer may lawfully end an employment contract. Understanding these rules is the first step to protecting yourself if you believe your dismissal was unjust.",
       sections: [
@@ -120,6 +122,7 @@ export const LEGAL_ARTICLES: Article[] = [
     theme: 'gold',
     categoryParam: 'corporate',
     audioDuration: '3:10',
+    imageUrl: 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=800&auto=format&fit=crop', // Business registry office / entrepreneurs reviewing documents
     content: {
       lead: 'The Ethiopian Commercial Code (Proclamation No. 1240/2021) streamlined the establishment of enterprises, introducing one-person private limited companies and modernized governance standards.',
       sections: [
@@ -160,6 +163,7 @@ export const LEGAL_ARTICLES: Article[] = [
     theme: 'slate',
     categoryParam: 'corporate',
     audioDuration: '2:50',
+    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop', // Bank audits / AML regulatory paperwork review
     content: {
       lead: 'The Financial Intelligence Service (FIS) and the National Bank of Ethiopia enforce stringent Know Your Customer (KYC) and transaction threshold reporting obligations across financial institutions and designated non-financial businesses.',
       sections: [
@@ -188,6 +192,7 @@ export const LEGAL_ARTICLES: Article[] = [
     theme: 'slate',
     categoryParam: 'property',
     audioDuration: '2:15',
+    imageUrl: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=800&auto=format&fit=crop', // Modern apartment construction / real estate in Addis Ababa
     content: {
       lead: 'Under Proclamation No. 270/2002, foreign nationals of Ethiopian origin holding a valid Origin ID (Yellow Card) enjoy the same economic rights as domestic citizens regarding urban immovable property acquisition.',
       sections: [
@@ -219,6 +224,7 @@ export const LEGAL_ARTICLES: Article[] = [
     theme: 'navy',
     categoryParam: 'corporate',
     audioDuration: '2:30',
+    imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800&auto=format&fit=crop', // Modern legal library / lawyer on laptop with overlays
     content: {
       lead: 'Bilingual legal artificial intelligence trained on Federal Supreme Court Cassation decisions and statutory proclamations is expanding access to justice across Ethiopia.',
       sections: [

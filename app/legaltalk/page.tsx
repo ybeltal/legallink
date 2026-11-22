@@ -13,10 +13,8 @@ import { useLanguage } from '@/context/LanguageContext';
 export default function LegalTalkDirectoryPage() {
   const { language, t } = useLanguage();
 
-  // Mode: Editorial Guides vs Verified Q&A Hub
   const [activeTab, setActiveTab] = useState<'guides' | 'qa'>('guides');
 
-  // Category filter
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -45,14 +43,10 @@ export default function LegalTalkDirectoryPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
-      
-      {/* 1. Global Navigation Bar */}
       <Navbar />
 
-      {/* 2. Hero Header */}
       <section className="bg-white border-b border-slate-200 pt-14 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
-          
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[11px] font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>LegalTalk</span>
@@ -68,7 +62,6 @@ export default function LegalTalkDirectoryPage() {
               : 'Plain-language articles on Ethiopian law — covering your rights at work, starting a business, staying compliant, and more.'}
           </p>
 
-          {/* Dual Tab Switcher: Editorial Guides vs Counsel Q&A */}
           <div className="pt-4 flex justify-center">
             <div className="p-1 bg-slate-100 rounded-2xl flex items-center gap-1 text-xs font-bold">
               <button
@@ -95,16 +88,11 @@ export default function LegalTalkDirectoryPage() {
               </button>
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* 3. Main Content Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
-        
-        {/* Category Filter Pills & Search */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          
           {activeTab === 'guides' && (
             <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 text-xs">
               {categories.map((cat) => {
@@ -139,27 +127,9 @@ export default function LegalTalkDirectoryPage() {
           </div>
         </div>
 
-        {/* ========================================================
-            TAB 1: EDITORIAL ARTICLES GRID (matches image_035ee2.png)
-            ======================================================== */}
         {activeTab === 'guides' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredArticles.map((art) => {
-              // Header styling per card theme
-              const headerClasses = 
-                art.theme === 'navy'
-                  ? 'bg-[#0A1128] text-white'
-                  : art.theme === 'gold'
-                  ? 'bg-amber-500 text-slate-950'
-                  : 'bg-slate-100 text-slate-800 border-b border-slate-200';
-
-              const pillClasses =
-                art.theme === 'navy'
-                  ? 'bg-white/10 text-white border-white/20'
-                  : art.theme === 'gold'
-                  ? 'bg-black/10 text-slate-950 border-black/15'
-                  : 'bg-white text-slate-700 border-slate-200';
-
               return (
                 <Link
                   key={art.slug}
@@ -167,16 +137,23 @@ export default function LegalTalkDirectoryPage() {
                   className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-xs group"
                 >
                   <div>
-                    {/* Top Header Block with Tag */}
-                    <div className={`h-36 p-6 flex flex-col justify-end ${headerClasses}`}>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider w-fit">
+                    {/* Visual Photographic Header with Dark Overlay and Category Tag */}
+                    <div className="h-44 relative overflow-hidden bg-slate-900 flex flex-col justify-end p-6">
+                      <img
+                        src={art.imageUrl}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500 ease-out"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                      
+                      <div className="relative z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white text-[10px] font-black uppercase tracking-wider w-fit">
                         <span>{language === 'am' ? art.amharicCategory : art.category}</span>
                       </div>
                     </div>
 
-                    {/* Card Body */}
                     <div className="p-6 space-y-3">
-                      <h2 className="text-base font-black text-[#0A1128] group-hover:text-amber-600 transition-colors leading-snug">
+                      <h2 className="text-base font-black text-[#0A1128] group-hover:text-amber-700 transition-colors leading-snug">
                         {language === 'am' ? art.amharicTitle : art.title}
                       </h2>
                       <p className="text-xs text-slate-500 leading-relaxed font-normal line-clamp-3">
@@ -185,7 +162,6 @@ export default function LegalTalkDirectoryPage() {
                     </div>
                   </div>
 
-                  {/* Card Footer: Date, Read Time, Forward Arrow */}
                   <div className="px-6 pb-6 pt-2 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
@@ -194,7 +170,7 @@ export default function LegalTalkDirectoryPage() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
-                        <span>{art.readTime}</span>
+                        <span>{art.readTime} read</span>
                       </span>
                     </div>
 
@@ -206,9 +182,6 @@ export default function LegalTalkDirectoryPage() {
           </div>
         )}
 
-        {/* ========================================================
-            TAB 2: VERIFIED COUNSEL Q&A
-            ======================================================== */}
         {activeTab === 'qa' && (
           <div className="space-y-6">
             {filteredQA.map((qa) => (
@@ -262,10 +235,8 @@ export default function LegalTalkDirectoryPage() {
             ))}
           </div>
         )}
-
       </main>
 
-      {/* 4. Enterprise Footer */}
       <footer className="bg-[#0A1128] text-slate-400 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
@@ -274,7 +245,6 @@ export default function LegalTalkDirectoryPage() {
           </div>
         </div>
       </footer>
-
     </div>
   );
 }
