@@ -19,7 +19,7 @@ import { useLanguage } from '@/context/LanguageContext';
 
 interface SpeechChunk {
   text: string;
-  sectionIndex: number; // -1 = title/lead, 0+ = article.content.sections index
+  sectionIndex: number;
   label: string;
 }
 
@@ -39,7 +39,6 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
   const rateRef = useRef<number>(1);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
 
-  // Build clean, sentence-sized chunks so Chrome/Edge never truncates long articles
   const chunks = useMemo<SpeechChunk[]>(() => {
     const list: SpeechChunk[] = [];
 
@@ -70,7 +69,6 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
     return list;
   }, [article]);
 
-  // Detect Web Speech support and load available voices
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       setSpeechSupported(false);
@@ -176,7 +174,6 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
     }
 
     if (playbackState === 'playing') {
-      // Cancel cleanly and hold index (more reliable than speechSynthesis.pause on Windows)
       sessionIdRef.current += 1;
       window.speechSynthesis.cancel();
       setPlaybackState('paused');
@@ -211,18 +208,29 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
-      {/* 1. Global Navigation Bar */}
       <Navbar />
 
-      {/* 2. Dark Hero Header */}
-      <header className="bg-[#0A1128] text-white pt-10 pb-16 border-b border-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* Panoramic Photo Header with Safe Fallback */}
+      <header className="relative bg-[#0A1128] text-white overflow-hidden border-b border-slate-800">
+        <div className="absolute inset-0 z-0">
+          <img
+            src={article.imageUrl}
+            alt=""
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            className="w-full h-full object-cover object-center opacity-20"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A1128]/55 via-[#0A1128]/90 to-[#0A1128]" />
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 space-y-6">
           <Link
             href="/legaltalk"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors group"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white transition-colors group"
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-            <span>LegalTalk</span>
+            <span>Back to LegalTalk</span>
           </Link>
 
           <div className="pt-1">
@@ -235,8 +243,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
             {language === 'am' ? article.amharicTitle : article.title}
           </h1>
 
-          {/* Author Byline & Audio Listen Button */}
-          <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/80 text-xs text-slate-400 font-medium">
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/80 text-xs text-slate-300 font-medium">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs">
@@ -265,14 +272,13 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            {/* Working Audio Narration Toggle */}
             <button
               type="button"
               onClick={handleTogglePlayPause}
               disabled={!speechSupported}
               className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 ${
                 playbackState === 'playing'
-                  ? 'bg-amber-500 text-[#0A1128] border-amber-400'
+                  ? 'bg-amber-500 text-[#0A1128] border-amber-400 shadow-lg'
                   : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'
               }`}
             >
@@ -293,7 +299,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
         </div>
       </header>
 
-      {/* Live Sticky Audio Player Bar (Visible while Playing or Paused) */}
+      {/* Sticky Audio Reader Bar */}
       {playbackState !== 'idle' && (
         <div className="sticky top-16 sm:top-20 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-2">
@@ -336,7 +342,6 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
                 </div>
               </div>
 
-              {/* Speed Controls */}
               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
                 {[0.9, 1, 1.25].map((speed) => (
                   <button
@@ -355,7 +360,6 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            {/* Progress Bar */}
             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-amber-500 transition-all duration-300"
@@ -366,7 +370,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
         </div>
       )}
 
-      {/* 3. Main Article Body */}
+      {/* Main Article Body */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full space-y-12">
         {audioError && (
           <div className="p-3.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs font-semibold flex items-center gap-2">
@@ -376,8 +380,19 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
         )}
 
         <article className="bg-white p-8 sm:p-14 rounded-3xl border border-slate-200 shadow-xs space-y-8 text-slate-800 text-sm leading-relaxed">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+            <img
+              src={article.imageUrl}
+              alt={language === 'am' ? article.amharicTitle : article.title}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+              className="w-full h-56 sm:h-72 object-cover object-center"
+            />
+          </div>
+
           <p
-            className={`text-base sm:text-lg font-medium text-slate-900 leading-relaxed border-l-4 border-amber-500 pl-4 py-1 rounded-r-xl transition-colors ${
+            className={`text-base sm:text-lg font-medium text-slate-900 leading-relaxed border-l-4 border-amber-500 pl-4 py-1 rounded-r-xl transition-colors duration-300 ${
               playbackState === 'playing' && activeChunk?.sectionIndex === -1
                 ? 'bg-amber-50/60'
                 : ''
@@ -393,7 +408,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
             return (
               <div
                 key={idx}
-                className={`space-y-4 pt-4 rounded-2xl transition-colors ${
+                className={`space-y-4 pt-4 rounded-2xl transition-colors duration-300 ${
                   isActiveSection ? 'bg-amber-50/40 px-4 pb-4 -mx-4' : ''
                 }`}
               >
@@ -411,7 +426,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
                   <ul className="space-y-2 pt-1 text-slate-700">
                     {sec.bullets.map((b, bIdx) => (
                       <li key={bIdx} className="flex items-start gap-2.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
                         <span className="font-normal">{b}</span>
                       </li>
                     ))}
@@ -419,7 +434,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
                 )}
 
                 {sec.callout && (
-                  <div className="p-5 bg-amber-50/80 border-l-4 border-amber-500 rounded-r-2xl my-4 text-xs font-medium text-amber-950 leading-relaxed">
+                  <div className="p-5 bg-amber-50/80 border-l-4 border-amber-600 rounded-r-2xl my-4 text-xs font-medium text-amber-950 leading-relaxed">
                     {sec.callout}
                   </div>
                 )}
@@ -428,7 +443,7 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
           })}
         </article>
 
-        {/* 4. Contextual Counsel Matching Card */}
+        {/* Contextual Free Consultation Card */}
         <section className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1.5 text-center sm:text-left">
             <strong className="text-base font-black text-[#0A1128] block">
@@ -450,7 +465,6 @@ export default function LegalTalkArticleClient({ slug }: { slug: string }) {
         </section>
       </main>
 
-      {/* 5. Footer */}
       <footer className="bg-[#0A1128] text-slate-400 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">

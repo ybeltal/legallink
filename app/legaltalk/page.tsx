@@ -2,37 +2,53 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Search, ArrowRight, ShieldCheck, BookOpen, MessageSquare, 
-  Clock, Calendar, Sparkles, Filter, ChevronRight, User, Scale 
+import {
+  Search,
+  ArrowRight,
+  Clock,
+  Calendar,
+  Scale,
+  Headphones,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { LEGAL_ARTICLES, VERIFIED_QA_DATA, Article } from '@/lib/legaltalk-data';
+import { LEGAL_ARTICLES, VERIFIED_QA_DATA } from '@/lib/legaltalk-data';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function LegalTalkDirectoryPage() {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<'guides' | 'qa'>('guides');
-
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const categories = ['All', 'Employee Rights', 'Business Law', 'Compliance', 'Diaspora', 'LegalTech'];
+  const categories = [
+    'All',
+    'Employee Rights',
+    'Business Law',
+    'Property Law',
+    'Family Law',
+    'Compliance',
+    'Tax & Finance',
+    'Diaspora',
+    'LegalTech',
+  ];
 
   const filteredArticles = LEGAL_ARTICLES.filter((art) => {
     const matchesCategory = selectedCategory === 'All' || art.category === selectedCategory;
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return matchesCategory;
+    const matchesSearch =
       art.title.toLowerCase().includes(query) ||
       art.amharicTitle.includes(query) ||
       art.excerpt.toLowerCase().includes(query) ||
+      art.amharicExcerpt.includes(query) ||
       art.category.toLowerCase().includes(query);
     return matchesCategory && matchesSearch;
   });
 
   const filteredQA = VERIFIED_QA_DATA.filter((qa) => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
     return (
       qa.question.toLowerCase().includes(query) ||
       qa.amharicQuestion.includes(query) ||
@@ -47,19 +63,19 @@ export default function LegalTalkDirectoryPage() {
 
       <section className="bg-white border-b border-slate-200 pt-14 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[11px] font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            <span>LegalTalk</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-950 border border-amber-200 text-[11px] font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+            <span>LegalTalk • {LEGAL_ARTICLES.length} Audio-Enabled Guides</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-[#0A1128] tracking-tight">
             {language === 'am' ? 'የህግ እውቀት ለእያንዳንዱ ኢትዮጵያዊ' : 'Legal insights for everyday Ethiopians'}
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-500 font-normal max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 font-normal max-w-2xl mx-auto leading-relaxed">
             {language === 'am'
-              ? 'በቀላል ቋንቋ የቀረቡ የኢትዮጵያ ህግ ጽሑፎች — በስራ ቦታ ያለዎትን መብት፣ ንግድ መጀመር፣ ህግ ተገዢነት እና የዲያስፖራ ጉዳዮችን የሚዳስሱ።'
-              : 'Plain-language articles on Ethiopian law — covering your rights at work, starting a business, staying compliant, and more.'}
+              ? 'በቀላል ቋንቋ የቀረቡ የኢትዮጵያ ህግ ጽሑፎች — በስራ ቦታ ያለዎትን መብት፣ ንግድ መጀመር፣ የቤት ኪራይ፣ የቤተሰብ ሕግ እና የታክስ ተገዢነትን የሚዳስሱ።'
+              : 'Plain-language articles on Ethiopian law — covering employment rights, starting a company, leases, family law, data protection, trademarks, and tax compliance.'}
           </p>
 
           <div className="pt-4 flex justify-center">
@@ -84,7 +100,7 @@ export default function LegalTalkDirectoryPage() {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Verified Counsel Q&A ({VERIFIED_QA_DATA.length})
+                Verified Counsel Q&amp;A ({VERIFIED_QA_DATA.length})
               </button>
             </div>
           </div>
@@ -105,7 +121,7 @@ export default function LegalTalkDirectoryPage() {
                     className={`px-4 py-2 rounded-full whitespace-nowrap font-bold transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-[#0A1128] text-white shadow-xs'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     {cat}
@@ -115,11 +131,11 @@ export default function LegalTalkDirectoryPage() {
             </div>
           )}
 
-          <div className="relative w-full md:w-72 ml-auto">
+          <div className="relative w-full md:w-72 ml-auto shrink-0">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
-              placeholder={activeTab === 'guides' ? "Search articles..." : "Search legal questions..."}
+              placeholder={activeTab === 'guides' ? 'Search articles...' : 'Search legal questions...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0A1128] transition-colors"
@@ -128,77 +144,103 @@ export default function LegalTalkDirectoryPage() {
         </div>
 
         {activeTab === 'guides' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredArticles.map((art) => {
-              return (
-                <Link
-                  key={art.slug}
-                  href={`/legaltalk/${art.slug}`}
-                  className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-xs group"
+          <>
+            {filteredArticles.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center space-y-2 text-xs">
+                <p className="font-bold text-[#0A1128]">No articles matched your search.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory('All');
+                    setSearchQuery('');
+                  }}
+                  className="text-amber-700 font-bold underline cursor-pointer"
                 >
-                  <div>
-                    {/* Visual Photographic Header with Dark Overlay and Category Tag */}
-                    <div className="h-44 relative overflow-hidden bg-slate-900 flex flex-col justify-end p-6">
-                      <img
-                        src={art.imageUrl}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500 ease-out"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                      
-                      <div className="relative z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 bg-white/10 text-white text-[10px] font-black uppercase tracking-wider w-fit">
-                        <span>{language === 'am' ? art.amharicCategory : art.category}</span>
+                  Reset filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredArticles.map((art) => (
+                  <Link
+                    key={art.slug}
+                    href={`/legaltalk/${art.slug}`}
+                    className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between shadow-xs group"
+                  >
+                    <div>
+                      <div className="h-48 relative overflow-hidden bg-[#0A1128] flex flex-col justify-end p-5">
+                        <img
+                          src={art.imageUrl}
+                          alt={language === 'am' ? art.amharicTitle : art.title}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                          className="absolute inset-0 w-full h-full object-cover object-center opacity-80 group-hover:scale-105 transition-transform duration-500 ease-out"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128]/90 via-[#0A1128]/25 to-transparent" />
+
+                        <div className="relative z-10 flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full border border-white/25 bg-[#0A1128]/70 backdrop-blur-xs text-white text-[10px] font-black uppercase tracking-wider">
+                            {language === 'am' ? art.amharicCategory : art.category}
+                          </span>
+                          {art.audioDuration && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/90 text-[#0A1128] text-[10px] font-mono font-black">
+                              <Headphones className="w-3 h-3" />
+                              <span>{art.audioDuration}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-6 space-y-3">
+                        <h2 className="text-base font-black text-[#0A1128] group-hover:text-amber-700 transition-colors leading-snug">
+                          {language === 'am' ? art.amharicTitle : art.title}
+                        </h2>
+                        <p className="text-xs text-slate-600 leading-relaxed font-normal line-clamp-3">
+                          {language === 'am' ? art.amharicExcerpt : art.excerpt}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="p-6 space-y-3">
-                      <h2 className="text-base font-black text-[#0A1128] group-hover:text-amber-700 transition-colors leading-snug">
-                        {language === 'am' ? art.amharicTitle : art.title}
-                      </h2>
-                      <p className="text-xs text-slate-500 leading-relaxed font-normal line-clamp-3">
-                        {language === 'am' ? art.amharicExcerpt : art.excerpt}
-                      </p>
-                    </div>
-                  </div>
+                    <div className="px-6 pb-6 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{art.date}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{art.readTime}</span>
+                        </span>
+                      </div>
 
-                  <div className="px-6 pb-6 pt-2 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>{art.date}</span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{art.readTime} read</span>
-                      </span>
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0A1128] group-hover:translate-x-1 transition-all" />
                     </div>
-
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0A1128] group-hover:translate-x-1 transition-all" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === 'qa' && (
           <div className="space-y-6">
             {filteredQA.map((qa) => (
-              <div 
+              <div
                 key={qa.id}
                 className="bg-white rounded-3xl border border-slate-200 p-7 sm:p-8 space-y-5 shadow-xs"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase font-mono">
-                      {qa.category}
-                    </span>
-                    <h2 className="text-base sm:text-lg font-black text-[#0A1128] pt-1">
-                      {language === 'am' ? qa.amharicQuestion : qa.question}
-                    </h2>
-                    <span className="text-[11px] text-slate-400 block">{qa.asker} • {qa.date}</span>
-                  </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase font-mono">
+                    {qa.category}
+                  </span>
+                  <h2 className="text-base sm:text-lg font-black text-[#0A1128] pt-1">
+                    {language === 'am' ? qa.amharicQuestion : qa.question}
+                  </h2>
+                  <span className="text-[11px] text-slate-500 block">
+                    {qa.asker} • {qa.date}
+                  </span>
                 </div>
 
                 <div className="p-5 bg-[#F8FAFC] rounded-2xl border border-slate-100 space-y-3 text-xs leading-relaxed text-slate-700">
@@ -208,7 +250,9 @@ export default function LegalTalkDirectoryPage() {
                     </div>
                     <div>
                       <strong className="text-xs font-bold text-[#0A1128]">{qa.advocateName}</strong>
-                      <span className="text-[10px] text-slate-400 font-mono ml-2">License: {qa.advocateLicense}</span>
+                      <span className="text-[10px] text-slate-500 font-mono ml-2">
+                        License: {qa.advocateLicense}
+                      </span>
                     </div>
                   </div>
 
@@ -224,11 +268,11 @@ export default function LegalTalkDirectoryPage() {
 
                 <div className="flex justify-end pt-1">
                   <Link
-                    href={`/find-a-lawyer`}
+                    href="/find-a-lawyer"
                     className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all group"
                   >
-                    <span>Book Consultation with Counsel</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    <span>Request Free Consultation</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
@@ -238,10 +282,10 @@ export default function LegalTalkDirectoryPage() {
       </main>
 
       <footer className="bg-[#0A1128] text-slate-400 text-xs mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
             <p>© 2026 LegalLink Technologies PLC. All rights reserved.</p>
-            <p>Ethiopia's verified legal knowledge repository and advisory hub.</p>
+            <p>Ethiopia’s free legal knowledge repository and verified advocate directory.</p>
           </div>
         </div>
       </footer>
