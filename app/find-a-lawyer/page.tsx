@@ -13,6 +13,7 @@ import {
   Globe,
   ShieldCheck,
   Check,
+  CheckCircle2,
   ArrowRight,
   Clock,
   MapPin,
@@ -215,7 +216,6 @@ function FindLawyerWizard() {
     },
   ];
 
-  // Auto-select category from URL query
   useEffect(() => {
     const categoryQuery = searchParams.get('category');
     if (categoryQuery && CATEGORIES.some((c) => c.id === categoryQuery)) {
@@ -223,7 +223,6 @@ function FindLawyerWizard() {
     }
   }, [searchParams]);
 
-  // Pre-fill signed-in client info so returning users don't retype everything
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user) {
@@ -350,7 +349,7 @@ function FindLawyerWizard() {
           lawyer_name: activeLawyerObj.name,
           client_name: clientName.trim(),
           client_phone: clientPhone.trim(),
-          client_email: clientEmail.trim() || null,
+          client_email: clientEmail.trim().toLowerCase() || null,
           consultation_date: new Date().toISOString().split('T')[0],
           consultation_time: `${urgency} (${consultMode})`,
           practice_area: activeCategoryObj.title,
@@ -362,7 +361,7 @@ function FindLawyerWizard() {
 
       if (error) throw error;
 
-      // Dispatch Telegram notification asynchronously (non-blocking)
+      // 1. Dispatch privacy-safe Telegram notification asynchronously
       fetch('/api/telegram-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -376,6 +375,22 @@ function FindLawyerWizard() {
             urgency,
             mode: consultMode,
           },
+        }),
+      }).catch(() => {});
+
+      // 2. Dispatch branded confirmation receipt + inbox alert via info.legallinkethiopia@gmail.com
+      fetch('/api/consultation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reference: refId,
+          clientName: clientName.trim(),
+          clientEmail: clientEmail.trim().toLowerCase() || null,
+          clientPhone: clientPhone.trim(),
+          lawyerName: activeLawyerObj.name,
+          practiceArea: activeCategoryObj.title,
+          urgency,
+          mode: consultMode,
         }),
       }).catch(() => {});
 
@@ -903,7 +918,7 @@ function FindLawyerWizard() {
                 {language === 'am' ? 'ጥያቄዎን ያረጋግጡ' : 'Review & send your request'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-normal">
-                No payment is required on LegalLink. Enter your contact details so the advocate can reach you directly.
+                No payment is required on LegalLink. Enter your contact details so the advocate can reach you directly and we can email your confirmation receipt.
               </p>
             </div>
 
@@ -957,7 +972,7 @@ function FindLawyerWizard() {
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-800 mb-1">
-                        Email Address (Optional)
+                        Email (for confirmation receipt)
                       </label>
                       <input
                         type="email"
@@ -982,7 +997,7 @@ function FindLawyerWizard() {
                   <div className="flex items-start gap-3">
                     <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">Location & Mode</span>
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">Location &amp; Mode</span>
                       <strong className="text-slate-900 font-bold">
                         {location} • {consultLanguage} • {consultMode}
                       </strong>
@@ -1112,10 +1127,10 @@ function FindLawyerWizard() {
         )}
       </main>
 
-      {/* Clean Free-Launch Confirmation Modal */}
+      {/* Clean Free-Launch Confirmation Modal with "Before Your Call" Clarity Box */}
       {isSubmittedSuccess && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-5 text-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-7 sm:p-8 shadow-2xl text-center space-y-5 text-xs max-h-[92vh] overflow-y-auto">
             <div className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
               <Check className="w-8 h-8" />
             </div>
@@ -1126,6 +1141,7 @@ function FindLawyerWizard() {
               </h3>
               <p className="text-xs text-slate-600 font-normal leading-relaxed">
                 Your inquiry has been dispatched to <strong>{activeLawyerObj?.name}</strong>. They will review your summary and contact you directly via <strong>{clientPhone}</strong>.
+                {clientEmail ? ` A confirmation receipt has been sent to ${clientEmail}.` : ''}
               </p>
             </div>
 
@@ -1145,6 +1161,26 @@ function FindLawyerWizard() {
                 </div>
               </div>
             )}
+
+            <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200 text-left space-y-2">
+              <strong className="text-[11px] font-black uppercase tracking-wider text-[#0A1128] block">
+                Before Your Call — What to Have Ready
+              </strong>
+              <ul className="space-y-1.5 text-[11px] text-slate-700">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Key dates (contract signing, notice, or summons date).</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Copies (not originals) of contracts, IDs, or title deeds.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Your top 2–3 questions and preferred outcome.</span>
+                </li>
+              </ul>
+            </div>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
               <Link
@@ -1167,7 +1203,7 @@ function FindLawyerWizard() {
       <footer className="bg-[#0A1128] text-slate-400 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-            <p>© 2026 LegalLink Technologies PLC. All rights reserved.</p>
+            <p>© 2026 LegalLink Ethiopia • info.legallinkethiopia@gmail.com • +251-964-600-737</p>
             <p>
               Legal representation is provided independently by licensed Ethiopian advocates under Proclamation No. 1249/2021.
             </p>

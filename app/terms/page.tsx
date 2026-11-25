@@ -27,19 +27,19 @@ export default function TermsOfServicePage() {
 
         <section className="space-y-2">
           <h2 className="text-sm font-black text-[#0A1128] uppercase tracking-wider">
-            1. Technology Directory Disclosure
+            1. Digital Legal Platform Disclosure
           </h2>
           <p>
-            LegalLink Ethiopia operates strictly as an independent digital directory and legal-information platform connecting prospective clients with licensed Ethiopian advocates holding valid practicing licenses issued by the Federal Ministry of Justice or Regional Justice Bureaus under Federal Advocacy Service Licensing and Administration Proclamation No. 1249/2021. LegalLink is not a law firm, does not provide legal representation, and does not create an advocate-client relationship.
+            LegalLink Ethiopia operates strictly as an independent digital legal-access platform connecting prospective clients with licensed Ethiopian advocates holding valid practicing licenses issued by the Federal Ministry of Justice or Regional Justice Bureaus under Federal Advocacy Service Licensing and Administration Proclamation No. 1249/2021. LegalLink is not a law firm, does not provide direct legal representation, and does not create an advocate-client relationship.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-sm font-black text-[#0A1128] uppercase tracking-wider">
-            2. Free Public Access &amp; Independent Engagement Terms
+            2. Free Launch Access &amp; Independent Engagement Terms
           </h2>
           <p>
-            Browsing the advocate directory, submitting consultation inquiries, generating LexDraft templates, and accessing the Federal Legal Library are currently free on LegalLink. LegalLink does not process, hold, or guarantee legal service payments. Any formal legal engagement, scope of representation, or professional fee is agreed directly and independently between the client and the advocate.
+            Discovering advocates, submitting consultation inquiries, generating LexDraft templates, using the Legal Center, and reading the Federal Legal Library are free on LegalLink during our current launch phase. LegalLink does not process, hold, or guarantee legal service payments. Any formal legal engagement, scope of representation, or professional fee is agreed directly and independently between the client and the advocate.
           </p>
         </section>
 
@@ -57,20 +57,23 @@ export default function TermsOfServicePage() {
             4. Self-Help Templates &amp; Educational Content
           </h2>
           <p>
-            Forms generated through LexDraft and articles published on LegalTalk are provided for general educational and drafting assistance only and do not substitute for advice from a licensed advocate tailored to your specific facts.
+            Forms generated through LexDraft, articles published on LegalTalk, and definitions in the Legal Center are provided for general educational and drafting assistance only and do not substitute for advice from a licensed advocate tailored to your specific facts.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-sm font-black text-[#0A1128] uppercase tracking-wider">
-            5. Governing Law &amp; Contact
+            5. Governing Law &amp; Official Contact
           </h2>
           <p>
             These terms are governed by the laws of the Federal Democratic Republic of Ethiopia, including the Commercial Code (Proclamation No. 1243/2021). Any dispute shall be submitted to the competent courts in Addis Ababa, Ethiopia. Questions may be directed to{' '}
-            <a href="mailto:hello@legallink.et" className="font-bold text-[#0A1128] underline">
-              hello@legallink.et
-            </a>
-            .
+            <a
+              href="mailto:info.legallinkethiopia@gmail.com"
+              className="font-bold text-[#0A1128] underline"
+            >
+              info.legallinkethiopia@gmail.com
+            </a>{' '}
+            or <strong>+251-964-600-737</strong> / <strong>+251-905-941-865</strong>.
           </p>
         </section>
 
@@ -85,7 +88,7 @@ export default function TermsOfServicePage() {
       </main>
 
       <footer className="bg-[#0A1128] text-slate-400 py-6 border-t border-slate-800 text-center text-xs">
-        LegalLink Ethiopia • Regulatory &amp; Platform Governance • Addis Ababa
+        LegalLink Ethiopia • info.legallinkethiopia@gmail.com • Addis Ababa, Ethiopia
       </footer>
     </div>
   );

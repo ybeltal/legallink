@@ -1,81 +1,75 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { escapeHtml, sendLegalLinkEmail } from '@/lib/mailer';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
+    const { email, fullName, role = 'client' } = await request.json();
+
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
       return NextResponse.json(
-        { error: 'RESEND_API_KEY is not configured' },
-        { status: 500 }
+        { error: 'Valid email address is required' },
+        { status: 400 }
       );
     }
 
-    const resend = new Resend(apiKey);
-    const { email, fullName, role = 'client' } = await request.json();
-
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
-    }
-
-    const displayName =
+    const cleanEmail = email.trim().toLowerCase();
+    const rawName =
       (typeof fullName === 'string' && fullName.trim()) ||
-      email.split('@')[0] ||
+      cleanEmail.split('@')[0] ||
       'Member';
+    const safeName = escapeHtml(rawName);
+    const safeEmail = escapeHtml(cleanEmail);
     const isAdvocate = role === 'advocate';
     const appUrl =
       process.env.NEXT_PUBLIC_SITE_URL || 'https://legallink-two.vercel.app';
-
-    // Replace RESEND_FROM_EMAIL in Vercel once your custom domain is verified in Resend
-    const fromAddress =
-      process.env.RESEND_FROM_EMAIL || 'LegalLink Ethiopia <onboarding@resend.dev>';
 
     const badgeText = isAdvocate
       ? 'LEGALLINK ADVOCATE NETWORK'
       : 'VERIFIED LEGALLINK ACCOUNT';
 
     const introText = isAdvocate
-      ? `Thank you for joining Ethiopia’s digital legal marketplace with <strong>${email}</strong>. Complete or review your Ministry of Justice chamber profile to connect directly with clients across Ethiopia and the diaspora — completely free during our public launch.`
-      : `Your LegalLink account (<strong>${email}</strong>) is now active on Ethiopia’s digital legal marketplace — free to explore and connect directly with verified Ethiopian advocates.`;
+      ? `Thank you for joining LegalLink Ethiopia with <strong>${safeEmail}</strong>. Complete or manage your Ministry of Justice chamber profile to connect directly with clients across Ethiopia and the diaspora — completely free during our launch phase.`
+      : `Your LegalLink Ethiopia account (<strong>${safeEmail}</strong>) is now active. Find verified Ethiopian advocates, draft bilingual legal forms, and explore Ethiopian laws — all in one organized platform.`;
 
     const bulletItems = isAdvocate
       ? `
         <li style="margin-bottom:10px;">
-          <strong>MOJ Credential Verification:</strong> Submit your bar license details so clients can verify your court standing with confidence.
+          <strong>MOJ Credential Verification:</strong> Submit your Federal or Regional bar license so clients can verify your court standing with confidence.
         </li>
         <li style="margin-bottom:10px;">
-          <strong>Direct Client Inquiries:</strong> Receive structured legal consultation requests directly inside your Advocate Portal.
+          <strong>Direct Client Inquiries:</strong> Receive structured consultation requests inside your Advocate Portal with zero listing fees.
         </li>
         <li style="margin-bottom:10px;">
-          <strong>NextGen Talent &amp; Library:</strong> Access Ethiopian federal proclamations and connect with law student interns.
+          <strong>LegalTalk &amp; NextGen Hub:</strong> Access 122 Ethiopian proclamations and connect with law student interns under Proclamation No. 1249/2021.
         </li>
       `
       : `
         <li style="margin-bottom:10px;">
-          <strong>Connect with MOJ-Verified Advocates:</strong> Request direct legal consultations across corporate, family, property, and labor law.
+          <strong>Connect with Verified Advocates:</strong> Submit free consultation inquiries across corporate, property, family, labour, and diaspora law.
         </li>
         <li style="margin-bottom:10px;">
-          <strong>Draft Bilingual Legal Forms (LexDraft):</strong> Generate ready-to-use Amharic &amp; English contracts, NDAs, and lease agreements for free.
+          <strong>Draft Bilingual Legal Forms (LexDraft):</strong> Generate Amharic &amp; English contracts, powers of attorney, and court filings in minutes.
         </li>
         <li style="margin-bottom:10px;">
-          <strong>Explore Proclamations &amp; LegalTalk:</strong> Search Ethiopian federal proclamations and plain-language legal guides anytime.
+          <strong>Legal Center &amp; 122 Federal Laws:</strong> Browse plain-language LegalTalk guides, our bilingual legal dictionary, and official gazette proclamations.
         </li>
       `;
 
     const primaryCta = isAdvocate
       ? { label: 'Open Advocate Portal', href: `${appUrl}/advocate/portal` }
-      : { label: 'Explore Advocates', href: `${appUrl}/find-a-lawyer` };
+      : { label: 'Find an Advocate', href: `${appUrl}/find-a-lawyer` };
 
     const secondaryCta = isAdvocate
       ? { label: 'Complete Chamber Profile', href: `${appUrl}/advocate/register` }
-      : { label: 'Draft Legal Forms', href: `${appUrl}/lexdraft` };
+      : { label: 'Try LexDraft Free', href: `${appUrl}/lexdraft` };
 
-    const { data, error } = await resend.emails.send({
-      from: fromAddress,
-      to: [email],
+    const { messageId } = await sendLegalLinkEmail({
+      to: cleanEmail,
       subject: isAdvocate
-        ? `Welcome to LegalLink Advocate Network, ${displayName}! | እንኳን ወደ LegalLink በደህና መጡ!`
-        : `Welcome to LegalLink, ${displayName}! | እንኳን ወደ LegalLink በደህና መጡ!`,
+        ? `Welcome to LegalLink Advocate Network, ${rawName}! | እንኳን ወደ LegalLink በደህና መጡ!`
+        : `Welcome to LegalLink Ethiopia, ${rawName}! | እንኳን ወደ LegalLink በደህና መጡ!`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -83,17 +77,17 @@ export async function POST(request: Request) {
             <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
               <tr>
                 <td align="center">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
                     <tr>
                       <td style="background-color:#0A1128;padding:28px 32px;text-align:left;">
                         <span style="display:inline-block;background-color:#f59e0b;color:#0A1128;font-weight:700;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;">
                           ${badgeText}
                         </span>
                         <h1 style="margin:14px 0 6px;font-size:24px;line-height:1.3;color:#ffffff;">
-                          Welcome to LegalLink, ${displayName}!
+                          Welcome to LegalLink, ${safeName}!
                         </h1>
                         <p style="margin:0;font-size:15px;color:#fbbf24;font-weight:600;">
-                          እንኳን ወደ LegalLink በደህና መጡ!
+                          እንኳን ወደ LegalLink ኢትዮጵያ በደህና መጡ!
                         </p>
                       </td>
                     </tr>
@@ -118,13 +112,14 @@ export async function POST(request: Request) {
                           </tr>
                         </table>
                         <p style="margin-bottom:0;font-size:13px;color:#64748b;">
-                          Need help? Visit <a href="${appUrl}" style="color:#0A1128;font-weight:600;">LegalLink Ethiopia</a> anytime.
+                          Questions? Reply directly to <strong>info.legallinkethiopia@gmail.com</strong> or call <strong>+251-964-600-737</strong> / <strong>+251-905-941-865</strong>.
                         </p>
                       </td>
                     </tr>
                     <tr>
                       <td style="background-color:#f1f5f9;padding:18px 32px;font-size:12px;color:#64748b;text-align:center;">
-                        LegalLink Ethiopia &bull; Addis Ababa, Ethiopia &bull; Digital Legal Access
+                        <strong>LegalLink Ethiopia</strong> &bull; Addis Ababa, Ethiopia<br/>
+                        <em>“Justice delayed is justice denied — LegalLink ensures it is neither.”</em>
                       </td>
                     </tr>
                   </table>
@@ -136,14 +131,13 @@ export async function POST(request: Request) {
       `,
     });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, id: data?.id });
+    return NextResponse.json({ success: true, id: messageId });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Failed to send welcome email' },
+      {
+        error:
+          err instanceof Error ? err.message : 'Failed to send welcome email',
+      },
       { status: 500 }
     );
   }

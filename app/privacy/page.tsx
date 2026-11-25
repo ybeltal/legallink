@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
             1. Information We Collect
           </h2>
           <p>
-            When you create a LegalLink account or submit a consultation request, we collect only the information you provide: your name, email address, phone number, practice area preference, and a general summary of your legal inquiry. For advocates registering on our directory, we collect bar license numbers, court jurisdiction standing, chamber location, and contact details.
+            When you create a LegalLink Ethiopia account, submit a consultation request, or post an institutional partnership inquiry, we collect only the details you choose to provide: your name, email address, phone number, practice area preference, and general summary of your inquiry. For advocates registering on our directory, we collect bar license numbers, court jurisdiction standing, chamber location, and professional contact details.
           </p>
         </section>
 
@@ -39,16 +39,17 @@ export default function PrivacyPolicyPage() {
             2. How Inquiry Data Is Protected &amp; Shared
           </h2>
           <p>
-            Consultation inquiries are stored with database Row-Level Security (RLS) so that your inquiry is accessible only to your selected advocate and authorized LegalLink administrators for platform oversight. We recommend sharing only general facts in your initial inquiry and reserving sensitive personal documents for direct meetings with your advocate.
+            Consultation inquiries are protected with database Row-Level Security (RLS) so that your inquiry is accessible only to your selected advocate and authorized LegalLink administrators for platform oversight. We recommend sharing only general facts in your initial online inquiry and reserving sensitive personal documents for direct meetings with your advocate.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-sm font-black text-[#0A1128] uppercase tracking-wider">
-            3. Service Providers &amp; Operational Alerts
+            3. Service Providers &amp; Communications
           </h2>
           <p>
-            LegalLink uses trusted infrastructure providers to operate the platform securely: Vercel (application hosting), Supabase (authentication and database storage), Google OAuth (optional sign-in), Resend (transactional welcome emails), and internal Telegram notifications containing non-confidential reference alerts only. We never sell or monetize user data.
+            LegalLink Ethiopia uses trusted infrastructure providers to operate the platform securely: Vercel (application hosting), Supabase (authentication and database storage), Google OAuth (optional sign-in), Gmail SMTP via{' '}
+            <strong>info.legallinkethiopia@gmail.com</strong> (transactional welcome and confirmation emails), and internal operational alerts containing non-confidential reference IDs only. We never sell or monetize user data.
           </p>
         </section>
 
@@ -57,11 +58,14 @@ export default function PrivacyPolicyPage() {
             4. Your Rights &amp; Data Deletion Requests
           </h2>
           <p>
-            In alignment with Ethiopia’s Personal Data Protection Proclamation No. 1321/2024, you may request access to, correction of, or permanent deletion of your account and inquiry data at any time by emailing{' '}
-            <a href="mailto:hello@legallink.et" className="font-bold text-[#0A1128] underline">
-              hello@legallink.et
-            </a>
-            .
+            In alignment with Ethiopia’s Personal Data Protection Proclamation No. 1321/2024, you may request access to, correction of, or permanent deletion of your account and inquiry records at any time by contacting{' '}
+            <a
+              href="mailto:info.legallinkethiopia@gmail.com"
+              className="font-bold text-[#0A1128] underline"
+            >
+              info.legallinkethiopia@gmail.com
+            </a>{' '}
+            or calling <strong>+251-964-600-737</strong> / <strong>+251-905-941-865</strong>.
           </p>
         </section>
 
@@ -76,7 +80,7 @@ export default function PrivacyPolicyPage() {
       </main>
 
       <footer className="bg-[#0A1128] text-slate-400 py-6 border-t border-slate-800 text-center text-xs">
-        LegalLink Ethiopia • Data Protection &amp; Client Confidentiality • Addis Ababa
+        LegalLink Ethiopia • info.legallinkethiopia@gmail.com • Addis Ababa, Ethiopia
       </footer>
     </div>
   );
