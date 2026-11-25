@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { escapeHtml, sendLegalLinkEmail } from '@/lib/mailer';
 
-export const runtime = 'nodejs';
-
 export async function POST(request: Request) {
   try {
     const { email, fullName, role = 'client' } = await request.json();
