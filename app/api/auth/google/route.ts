@@ -2,51 +2,81 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const role = requestUrl.searchParams.get('role') === 'advocate' ? 'advocate' : 'client';
-  const redirect = requestUrl.searchParams.get('redirect') || '/';
-  const origin = requestUrl.origin;
+const FALLBACK_SUPABASE_URL = 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrdnFueXdic254emp0d2tnYm55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMzAyNjIsImV4cCI6MjEwNzgwNjI2Mn0.tIdqzeI77ErBFZYrYATO4-cDxO3VOJ4dSRuTM7FMOrg';
 
-  const supabaseUrl =
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rkvqnywbsnxzjtwkgbny.supabase.co';
-  const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
+function getSupabaseConfig() {
+  const rawUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '')
+    .replace(/['"]/g, '')
+    .trim();
+  const rawKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
     .replace(/['"]/g, '')
     .trim();
 
-  if (!supabaseAnonKey) {
-    return NextResponse.redirect(`${origin}/login?error=oauth_not_configured`);
-  }
+  return {
+    supabaseUrl: rawUrl.startsWith('https://') ? rawUrl : FALLBACK_SUPABASE_URL,
+    supabaseAnonKey: rawKey.length > 20 ? rawKey : FALLBACK_SUPABASE_ANON_KEY,
+  };
+}
 
-  const cookieStore = await cookies();
-  const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> = [];
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(list) {
-        list.forEach((c) => cookiesToSet.push(c));
-      },
-    },
-  });
-
+export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  const role =
+    requestUrl.searchParams.get('role') === 'advocate' ? 'advocate' : 'client';
+  const redirect = requestUrl.searchParams.get('redirect') || '/';
+  const origin = requestUrl.origin;
   const safeRedirect = redirect.startsWith('/') ? redirect : '/';
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${origin}/auth/callback?role=${role}&redirect=${encodeURIComponent(safeRedirect)}`,
-    },
-  });
 
-  if (error || !data?.url) {
-    return NextResponse.redirect(`${origin}/login?error=google_oauth_failed`);
+  try {
+    const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
+    const cookieStore = await cookies();
+    const cookiesToSet: Array<{
+      name: string;
+      value: string;
+      options?: Record<string, unknown>;
+    }> = [];
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(list) {
+          list.forEach((c) => cookiesToSet.push(c));
+        },
+      },
+    });
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${origin}/auth/callback?role=${role}&redirect=${encodeURIComponent(safeRedirect)}`,
+      },
+    });
+
+    if (error || !data?.url) {
+      console.error('Google OAuth initiation failed:', error?.message);
+      return NextResponse.redirect(`${origin}/login?error=google_oauth_failed`);
+    }
+
+    const response = NextResponse.redirect(data.url);
+    cookiesToSet.forEach(({ name, value, options }) => {
+      try {
+        response.cookies.set(
+          name,
+          value,
+          options as Parameters<typeof response.cookies.set>[2]
+        );
+      } catch (cookieErr) {
+        console.warn('Skipped non-standard cookie option:', cookieErr);
+        response.cookies.set(name, value, { path: '/', sameSite: 'lax' });
+      }
+    });
+
+    return response;
+  } catch (err) {
+    console.error('Unhandled /api/auth/google error:', err);
+    return NextResponse.redirect(`${origin}/login?error=google_oauth_exception`);
   }
-
-  const response = NextResponse.redirect(data.url);
-  cookiesToSet.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
-  });
-  return response;
 }
