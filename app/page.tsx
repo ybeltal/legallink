@@ -17,7 +17,9 @@ import {
   Lock,
   Languages,
   Mail,
+  Phone,
   MapPin,
+  Headphones,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import HeroBookingCard from '@/components/HeroBookingCard';
@@ -89,6 +91,42 @@ export default function HomePage() {
     },
   ];
 
+  const featuredGuides = [
+    {
+      href: '/legaltalk/starting-a-business-ethiopia-2026',
+      image: '/images/legaltalk/starting-business.jpg',
+      tag: t('lt_art1_tag'),
+      title: t('lt_art1_title'),
+      desc: t('lt_art1_desc'),
+      meta: 'May 28, 2026 • 8 min read',
+      audio: '3:10',
+    },
+    {
+      href: '/legaltalk/wrongful-termination-ethiopia',
+      image: '/images/legaltalk/wrongful-termination.jpg',
+      tag: t('lt_art3_tag'),
+      title: t('lt_art3_title'),
+      desc: t('lt_art3_desc'),
+      meta: 'June 15, 2026 • 6 min read',
+      audio: '2:45',
+    },
+    {
+      href: '/legaltalk/ethiopian-diaspora-property-ownership',
+      image: '/images/legaltalk/diaspora-property.jpg',
+      tag: language === 'am' ? 'የዲያስፖራ መብት' : 'Diaspora',
+      title:
+        language === 'am'
+          ? 'የኢትዮጵያ ዲያስፖራ በአገሩ ንብረት ባለቤት መሆን ይችላል?'
+          : 'Can the Ethiopian Diaspora Own Property in Ethiopia? A Legal Explainer',
+      desc:
+        language === 'am'
+          ? 'የቢጫ ካርድ ባለመብቶች በመኖሪያና በንግድ ቤቶች ላይ ያላቸው ህጋዊ የይዞታና የባለቤትነት መብት።'
+          : 'Understanding Yellow Card property rights, municipal land lease transfers, and succession rules.',
+      meta: 'March 22, 2026 • 5 min read',
+      audio: '2:15',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       {/* 01. Global Navigation Bar */}
@@ -96,7 +134,6 @@ export default function HomePage() {
 
       {/* 02. Asymmetric Hero Section */}
       <section className="relative pt-14 pb-20 md:pt-24 md:pb-28 overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-[#F8FAFC]">
-        {/* Unobstructed Lady Justice Background Accent */}
         <div className="absolute right-[-4%] md:right-[2%] lg:right-[6%] top-1/2 -translate-y-1/2 w-[320px] sm:w-[460px] lg:w-[540px] h-full pointer-events-none z-0 flex items-center justify-center select-none">
           <div className="absolute w-[360px] h-[360px] bg-amber-400/20 rounded-full blur-3xl animate-pulse-glow" />
           <img
@@ -121,9 +158,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
-              {language === 'am'
-                ? 'ከተረጋገጡ የኢትዮጵያ ጠበቆች ጋር በነፃ በቀጥታ ይገናኙ፣ በአማርኛ እና በእንግሊዝኛ ህጋዊ ሰነዶችን ያዘጋጁ እንዲሁም የፌዴራል አዋጆችን በቀላሉ ያንብቡ።'
-                : 'Connect directly with MOJ-verified Ethiopian advocates, draft bilingual Amharic & English legal forms, and search 122 federal proclamations — completely free during public launch.'}
+              {t('hero_sub')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center lg:justify-start">
@@ -242,21 +277,13 @@ export default function HomePage() {
             <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
               <span className="text-3xl font-black text-amber-400 font-mono block">02</span>
               <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step2_title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                {language === 'am'
-                  ? 'በህግ ዘርፍ፣ በከተማ፣ በቋንቋ እና በፍርድ ቤት ደረጃ የተጣሩ የጠበቆችን መገለጫ ይምረጡ።'
-                  : 'Choose a verified Ethiopian advocate filtered by practice area, location, language, and court tier.'}
-              </p>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">{t('hiw_step2_desc')}</p>
             </div>
 
             <div className="card-hover bg-white p-8 rounded-3xl border border-slate-200 space-y-3 shadow-xs">
               <span className="text-3xl font-black text-emerald-400 font-mono block">03</span>
               <h3 className="text-base font-bold text-[#0A1128]">{t('hiw_step3_title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                {language === 'am'
-                  ? 'ጠበቃው ጉዳይዎን ተመልክቶ በስልክ፣ በቪዲዮ ወይም በቢሮ በቀጥታ ያገኝዎታል።'
-                  : 'Your selected advocate reviews your brief and contacts you directly by phone, video, or in-person at their chambers.'}
-              </p>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">{t('hiw_step3_desc')}</p>
             </div>
           </div>
         </div>
@@ -274,7 +301,7 @@ export default function HomePage() {
               <p className="text-xs text-slate-600">{t('pa_sub')}</p>
             </div>
             <Link
-              href="/find-a-lawyer"
+              href="/practice-areas"
               className="px-4 py-2 border border-slate-200 hover:border-slate-300 rounded-xl bg-white text-xs font-bold text-slate-800 flex items-center gap-1.5 transition-all shadow-xs shrink-0"
             >
               <span>{t('pa_browse_all')}</span>
@@ -308,7 +335,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 06. Featured Lawyers */}
+      {/* 06. Featured Advocates */}
       <section className="py-16 md:py-20 bg-[#F8FAFC] border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -383,7 +410,7 @@ export default function HomePage() {
                   href={`/find-a-lawyer?category=${lawyer.category}`}
                   className="w-full py-2 bg-slate-100 hover:bg-[#0A1128] hover:text-white rounded-xl text-xs font-bold text-slate-800 transition-colors flex items-center justify-center gap-1 group"
                 >
-                  <span>{language === 'am' ? 'ምክክር ይጠይቁ' : 'Request Consultation'}</span>
+                  <span>{t('fl_view_profile')}</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
@@ -392,7 +419,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 07. Diaspora Legal Desk (Free Direct Connection) */}
+      {/* 07. Diaspora Legal Desk */}
       <section className="bg-gradient-to-r from-blue-950 via-[#0A1128] to-slate-950 text-white py-16 md:py-20 border-y border-blue-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="max-w-3xl space-y-3">
@@ -401,9 +428,7 @@ export default function HomePage() {
             </span>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight">{t('diaspora_title')}</h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-              {language === 'am'
-                ? 'በኢትዮጵያ የሚገኙ የመሬት ካርታዎችን፣ የኤምባሲ ውክልናዎችን፣ የውርስ ሀብቶችን እና የንግድ ኢንቨስትመንቶችን ከውጭ ሀገር ሆነው ከተረጋገጡ ጠበቆች ጋር በቀጥታ ያስፈጽሙ።'
-                : 'Coordinate embassy powers of attorney, land title verification, estate succession, and Ethiopian business investments remotely with verified local advocates.'}
+              {t('diaspora_sub')}
             </p>
           </div>
 
@@ -435,10 +460,10 @@ export default function HomePage() {
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800/80">
             <span className="text-xs text-slate-300">
-              Free initial advocate matching for Ethiopian diaspora clients worldwide.
+              Free remote advocate matching for Ethiopian diaspora clients worldwide.
             </span>
             <Link
-              href="/find-a-lawyer?category=immigration"
+              href="/diaspora"
               className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 transition-all shadow-md group cursor-pointer"
             >
               <span>{t('diaspora_cta_btn')}</span>
@@ -507,7 +532,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 09. LegalTalk Knowledge Hub */}
+      {/* 09. LegalTalk Knowledge Hub (With Real Local Cover Photos) */}
       <section className="py-16 md:py-24 bg-[#F8FAFC] border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -528,75 +553,51 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link
-              href="/legaltalk/starting-a-business-ethiopia-2026"
-              className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
-            >
-              <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center p-6 text-white text-center">
-                <span className="font-mono text-xs font-bold text-slate-300">Commercial Code 1243/2021</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest font-mono">
-                    {t('lt_art1_tag')}
-                  </span>
-                  <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-amber-700 transition-colors">
-                    {t('lt_art1_title')}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-normal">{t('lt_art1_desc')}</p>
+            {featuredGuides.map((guide) => (
+              <Link
+                key={guide.href}
+                href={guide.href}
+                className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
+              >
+                <div className="h-44 relative overflow-hidden bg-[#0A1128] flex flex-col justify-end p-4">
+                  <img
+                    src={guide.image}
+                    alt={guide.title}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                    className="absolute inset-0 w-full h-full object-cover object-center opacity-85 group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128]/90 via-[#0A1128]/25 to-transparent" />
+                  <div className="relative z-10 flex items-center justify-between gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#0A1128]/75 border border-white/20 text-white text-[10px] font-black uppercase tracking-wider">
+                      {guide.tag}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/90 text-[#0A1128] text-[10px] font-mono font-black">
+                      <Headphones className="w-3 h-3" />
+                      <span>{guide.audio}</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="pt-2 text-[11px] text-slate-500 font-mono">May 28, 2026 • 8 min read</div>
-              </div>
-            </Link>
-
-            <Link
-              href="/legaltalk/wrongful-termination-ethiopia"
-              className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
-            >
-              <div className="h-40 bg-gradient-to-br from-blue-900 to-slate-900 flex items-center justify-center p-6 text-white text-center">
-                <span className="font-mono text-xs font-bold text-slate-300">Labour Proclamation 1156/2019</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest font-mono">
-                    {t('lt_art3_tag')}
-                  </span>
-                  <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-amber-700 transition-colors">
-                    {t('lt_art3_title')}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-normal">{t('lt_art3_desc')}</p>
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-amber-700 transition-colors leading-snug">
+                      {guide.title}
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed font-normal line-clamp-3">
+                      {guide.desc}
+                    </p>
+                  </div>
+                  <div className="pt-2 text-[11px] text-slate-500 font-mono">{guide.meta}</div>
                 </div>
-                <div className="pt-2 text-[11px] text-slate-500 font-mono">June 15, 2026 • 6 min read</div>
-              </div>
-            </Link>
-
-            <Link
-              href="/legaltalk/ethiopian-diaspora-property-ownership"
-              className="card-hover bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs flex flex-col group"
-            >
-              <div className="h-40 bg-gradient-to-br from-emerald-950 to-slate-900 flex items-center justify-center p-6 text-white text-center">
-                <span className="font-mono text-xs font-bold text-slate-300">Proclamation No. 270/2002</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest font-mono">
-                    {t('diaspora_tag')}
-                  </span>
-                  <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-amber-700 transition-colors">
-                    Can the Ethiopian Diaspora Own Property in Ethiopia?
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                    Understanding yellow card property rights, municipal land lease transfers, and succession rules.
-                  </p>
-                </div>
-                <div className="pt-2 text-[11px] text-slate-500 font-mono">March 22, 2026 • 5 min read</div>
-              </div>
-            </Link>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 10. About & Trust Standards (#about) */}
+      {/* 10. Why LegalLink & Partnerships Banner */}
       <section id="about" className="py-16 md:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -604,11 +605,7 @@ export default function HomePage() {
               {t('why_tag')}
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-[#0A1128]">{t('why_title')}</h2>
-            <p className="text-xs sm:text-sm text-slate-600">
-              {language === 'am'
-                ? 'ለኢትዮጵያውያን ግልጽ፣ ታማኝ እና ነፃ የህግ ተደራሽነት ለመፍጠር የተገነባ።'
-                : 'Built to make Ethiopian legal access transparent, verifiable, and accessible for citizens, businesses, and advocates.'}
-            </p>
+            <p className="text-xs sm:text-sm text-slate-600">{t('why_sub')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -620,22 +617,12 @@ export default function HomePage() {
             <div className="p-6 bg-[#F8FAFC] rounded-3xl border border-slate-200 space-y-3">
               <Lock className="w-6 h-6 text-[#0A1128]" />
               <h3 className="text-sm font-bold text-[#0A1128]">{t('why_c2_title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {language === 'am'
-                  ? 'የደንበኞች ጥያቄዎች ለተመረጠው ጠበቃ ብቻ እንዲታዩ በደህንነት ደንቦች የተጠበቁ ናቸው።'
-                  : 'Consultation requests are protected by role-based access rules so only you and your chosen advocate see your inquiry.'}
-              </p>
+              <p className="text-xs text-slate-600 leading-relaxed">{t('why_c2_desc')}</p>
             </div>
             <div className="p-6 bg-[#F8FAFC] rounded-3xl border border-slate-200 space-y-3">
               <Scale className="w-6 h-6 text-amber-700" />
-              <h3 className="text-sm font-bold text-[#0A1128]">
-                {language === 'am' ? 'ነፃ የመድረክ አገልግሎት' : 'Free Public Launch'}
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {language === 'am'
-                  ? 'ጠበቃ ለመፈለግ፣ ሰነዶችን ለማዘጋጀት እና ህጎችን ለማንበብ ምንም አይነት የመድረክ ክፍያ አይጠየቅም።'
-                  : 'Browse advocates, draft bilingual legal forms, and access 122 proclamations with zero platform fees.'}
-              </p>
+              <h3 className="text-sm font-bold text-[#0A1128]">{t('why_c3_title')}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">{t('why_c3_desc')}</p>
             </div>
             <div className="p-6 bg-[#F8FAFC] rounded-3xl border border-slate-200 space-y-3">
               <Languages className="w-6 h-6 text-blue-700" />
@@ -643,10 +630,40 @@ export default function HomePage() {
               <p className="text-xs text-slate-600 leading-relaxed">{t('why_c4_desc')}</p>
             </div>
           </div>
+
+          {/* Institutional / Donor Partnership Strip */}
+          <div className="p-7 sm:p-9 bg-[#0A1128] text-white rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1.5 text-center md:text-left max-w-2xl">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
+                INSTITUTIONS, UNIVERSITIES &amp; DEVELOPMENT PARTNERS
+              </span>
+              <h3 className="text-xl font-black">
+                Building a More Connected Legal Ecosystem Across Ethiopia
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Explore our mission, values, founding leadership, and institutional partnership tracks for universities, legal aid NGOs, corporates, and donors.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 shrink-0">
+              <Link
+                href="/about"
+                className="px-5 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs rounded-xl transition-all"
+              >
+                About LegalLink
+              </Link>
+              <Link
+                href="/about#partnerships"
+                className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl inline-flex items-center gap-1.5 transition-all"
+              >
+                <span>Partner With Us</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* 11. Clean Footer */}
+      {/* 11. Official Footer (Synced with Pitch Deck) */}
       <footer className="bg-[#0A1128] text-slate-300 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
@@ -658,21 +675,30 @@ export default function HomePage() {
                 </span>
               </div>
               <p className="text-xs text-slate-400 max-w-sm leading-relaxed font-normal">
-                {language === 'am'
-                  ? 'ደንበኞችን ከተረጋገጡ የኢትዮጵያ ጠበቆች ጋር የሚያገናኝ ዲጂታል የህግ መድረክ።'
-                  : 'Ethiopia’s digital legal directory, bilingual drafting hub, and proclamation vault.'}
+                {t('footer_tagline')}
               </p>
 
               <div className="space-y-1.5 text-slate-300 text-xs pt-1">
+                <a
+                  href="mailto:info.legallinkethiopia@gmail.com"
+                  className="flex items-center gap-2 hover:text-amber-300 transition-colors"
+                >
+                  <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>info.legallinkethiopia@gmail.com</span>
+                </a>
                 <div className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-amber-400" />
-                  <span>hello@legallink.et</span>
+                  <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>+251-964-600-737 / +251-905-941-865</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                  <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>{t('footer_address')}</span>
                 </div>
               </div>
+
+              <p className="text-[11px] italic text-amber-300/90 pt-1">
+                “{t('footer_motto')}”
+              </p>
             </div>
 
             <div className="space-y-3">
@@ -683,6 +709,7 @@ export default function HomePage() {
                 <li><Link href="/find-a-lawyer" className="hover:text-white transition-colors">{t('nav_find_lawyer')}</Link></li>
                 <li><Link href="/for-lawyers" className="hover:text-white transition-colors">{t('nav_for_lawyers')}</Link></li>
                 <li><Link href="/lexdraft" className="hover:text-white transition-colors">{t('nav_lexdraft')}</Link></li>
+                <li><Link href="/diaspora" className="hover:text-white transition-colors">Diaspora Legal Hub</Link></li>
                 <li><Link href="/nextgen" className="hover:text-white transition-colors">NextGen Hub</Link></li>
               </ul>
             </div>
@@ -692,10 +719,11 @@ export default function HomePage() {
                 {t('footer_resources_title')}
               </strong>
               <ul className="space-y-2 text-[11px] text-slate-400">
-                <li><Link href="/library" className="hover:text-white transition-colors">Federal Legal Library</Link></li>
-                <li><Link href="/legaltalk" className="hover:text-white transition-colors">LegalTalk Guides</Link></li>
-                <li><Link href="/advocate/register" className="hover:text-white transition-colors">Register as Advocate</Link></li>
-                <li><Link href="/advocate/portal" className="hover:text-white transition-colors">Advocate Portal</Link></li>
+                <li><Link href="/legal-center" className="hover:text-white transition-colors">Legal Center &amp; Dictionary</Link></li>
+                <li><Link href="/library" className="hover:text-white transition-colors">Federal Legal Library (122)</Link></li>
+                <li><Link href="/legaltalk" className="hover:text-white transition-colors">LegalTalk Audio Guides</Link></li>
+                <li><Link href="/tools" className="hover:text-white transition-colors">Severance &amp; DARS Tools</Link></li>
+                <li><Link href="/dashboard" className="hover:text-white transition-colors">Client Dashboard</Link></li>
               </ul>
             </div>
 
@@ -704,7 +732,8 @@ export default function HomePage() {
                 {t('footer_company_title')}
               </strong>
               <ul className="space-y-2 text-[11px] text-slate-400">
-                <li><Link href="/#about" className="hover:text-white transition-colors">{t('nav_about')}</Link></li>
+                <li><Link href="/about" className="hover:text-white transition-colors">About LegalLink</Link></li>
+                <li><Link href="/about#partnerships" className="hover:text-amber-300 text-amber-400 font-bold transition-colors">Partnerships &amp; Donors</Link></li>
                 <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><span className="text-slate-500">Proc. No. 1249/2021</span></li>

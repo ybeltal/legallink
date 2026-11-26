@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
@@ -1523,6 +1523,24 @@ function LexDraftContent() {
               <pre className="w-full p-6 bg-white border border-slate-200 rounded-2xl text-xs font-serif text-slate-900 whitespace-pre-wrap leading-relaxed max-h-[580px] overflow-y-auto">
                 {generatedText}
               </pre>
+
+              <div className="p-4 bg-[#0A1128] text-white rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <strong className="text-xs font-black text-amber-400 block">
+                    Want a Verified Advocate to Review This Draft?
+                  </strong>
+                  <span className="text-[11px] text-slate-300 block">
+                    Connect with an MOJ-licensed Ethiopian advocate before signing or filing — free matching.
+                  </span>
+                </div>
+                <Link
+                  href="/find-a-lawyer"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl inline-flex items-center justify-center gap-1.5 shrink-0 transition-all"
+                >
+                  <span>Request Free Review</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           </div>
         </main>
