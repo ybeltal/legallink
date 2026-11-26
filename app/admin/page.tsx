@@ -10,7 +10,6 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
-  GraduationCap,
   Calendar,
   Scale,
   Users,
@@ -27,6 +26,7 @@ import {
   Star,
   Eye,
 } from 'lucide-react';
+import VoiceBriefPlayer from '@/components/VoiceBriefPlayer';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdminConsolePage() {
@@ -716,7 +716,7 @@ export default function AdminConsolePage() {
           </div>
         </div>
 
-        {/* TAB 1: CLIENT INQUIRIES */}
+        {/* TAB 1: CLIENT INQUIRIES (WITH PLAYABLE VOICE BRIEFS) */}
         {activeTab === 'inquiries' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -724,7 +724,7 @@ export default function AdminConsolePage() {
                 Client &amp; Diaspora Consultation Inquiries
               </h2>
               <p className="text-xs text-slate-600">
-                Every inquiry submitted through Find a Lawyer and the Diaspora Legal Hub.
+                Every written inquiry and voice brief submitted through Find a Lawyer and the Diaspora Legal Hub.
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -734,7 +734,7 @@ export default function AdminConsolePage() {
                     <th className="py-3 px-3">Date / Source</th>
                     <th className="py-3 px-3">Client</th>
                     <th className="py-3 px-3">Advocate</th>
-                    <th className="py-3 px-3">Practice Area &amp; Full Brief</th>
+                    <th className="py-3 px-3">Practice Area, Brief &amp; Voice Audio</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3 text-right">Update</th>
                   </tr>
@@ -783,6 +783,12 @@ export default function AdminConsolePage() {
                           <p className="text-slate-600 text-[11px] leading-relaxed whitespace-pre-wrap mt-0.5">
                             {b.brief_description}
                           </p>
+                          {b.voice_brief_url && (
+                            <VoiceBriefPlayer
+                              filePath={b.voice_brief_url}
+                              duration={b.voice_brief_duration}
+                            />
+                          )}
                         </td>
                         <td className="py-3 px-3">
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-800">
@@ -825,7 +831,7 @@ export default function AdminConsolePage() {
                 Advocate Registry, Full CVs &amp; MOJ Credential Verification
               </h2>
               <p className="text-xs text-slate-600">
-                Click <strong>View Full CV</strong> to inspect education, career history, practice areas, and uploaded CV documents before approving the MOJ Verified badge.
+                Click <strong>Full CV</strong> to inspect education, career history, practice areas, and uploaded CV documents before approving the MOJ Verified badge.
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -931,7 +937,6 @@ export default function AdminConsolePage() {
         {/* TAB 3: LIVE LANDING-PAGE TESTIMONIALS MANAGER */}
         {activeTab === 'testimonials' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left: Add New Testimonial */}
             <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
               <div>
                 <h2 className="text-base font-black text-[#0A1128]">
@@ -1031,7 +1036,6 @@ export default function AdminConsolePage() {
               </form>
             </div>
 
-            {/* Right: Existing Testimonials List */}
             <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
               <div>
                 <h2 className="text-base font-black text-[#0A1128]">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -23,6 +23,10 @@ import {
   Star,
   Loader2,
   RefreshCw,
+  Mic,
+  Square,
+  Trash2,
+  Volume2,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { createClient } from '@/lib/supabase/client';
@@ -113,6 +117,16 @@ const FALLBACK_SEED_LAWYERS: AdvocateMatch[] = [
   },
 ];
 
+const MAX_RECORDING_SECONDS = 120; // 2-minute safety cap
+
+function formatDuration(totalSeconds: number): string {
+  const mins = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const secs = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${mins}:${secs}`;
+}
+
 function FindLawyerWizard() {
   const { language, t } = useLanguage();
   const searchParams = useSearchParams();
@@ -127,12 +141,27 @@ function FindLawyerWizard() {
   // Step 1
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Step 2 (Court Jurisdiction Tier removed for client simplicity)
+  // Step 2 (Clean Preferences + Text & Voice Brief)
   const [location, setLocation] = useState<string | null>('Addis Ababa');
   const [consultLanguage, setConsultLanguage] = useState<string | null>('Amharic');
   const [consultMode, setConsultMode] = useState<string | null>('Phone Call');
   const [urgency, setUrgency] = useState<string | null>('Within 3 days');
   const [situationText, setSituationText] = useState<string>('');
+
+  // Voice Brief Recorder State
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioMimeType, setAudioMimeType] = useState<string>('audio/webm');
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
+  const [audioDurationLabel, setAudioDurationLabel] = useState<string | null>(null);
+  const [micError, setMicError] = useState<string | null>(null);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const secondsRef = useRef<number>(0);
 
   // Step 3
   const [selectedLawyerId, setSelectedLawyerId] = useState<string | null>(null);
@@ -215,6 +244,23 @@ function FindLawyerWizard() {
     },
   ];
 
+  // Clean up microphone & blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+    };
+  }, [audioPreviewUrl]);
+
   useEffect(() => {
     const categoryQuery = searchParams.get('category');
     if (categoryQuery && CATEGORIES.some((c) => c.id === categoryQuery)) {
@@ -290,6 +336,126 @@ function FindLawyerWizard() {
     fetchLiveAdvocates();
   }, []);
 
+  // Voice Brief Recording Handlers
+  const handleStartRecording = async () => {
+    setMicError(null);
+    setStepError(null);
+
+    if (
+      typeof window === 'undefined' ||
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia ||
+      typeof MediaRecorder === 'undefined'
+    ) {
+      setMicError(
+        'Voice recording is not supported in this browser. Please type your legal summary above.'
+      );
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const preferredTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg;codecs=opus',
+      ];
+      const supportedType =
+        preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+
+      const recorder = supportedType
+        ? new MediaRecorder(stream, { mimeType: supportedType })
+        : new MediaRecorder(stream);
+
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+      secondsRef.current = 0;
+      setRecordingSeconds(0);
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        stream.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+
+        const resolvedMime =
+          recorder.mimeType || supportedType || 'audio/webm';
+        const finalBlob = new Blob(audioChunksRef.current, {
+          type: resolvedMime,
+        });
+
+        if (finalBlob.size > 0) {
+          const previewUrl = URL.createObjectURL(finalBlob);
+          setAudioBlob(finalBlob);
+          setAudioMimeType(resolvedMime);
+          setAudioPreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return previewUrl;
+          });
+          setAudioDurationLabel(formatDuration(Math.max(1, secondsRef.current)));
+        }
+        setIsRecording(false);
+      };
+
+      recorder.start(250);
+      setIsRecording(true);
+
+      timerRef.current = setInterval(() => {
+        secondsRef.current += 1;
+        setRecordingSeconds(secondsRef.current);
+        if (secondsRef.current >= MAX_RECORDING_SECONDS) {
+          if (
+            mediaRecorderRef.current &&
+            mediaRecorderRef.current.state !== 'inactive'
+          ) {
+            mediaRecorderRef.current.stop();
+          }
+        }
+      }, 1000);
+    } catch (err: any) {
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setMicError(
+          'Microphone permission was blocked. Please allow microphone access in your browser address bar and try again.'
+        );
+      } else {
+        setMicError(
+          'Could not access your microphone. Please check that a mic is connected or type your summary above.'
+        );
+      }
+      setIsRecording(false);
+    }
+  };
+
+  const handleStopRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== 'inactive'
+    ) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const handleClearRecording = () => {
+    if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+    setAudioBlob(null);
+    setAudioPreviewUrl(null);
+    setAudioDurationLabel(null);
+    setRecordingSeconds(0);
+    secondsRef.current = 0;
+    setMicError(null);
+  };
+
   const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory);
   const activeLawyerObj = lawyers.find((l) => l.id === selectedLawyerId);
 
@@ -304,13 +470,20 @@ function FindLawyerWizard() {
   };
 
   const handleProceedFromStep2 = () => {
+    if (isRecording) {
+      setStepError('Please stop your active voice recording before continuing.');
+      return;
+    }
     if (!location || !consultLanguage || !consultMode || !urgency) {
       setStepError('Please select all consultation preferences marked with *.');
       return;
     }
-    if (!situationText.trim() || situationText.trim().length < 15) {
+    const hasWrittenSummary = situationText.trim().length >= 15;
+    const hasVoiceBrief = Boolean(audioBlob);
+
+    if (!hasWrittenSummary && !hasVoiceBrief) {
       setStepError(
-        'Please describe your legal matter (at least 15 characters) so the advocate can prepare.'
+        'Please describe your legal matter (at least 15 characters) OR record a short voice brief.'
       );
       return;
     }
@@ -350,6 +523,42 @@ function FindLawyerWizard() {
     try {
       const refId = `LL-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
+      // Upload recorded voice brief to Supabase Storage if attached
+      let uploadedVoicePath: string | null = null;
+      if (audioBlob) {
+        const baseMime = (audioMimeType || 'audio/webm').split(';')[0].trim();
+        const ext = baseMime.includes('mp4')
+          ? 'm4a'
+          : baseMime.includes('ogg')
+          ? 'ogg'
+          : 'webm';
+        const storagePath = `briefs/${refId}-${Date.now()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('voice-briefs')
+          .upload(storagePath, audioBlob, {
+            contentType: baseMime || 'audio/webm',
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw new Error(
+            `Voice brief upload failed: ${uploadError.message}. Make sure the voice-briefs bucket SQL was run in Supabase.`
+          );
+        }
+
+        uploadedVoicePath = storagePath;
+      }
+
+      const trimmedText = situationText.trim();
+      const combinedBrief =
+        trimmedText && uploadedVoicePath
+          ? `${trimmedText}\n\n[Voice brief attached — duration: ${audioDurationLabel || '00:05'}]`
+          : uploadedVoicePath
+          ? `[Voice brief attached — duration: ${audioDurationLabel || '00:05'}]`
+          : trimmedText;
+
       const { error } = await supabase.from('consultation_bookings').insert({
         lawyer_id: activeLawyerObj.id,
         lawyer_name: activeLawyerObj.name,
@@ -359,7 +568,9 @@ function FindLawyerWizard() {
         consultation_date: new Date().toISOString().split('T')[0],
         consultation_time: `${urgency} (${consultMode})`,
         practice_area: activeCategoryObj.title,
-        brief_description: situationText.trim(),
+        brief_description: combinedBrief,
+        voice_brief_url: uploadedVoicePath,
+        voice_brief_duration: uploadedVoicePath ? audioDurationLabel : null,
         fee_etb: 0,
         escrow_status: 'free_launch',
         booking_status: 'pending',
@@ -378,7 +589,7 @@ function FindLawyerWizard() {
             lawyer_name: activeLawyerObj.name,
             practice_area: activeCategoryObj.title,
             urgency,
-            mode: consultMode,
+            mode: uploadedVoicePath ? `${consultMode} + Voice Brief` : consultMode,
           },
         }),
       }).catch(() => {});
@@ -394,7 +605,7 @@ function FindLawyerWizard() {
           lawyerName: activeLawyerObj.name,
           practiceArea: activeCategoryObj.title,
           urgency,
-          mode: consultMode,
+          mode: uploadedVoicePath ? `${consultMode} + Voice Brief` : consultMode,
         }),
       }).catch(() => {});
 
@@ -557,7 +768,7 @@ function FindLawyerWizard() {
           </div>
         )}
 
-        {/* STEP 2: DETAILS & PREFERENCES (CLEAN — NO COURT JURISDICTION TIER) */}
+        {/* STEP 2: DETAILS, PREFERENCES & VOICE BRIEF RECORDER */}
         {currentStep === 2 && (
           <div className="space-y-8">
             <div className="space-y-2">
@@ -565,7 +776,7 @@ function FindLawyerWizard() {
                 {language === 'am' ? 'የምክክር ምርጫዎችዎን ይግለጹ' : 'Tell us your preferences'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-normal">
-                Share how you prefer to meet and a concise summary of your legal matter.
+                Share how you prefer to meet, then type a short summary or record a voice brief in Amharic or English.
               </p>
             </div>
 
@@ -682,11 +893,12 @@ function FindLawyerWizard() {
                 </div>
               </div>
 
+              {/* Written Matter Description */}
               <div className="pt-4 border-t border-slate-100 space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-800 block">
                     Briefly describe your legal matter (Amharic or English){' '}
-                    <span className="text-red-500">*</span>
+                    {!audioBlob && <span className="text-red-500">*</span>}
                   </label>
                   <span className="text-[11px] text-slate-500 font-mono">
                     {situationText.length}/600
@@ -696,7 +908,7 @@ function FindLawyerWizard() {
                 <textarea
                   rows={4}
                   maxLength={600}
-                  placeholder="E.g. I need legal advice on reviewing a commercial lease agreement in Bole, or guidance on registering a PLC..."
+                  placeholder="E.g. I want to buy a house in Addis Ababa and need a title deed (Karta) check and sale agreement review..."
                   value={situationText}
                   onChange={(e) => {
                     setSituationText(e.target.value);
@@ -707,6 +919,97 @@ function FindLawyerWizard() {
                 <p className="text-[11px] text-slate-500">
                   Tip: Share general facts only — save sensitive personal IDs or confidential files for your direct meeting with the advocate.
                 </p>
+              </div>
+
+              {/* Voice Brief Audio Recorder Box */}
+              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 font-bold text-[#0A1128]">
+                      <Mic className="w-4 h-4 text-amber-600" />
+                      <span>
+                        {language === 'am'
+                          ? 'ወይም ጉዳይዎን በድምፅ ይቅዱ (እስከ 2 ደቂቃ)'
+                          : 'Or Record a Voice Brief (Amharic or English • up to 2 mins)'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      Prefer speaking instead of typing? Record a quick audio explanation — your advocate can listen directly.
+                    </p>
+                  </div>
+
+                  {!isRecording && !audioPreviewUrl && (
+                    <button
+                      type="button"
+                      onClick={handleStartRecording}
+                      className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl inline-flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Mic className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Record Voice Brief</span>
+                    </button>
+                  )}
+
+                  {isRecording && (
+                    <button
+                      type="button"
+                      onClick={handleStopRecording}
+                      className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl inline-flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Square className="w-3 h-3 fill-current" />
+                      <span>Stop Recording ({formatDuration(recordingSeconds)})</span>
+                    </button>
+                  )}
+                </div>
+
+                {isRecording && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between text-red-800">
+                    <div className="flex items-center gap-2 font-bold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
+                      <span>Recording in progress... Speak clearly in Amharic or English</span>
+                    </div>
+                    <span className="font-mono font-black">
+                      {formatDuration(recordingSeconds)} / 02:00
+                    </span>
+                  </div>
+                )}
+
+                {micError && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>{micError}</span>
+                  </div>
+                )}
+
+                {audioPreviewUrl && !isRecording && (
+                  <div className="p-4 bg-white border border-emerald-200 rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-emerald-800 font-bold">
+                        <Volume2 className="w-4 h-4 text-emerald-600" />
+                        <span>
+                          Voice Brief Recorded ({audioDurationLabel || '00:01'}) — Ready to Attach
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleStartRecording}
+                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] cursor-pointer"
+                        >
+                          Re-record
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearRecording}
+                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 cursor-pointer"
+                          title="Delete voice recording"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <audio controls src={audioPreviewUrl} className="w-full h-9" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1002,13 +1305,27 @@ function FindLawyerWizard() {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 space-y-1">
+                  <div className="pt-2 border-t border-slate-100 space-y-2">
                     <span className="text-[10px] text-slate-500 uppercase font-semibold block">
-                      Matter Summary
+                      Matter Summary &amp; Voice Brief
                     </span>
-                    <p className="text-slate-700 leading-relaxed font-normal bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      {situationText}
-                    </p>
+                    {situationText.trim() && (
+                      <p className="text-slate-700 leading-relaxed font-normal bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        {situationText}
+                      </p>
+                    )}
+                    {audioPreviewUrl && (
+                      <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200 space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-amber-900">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Volume2 className="w-3.5 h-3.5 text-amber-700" />
+                            <span>Attached Voice Brief</span>
+                          </span>
+                          <span className="font-mono">{audioDurationLabel}</span>
+                        </div>
+                        <audio controls src={audioPreviewUrl} className="w-full h-8" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1121,7 +1438,7 @@ function FindLawyerWizard() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                    <span>Submitting Request...</span>
+                    <span>{audioBlob ? 'Uploading Voice Brief...' : 'Submitting Request...'}</span>
                   </>
                 ) : (
                   <>
@@ -1146,7 +1463,9 @@ function FindLawyerWizard() {
             <div className="space-y-1.5">
               <h3 className="text-xl font-black text-[#0A1128]">Consultation Request Sent!</h3>
               <p className="text-xs text-slate-600 font-normal leading-relaxed">
-                Your inquiry has been dispatched to <strong>{activeLawyerObj?.name}</strong>. They will review your summary and contact you directly via <strong>{clientPhone}</strong>.
+                Your inquiry {audioBlob ? 'and voice brief have' : 'has'} been dispatched to{' '}
+                <strong>{activeLawyerObj?.name}</strong>. They will review your matter and contact you directly via{' '}
+                <strong>{clientPhone}</strong>.
                 {clientEmail ? ` A confirmation receipt has been sent to ${clientEmail}.` : ''}
               </p>
             </div>
@@ -1162,8 +1481,10 @@ function FindLawyerWizard() {
                   <strong className="text-emerald-700">Pending Advocate Review</strong>
                 </div>
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-500">Platform Fee:</span>
-                  <strong className="text-slate-900">Free (ETB 0)</strong>
+                  <span className="text-slate-500">Voice Brief:</span>
+                  <strong className="text-slate-900">
+                    {audioBlob ? `Attached (${audioDurationLabel})` : 'Text Only'}
+                  </strong>
                 </div>
               </div>
             )}
