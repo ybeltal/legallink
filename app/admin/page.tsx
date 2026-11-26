@@ -20,6 +20,12 @@ import {
   X,
   Send,
   Trash2,
+  FileText,
+  Download,
+  Quote,
+  Plus,
+  Star,
+  Eye,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -32,9 +38,10 @@ export default function AdminConsolePage() {
   const [adminEmail, setAdminEmail] = useState<string>('');
 
   const [activeTab, setActiveTab] = useState<
-    | 'users'
     | 'inquiries'
+    | 'users'
     | 'advocates'
+    | 'testimonials'
     | 'partnerships'
     | 'qa'
     | 'applications'
@@ -47,10 +54,24 @@ export default function AdminConsolePage() {
   const [platformUsers, setPlatformUsers] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [advocates, setAdvocates] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
   const [partnerships, setPartnerships] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
+
+  // Advocate Full CV Modal State
+  const [selectedAdvocateCv, setSelectedAdvocateCv] = useState<any | null>(null);
+  const [downloadingCv, setDownloadingCv] = useState(false);
+
+  // Add Testimonial Form State
+  const [newTName, setNewTName] = useState('');
+  const [newTRole, setNewTRole] = useState('');
+  const [newTArea, setNewTArea] = useState('Corporate & Business Law');
+  const [newTQuote, setNewTQuote] = useState('');
+  const [newTAmharicQuote, setNewTAmharicQuote] = useState('');
+  const [newTRating, setNewTRating] = useState<number>(5);
+  const [savingTestimonial, setSavingTestimonial] = useState(false);
 
   // Draft answers for Legal Center Q&A tab
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
@@ -67,6 +88,7 @@ export default function AdminConsolePage() {
         usersRes,
         bookingsRes,
         advRes,
+        testiRes,
         partnersRes,
         qaRes,
         appsRes,
@@ -84,6 +106,11 @@ export default function AdminConsolePage() {
           .from('lawyer_profiles')
           .select('*')
           .order('name', { ascending: true }),
+        supabase
+          .from('testimonials')
+          .select('*')
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: false }),
         supabase
           .from('partner_inquiries')
           .select('*')
@@ -105,6 +132,7 @@ export default function AdminConsolePage() {
       if (usersRes.data) setPlatformUsers(usersRes.data);
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (advRes.data) setAdvocates(advRes.data);
+      if (testiRes.data) setTestimonials(testiRes.data);
       if (partnersRes.data) setPartnerships(partnersRes.data);
       if (qaRes.data) setQuestions(qaRes.data);
       if (appsRes.data) setApplications(appsRes.data);
@@ -178,6 +206,17 @@ export default function AdminConsolePage() {
             : a
         )
       );
+      if (selectedAdvocateCv?.id === id) {
+        setSelectedAdvocateCv((prev: any) =>
+          prev
+            ? {
+                ...prev,
+                is_verified: approve,
+                vetting_status: approve ? 'approved' : 'pending',
+              }
+            : null
+        );
+      }
       triggerFeedback(
         approve
           ? 'Advocate MOJ badge verified live!'
@@ -185,6 +224,99 @@ export default function AdminConsolePage() {
       );
     } else {
       triggerFeedback('Could not update advocate verification status.');
+    }
+  };
+
+  const handleOpenCvFile = async (cvFilePath: string) => {
+    setDownloadingCv(true);
+    try {
+      if (cvFilePath.startsWith('http')) {
+        window.open(cvFilePath, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('advocate-cvs')
+        .createSignedUrl(cvFilePath, 300);
+
+      if (error || !data?.signedUrl) {
+        triggerFeedback('Could not generate secure CV link. Check storage permissions.');
+        return;
+      }
+
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    } finally {
+      setDownloadingCv(false);
+    }
+  };
+
+  const handleAddTestimonial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTName.trim() || !newTRole.trim() || newTQuote.trim().length < 15) {
+      triggerFeedback('Please enter client name, role/city, and a quote (15+ characters).');
+      return;
+    }
+
+    setSavingTestimonial(true);
+    try {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .insert({
+          client_name: newTName.trim(),
+          client_role: newTRole.trim(),
+          practice_area: newTArea.trim() || null,
+          quote: newTQuote.trim(),
+          amharic_quote: newTAmharicQuote.trim() || null,
+          rating: newTRating,
+          is_active: true,
+          display_order: testimonials.length + 1,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setTestimonials((prev) => [data, ...prev]);
+      }
+      setNewTName('');
+      setNewTRole('');
+      setNewTQuote('');
+      setNewTAmharicQuote('');
+      setNewTRating(5);
+      triggerFeedback('Testimonial added! It will now rotate live on the homepage.');
+    } catch (err: any) {
+      triggerFeedback(err?.message || 'Could not add testimonial.');
+    } finally {
+      setSavingTestimonial(false);
+    }
+  };
+
+  const handleToggleTestimonial = async (id: string, currentActive: boolean) => {
+    const { error } = await supabase
+      .from('testimonials')
+      .update({ is_active: !currentActive })
+      .eq('id', id);
+
+    if (!error) {
+      setTestimonials((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, is_active: !currentActive } : item
+        )
+      );
+      triggerFeedback(
+        !currentActive
+          ? 'Testimonial is now rotating live on the homepage.'
+          : 'Testimonial hidden from homepage carousel.'
+      );
+    }
+  };
+
+  const handleDeleteTestimonial = async (id: string) => {
+    const { error } = await supabase.from('testimonials').delete().eq('id', id);
+    if (!error) {
+      setTestimonials((prev) => prev.filter((item) => item.id !== id));
+      triggerFeedback('Testimonial deleted.');
     }
   };
 
@@ -239,11 +371,7 @@ export default function AdminConsolePage() {
   };
 
   const handleDeleteQuestion = async (id: string) => {
-    const { error } = await supabase
-      .from('legal_questions')
-      .delete()
-      .eq('id', id);
-
+    const { error } = await supabase.from('legal_questions').delete().eq('id', id);
     if (!error) {
       setQuestions((prev) => prev.filter((item) => item.id !== id));
       triggerFeedback('Question removed from Legal Center.');
@@ -291,11 +419,11 @@ export default function AdminConsolePage() {
       ).length,
       verifiedAdvocates: advocates.filter((a) => a.is_verified).length,
       pendingAdvocates: advocates.filter((a) => !a.is_verified).length,
+      activeTestimonials: testimonials.filter((t) => t.is_active).length,
       newPartnerships: partnerships.filter((p) => p.status === 'new').length,
       unansweredQuestions: questions.filter((item) => !item.answer).length,
-      pendingApps: applications.filter((a) => a.status === 'pending').length,
     };
-  }, [platformUsers, bookings, advocates, partnerships, questions, applications]);
+  }, [platformUsers, bookings, advocates, testimonials, partnerships, questions]);
 
   const q = searchQuery.trim().toLowerCase();
 
@@ -304,8 +432,7 @@ export default function AdminConsolePage() {
       !q ||
       String(u.full_name || '').toLowerCase().includes(q) ||
       String(u.email || '').toLowerCase().includes(q) ||
-      String(u.role || '').toLowerCase().includes(q) ||
-      String(u.location || '').toLowerCase().includes(q)
+      String(u.role || '').toLowerCase().includes(q)
   );
 
   const filteredBookings = bookings.filter(
@@ -323,7 +450,16 @@ export default function AdminConsolePage() {
       !q ||
       String(a.name || '').toLowerCase().includes(q) ||
       String(a.license_number || '').toLowerCase().includes(q) ||
-      String(a.email || '').toLowerCase().includes(q)
+      String(a.email || '').toLowerCase().includes(q) ||
+      String(a.law_school || '').toLowerCase().includes(q)
+  );
+
+  const filteredTestimonials = testimonials.filter(
+    (item) =>
+      !q ||
+      String(item.client_name || '').toLowerCase().includes(q) ||
+      String(item.quote || '').toLowerCase().includes(q) ||
+      String(item.client_role || '').toLowerCase().includes(q)
   );
 
   const filteredPartnerships = partnerships.filter(
@@ -338,16 +474,14 @@ export default function AdminConsolePage() {
     (item) =>
       !q ||
       String(item.question || '').toLowerCase().includes(q) ||
-      String(item.category || '').toLowerCase().includes(q) ||
-      String(item.city || '').toLowerCase().includes(q)
+      String(item.category || '').toLowerCase().includes(q)
   );
 
   const filteredApps = applications.filter(
     (a) =>
       !q ||
       String(a.applicant_name || '').toLowerCase().includes(q) ||
-      String(a.university || '').toLowerCase().includes(q) ||
-      String(a.opportunity_title || '').toLowerCase().includes(q)
+      String(a.university || '').toLowerCase().includes(q)
   );
 
   const filteredOpps = opportunities.filter(
@@ -495,6 +629,19 @@ export default function AdminConsolePage() {
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               <div className="flex items-center justify-between text-slate-500 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Testimonials</span>
+                <Quote className="w-3.5 h-3.5 text-amber-700" />
+              </div>
+              <strong className="text-xl font-black text-[#0A1128]">
+                {metrics.activeTestimonials}/{testimonials.length}
+              </strong>
+              <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">
+                Rotating live
+              </span>
+            </div>
+
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+              <div className="flex items-center justify-between text-slate-500 mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider">Partners</span>
                 <Handshake className="w-3.5 h-3.5 text-purple-600" />
               </div>
@@ -507,22 +654,11 @@ export default function AdminConsolePage() {
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               <div className="flex items-center justify-between text-slate-500 mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider">Legal Q&amp;A</span>
-                <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
+                <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
               </div>
-              <strong className="text-xl font-black text-amber-800">{questions.length}</strong>
+              <strong className="text-xl font-black text-blue-700">{questions.length}</strong>
               <span className="text-[10px] text-slate-500 block mt-0.5">
                 {metrics.unansweredQuestions} unanswered
-              </span>
-            </div>
-
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">NextGen</span>
-                <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
-              </div>
-              <strong className="text-xl font-black text-blue-700">{applications.length}</strong>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
-                {metrics.pendingApps} pending
               </span>
             </div>
           </div>
@@ -542,83 +678,29 @@ export default function AdminConsolePage() {
         <div className="space-y-3 border-b border-slate-200 pb-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setActiveTab('inquiries')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'inquiries'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                Client Inquiries ({bookings.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('users')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'users'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                Registered Users ({platformUsers.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('advocates')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'advocates'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                Advocates &amp; MOJ ({advocates.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('partnerships')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'partnerships'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                Partnerships ({partnerships.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('qa')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'qa'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                Legal Q&amp;A ({questions.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('applications')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'applications'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                NextGen ({applications.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('opportunities')}
-                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
-                  activeTab === 'opportunities'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                Jobs ({opportunities.length})
-              </button>
+              {[
+                { key: 'inquiries', label: `Inquiries (${bookings.length})` },
+                { key: 'advocates', label: `Advocates & CVs (${advocates.length})` },
+                { key: 'testimonials', label: `Testimonials (${testimonials.length})` },
+                { key: 'users', label: `Users (${platformUsers.length})` },
+                { key: 'partnerships', label: `Partnerships (${partnerships.length})` },
+                { key: 'qa', label: `Legal Q&A (${questions.length})` },
+                { key: 'applications', label: `NextGen (${applications.length})` },
+                { key: 'opportunities', label: `Jobs (${opportunities.length})` },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                    activeTab === tab.key
+                      ? 'bg-[#0A1128] text-white'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             <div className="relative w-full sm:w-64">
@@ -634,7 +716,7 @@ export default function AdminConsolePage() {
           </div>
         </div>
 
-        {/* TAB 1: CLIENT INQUIRIES (FIND A LAWYER + DIASPORA) */}
+        {/* TAB 1: CLIENT INQUIRIES */}
         {activeTab === 'inquiries' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -735,7 +817,292 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 2: REGISTERED USERS */}
+        {/* TAB 2: ADVOCATES & FULL CV VETTING */}
+        {activeTab === 'advocates' && (
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div>
+              <h2 className="text-base font-black text-[#0A1128]">
+                Advocate Registry, Full CVs &amp; MOJ Credential Verification
+              </h2>
+              <p className="text-xs text-slate-600">
+                Click <strong>View Full CV</strong> to inspect education, career history, practice areas, and uploaded CV documents before approving the MOJ Verified badge.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[10px] font-mono uppercase text-slate-500">
+                    <th className="py-3 px-3">Advocate</th>
+                    <th className="py-3 px-3">Bar License &amp; Authority</th>
+                    <th className="py-3 px-3">Education &amp; Exp</th>
+                    <th className="py-3 px-3">Contact</th>
+                    <th className="py-3 px-3">Status</th>
+                    <th className="py-3 px-3 text-right">Review &amp; Verify</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredAdvocates.map((adv) => (
+                    <tr key={adv.id} className="hover:bg-slate-50/70 align-top">
+                      <td className="py-3 px-3">
+                        <strong className="text-[#0A1128] block">{adv.name}</strong>
+                        <span className="text-slate-500 text-[11px] block">{adv.amharic_name}</span>
+                        <span className="text-slate-500 text-[10px]">{adv.location}</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <strong className="font-mono text-amber-800 block">
+                          {adv.license_number}
+                        </strong>
+                        <span className="text-slate-600 text-[10px] block">
+                          {adv.licensing_authority || adv.court_jurisdiction}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <strong className="text-slate-800 block">
+                          {adv.experience_years || 1} yrs • {adv.degrees || 'LL.B.'}
+                        </strong>
+                        <span className="text-slate-500 text-[10px] block">
+                          {adv.law_school || 'Law school not entered'}
+                        </span>
+                        {adv.cv_file_url && (
+                          <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 text-[9px] font-bold">
+                            <FileText className="w-2.5 h-2.5" /> CV Attached
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[11px]">
+                        <span className="block text-slate-900">{adv.phone}</span>
+                        <span className="text-slate-500 text-[10px]">{adv.email}</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            adv.is_verified
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : 'bg-amber-100 text-amber-900'
+                          }`}
+                        >
+                          {adv.is_verified ? 'Verified' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAdvocateCv(adv)}
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-[#0A1128] text-slate-800 hover:text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>Full CV</span>
+                        </button>
+                        {adv.is_verified ? (
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyAdvocate(adv.id, false)}
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                            <span>Pending</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyAdvocate(adv.id, true)}
+                            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>Approve</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredAdvocates.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-8 text-slate-500">
+                        No advocate profiles found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: LIVE LANDING-PAGE TESTIMONIALS MANAGER */}
+        {activeTab === 'testimonials' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left: Add New Testimonial */}
+            <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
+              <div>
+                <h2 className="text-base font-black text-[#0A1128]">
+                  Add New Client Testimonial
+                </h2>
+                <p className="text-slate-600">
+                  Every active review automatically rotates in “What Our Clients Say” on the landing page.
+                </p>
+              </div>
+
+              <form onSubmit={handleAddTestimonial} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">Client Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Samuel K."
+                      value={newTName}
+                      onChange={(e) => setNewTName(e.target.value)}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">Role &amp; City *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Startup Founder • Addis Ababa"
+                      value={newTRole}
+                      onChange={(e) => setNewTRole(e.target.value)}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">Practice Area</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Property Law"
+                      value={newTArea}
+                      onChange={(e) => setNewTArea(e.target.value)}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">Star Rating</label>
+                    <select
+                      value={newTRating}
+                      onChange={(e) => setNewTRating(Number(e.target.value))}
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                    >
+                      <option value={5}>5 Stars ★★★★★</option>
+                      <option value={4}>4 Stars ★★★★</option>
+                      <option value={3}>3 Stars ★★★</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Client Quote (English) *
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="What did the client appreciate about LegalLink?"
+                    value={newTQuote}
+                    onChange={(e) => setNewTQuote(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Amharic Quote (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="የደንበኛው አስተያየት በአማርኛ..."
+                    value={newTAmharicQuote}
+                    onChange={(e) => setNewTAmharicQuote(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingTestimonial}
+                  className="w-full py-3 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Plus className="w-4 h-4 text-amber-400" />
+                  <span>{savingTestimonial ? 'Saving...' : 'Publish to Rotating Carousel'}</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Right: Existing Testimonials List */}
+            <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
+              <div>
+                <h2 className="text-base font-black text-[#0A1128]">
+                  Published &amp; Saved Testimonials ({filteredTestimonials.length})
+                </h2>
+                <p className="text-slate-600">
+                  Toggle visibility or delete any review — the landing page carousel updates immediately.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {filteredTestimonials.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <strong className="text-sm font-black text-[#0A1128]">
+                          {item.client_name}
+                        </strong>
+                        <span className="text-[11px] text-slate-600 block">
+                          {item.client_role} {item.practice_area ? `• ${item.practice_area}` : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="flex items-center gap-0.5 text-amber-600 font-bold">
+                          <Star className="w-3.5 h-3.5 fill-amber-500" /> {item.rating}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTestimonial(item.id, item.is_active)}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer ${
+                            item.is_active
+                              ? 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200'
+                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                          }`}
+                        >
+                          {item.is_active ? 'Rotating Live' : 'Hidden'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTestimonial(item.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 cursor-pointer"
+                          title="Delete testimonial"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-slate-700 leading-relaxed">“{item.quote}”</p>
+                    {item.amharic_quote && (
+                      <p className="text-slate-500 text-[11px] border-l-2 border-amber-400 pl-2.5">
+                        {item.amharic_quote}
+                      </p>
+                    )}
+                  </div>
+                ))}
+
+                {filteredTestimonials.length === 0 && (
+                  <p className="text-center py-8 text-slate-500">
+                    No testimonials in database yet. Add one on the left!
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: REGISTERED USERS */}
         {activeTab === 'users' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -809,95 +1176,7 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 3: ADVOCATES & MOJ VETTING */}
-        {activeTab === 'advocates' && (
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <div>
-              <h2 className="text-base font-black text-[#0A1128]">
-                Advocate Registry &amp; MOJ Credential Verification
-              </h2>
-              <p className="text-xs text-slate-600">
-                Verify advocate bar licenses to grant the MOJ Verified badge on the public directory.
-              </p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-[10px] font-mono uppercase text-slate-500">
-                    <th className="py-3 px-3">Advocate</th>
-                    <th className="py-3 px-3">Bar License</th>
-                    <th className="py-3 px-3">Court Standing &amp; Location</th>
-                    <th className="py-3 px-3">Contact</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredAdvocates.map((adv) => (
-                    <tr key={adv.id} className="hover:bg-slate-50/70">
-                      <td className="py-3 px-3">
-                        <strong className="text-[#0A1128] block">{adv.name}</strong>
-                        <span className="text-slate-500 text-[11px]">{adv.amharic_name}</span>
-                      </td>
-                      <td className="py-3 px-3 font-mono font-bold text-amber-800">
-                        {adv.license_number}
-                      </td>
-                      <td className="py-3 px-3">
-                        <strong className="text-slate-800 block">{adv.court_jurisdiction}</strong>
-                        <span className="text-slate-500 text-[11px]">{adv.location}</span>
-                      </td>
-                      <td className="py-3 px-3 font-mono text-[11px]">
-                        <span className="block text-slate-900">{adv.phone}</span>
-                        <span className="text-slate-500 text-[10px]">{adv.email}</span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            adv.is_verified
-                              ? 'bg-emerald-100 text-emerald-900'
-                              : 'bg-amber-100 text-amber-900'
-                          }`}
-                        >
-                          {adv.is_verified ? 'Verified' : 'Pending'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        {adv.is_verified ? (
-                          <button
-                            type="button"
-                            onClick={() => handleVerifyAdvocate(adv.id, false)}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
-                          >
-                            <X className="w-3 h-3" />
-                            <span>Set Pending</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleVerifyAdvocate(adv.id, true)}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
-                          >
-                            <Check className="w-3 h-3" />
-                            <span>Approve MOJ Badge</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredAdvocates.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="text-center py-8 text-slate-500">
-                        No advocate profiles found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: INSTITUTIONAL & DONOR PARTNERSHIPS */}
+        {/* TAB 5: PARTNERSHIPS */}
         {activeTab === 'partnerships' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -971,7 +1250,7 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 5: FREE LEGAL CENTER Q&A QUESTIONS */}
+        {/* TAB 6: LEGAL CENTER Q&A */}
         {activeTab === 'qa' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -979,10 +1258,9 @@ export default function AdminConsolePage() {
                 Legal Center Anonymous Questions
               </h2>
               <p className="text-xs text-slate-600">
-                Public legal questions posted from `/legal-center`. Publish answers directly below to display them live on the site.
+                Public legal questions posted from `/legal-center`.
               </p>
             </div>
-
             {filteredQuestions.length === 0 ? (
               <div className="text-center py-8 text-xs text-slate-500">
                 No anonymous legal questions posted yet.
@@ -1012,11 +1290,9 @@ export default function AdminConsolePage() {
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-
                     <p className="text-sm font-black text-[#0A1128] leading-snug">
                       {item.question}
                     </p>
-
                     {item.answer ? (
                       <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 space-y-1">
                         <strong className="text-[11px] block">
@@ -1055,7 +1331,7 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 6: NEXTGEN APPLICATIONS */}
+        {/* TAB 7: NEXTGEN APPLICATIONS */}
         {activeTab === 'applications' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -1128,7 +1404,7 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 7: JOB MODERATION */}
+        {/* TAB 8: JOB MODERATION */}
         {activeTab === 'opportunities' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
@@ -1197,6 +1473,200 @@ export default function AdminConsolePage() {
           </div>
         )}
       </main>
+
+      {/* FULL ADVOCATE CV VIEWER MODAL */}
+      {selectedAdvocateCv && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl space-y-5 text-xs relative">
+            <button
+              type="button"
+              onClick={() => setSelectedAdvocateCv(null)}
+              aria-label="Close CV modal"
+              className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="pr-10 space-y-1 border-b border-slate-200 pb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full font-mono font-bold text-[10px] bg-amber-100 text-amber-900">
+                  {selectedAdvocateCv.license_number}
+                </span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase ${
+                    selectedAdvocateCv.is_verified
+                      ? 'bg-emerald-100 text-emerald-900'
+                      : 'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {selectedAdvocateCv.is_verified ? 'MOJ Verified' : 'Verification Pending'}
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-[#0A1128] pt-1">
+                {selectedAdvocateCv.name}
+              </h3>
+              <p className="text-slate-600">
+                {selectedAdvocateCv.amharic_name} • {selectedAdvocateCv.title}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                  Licensing Authority
+                </span>
+                <strong className="text-slate-900">
+                  {selectedAdvocateCv.licensing_authority || 'Not specified'}
+                </strong>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                  Court Standing &amp; Year Admitted
+                </span>
+                <strong className="text-slate-900">
+                  {selectedAdvocateCv.court_jurisdiction}
+                  {selectedAdvocateCv.year_admitted
+                    ? ` (Admitted ${selectedAdvocateCv.year_admitted})`
+                    : ''}
+                </strong>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                  Law School &amp; Degrees
+                </span>
+                <strong className="text-slate-900">
+                  {selectedAdvocateCv.law_school || 'Not provided'} —{' '}
+                  {selectedAdvocateCv.degrees || 'LL.B.'}
+                  {selectedAdvocateCv.graduation_year
+                    ? ` (${selectedAdvocateCv.graduation_year})`
+                    : ''}
+                </strong>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                  Chamber Address &amp; Contact
+                </span>
+                <strong className="text-slate-900 block">
+                  {selectedAdvocateCv.chamber_address || selectedAdvocateCv.location}
+                </strong>
+                <span className="font-mono text-slate-600">
+                  {selectedAdvocateCv.phone} • {selectedAdvocateCv.email}
+                </span>
+              </div>
+            </div>
+
+            {Array.isArray(selectedAdvocateCv.practice_areas) &&
+              selectedAdvocateCv.practice_areas.length > 0 && (
+                <div className="space-y-1.5">
+                  <strong className="text-[10px] uppercase font-bold text-slate-500 block">
+                    Practice Areas
+                  </strong>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedAdvocateCv.practice_areas.map((area: string) => (
+                      <span
+                        key={area}
+                        className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-semibold text-[11px]"
+                      >
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {Array.isArray(selectedAdvocateCv.languages_spoken) &&
+              selectedAdvocateCv.languages_spoken.length > 0 && (
+                <div className="space-y-1">
+                  <strong className="text-[10px] uppercase font-bold text-slate-500 block">
+                    Languages Spoken
+                  </strong>
+                  <p className="font-semibold text-slate-800">
+                    {selectedAdvocateCv.languages_spoken.join(', ')}
+                  </p>
+                </div>
+              )}
+
+            <div className="space-y-1">
+              <strong className="text-[10px] uppercase font-bold text-slate-500 block">
+                Professional Summary / Bio
+              </strong>
+              <p className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-slate-700 leading-relaxed whitespace-pre-wrap">
+                {selectedAdvocateCv.bio || 'No bio submitted yet.'}
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <strong className="text-[10px] uppercase font-bold text-slate-500 block">
+                Work &amp; Chamber Experience History
+              </strong>
+              <p className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-slate-700 leading-relaxed whitespace-pre-wrap">
+                {selectedAdvocateCv.career_history || 'No career history submitted yet.'}
+              </p>
+            </div>
+
+            {selectedAdvocateCv.notable_matters && (
+              <div className="space-y-1">
+                <strong className="text-[10px] uppercase font-bold text-slate-500 block">
+                  Notable Case Highlights / Publications
+                </strong>
+                <p className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedAdvocateCv.notable_matters}
+                </p>
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {selectedAdvocateCv.cv_file_url && (
+                  <button
+                    type="button"
+                    disabled={downloadingCv}
+                    onClick={() => handleOpenCvFile(selectedAdvocateCv.cv_file_url)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>
+                      {downloadingCv
+                        ? 'Opening...'
+                        : `Download CV (${selectedAdvocateCv.cv_file_name || 'File'})`}
+                    </span>
+                  </button>
+                )}
+                {selectedAdvocateCv.linkedin_url && (
+                  <a
+                    href={selectedAdvocateCv.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl inline-flex items-center gap-1"
+                  >
+                    <span>LinkedIn / Site</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+
+              {selectedAdvocateCv.is_verified ? (
+                <button
+                  type="button"
+                  onClick={() => handleVerifyAdvocate(selectedAdvocateCv.id, false)}
+                  className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold rounded-xl cursor-pointer"
+                >
+                  Revoke Verified Badge
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleVerifyAdvocate(selectedAdvocateCv.id, true)}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Approve MOJ Verified Badge</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="bg-white border-t border-slate-200 py-5 text-slate-500 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">

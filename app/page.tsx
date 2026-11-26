@@ -20,10 +20,13 @@ import {
   Phone,
   MapPin,
   Headphones,
+  FileText,
+  BookOpen,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import HeroBookingCard from '@/components/HeroBookingCard';
 import LexDraftPreview from '@/components/LexDraftPreview';
+import ClientTestimonialsCarousel from '@/components/ClientTestimonialsCarousel';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomePage() {
@@ -127,6 +130,30 @@ export default function HomePage() {
     },
   ];
 
+  // Option A: Timeless generic ecosystem pillars
+  const heroPillars = [
+    {
+      icon: ShieldCheck,
+      title: language === 'am' ? 'የተረጋገጡ ጠበቆች' : 'Verified Advocates',
+      sub: language === 'am' ? 'የተፈቀደ የጥብቅና መረብ' : 'Licensed Counsel',
+    },
+    {
+      icon: FileText,
+      title: language === 'am' ? 'ቀላል ሰነድ ዝግጅት' : 'Guided Drafting',
+      sub: language === 'am' ? 'ዝግጁ የውል ቅጾች' : 'Structured Templates',
+    },
+    {
+      icon: BookOpen,
+      title: language === 'am' ? 'ግልጽ የህግ እውቀት' : 'Legal Knowledge',
+      sub: language === 'am' ? 'ጽሑፎች እና አዋጆች' : 'Guides & Statutes',
+    },
+    {
+      icon: Languages,
+      title: language === 'am' ? 'ባለሁለት ቋንቋ' : 'Bilingual Access',
+      sub: language === 'am' ? 'አማርኛ እና እንግሊዝኛ' : 'Amharic & English',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
       {/* 01. Global Navigation Bar */}
@@ -173,35 +200,29 @@ export default function HomePage() {
                 href="/lexdraft"
                 className="px-7 py-3.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl flex items-center justify-center transition-all shadow-xs cursor-pointer"
               >
-                <span>{language === 'am' ? 'ህጋዊ ሰነዶችን ያዘጋጁ (LexDraft)' : 'Draft Legal Forms Free'}</span>
+                <span>{language === 'am' ? 'ህጋዊ ሰነዶችን ያዘጋጁ (LexDraft)' : 'Draft Legal Forms'}</span>
               </Link>
             </div>
 
+            {/* Option A: 4 Generic Ecosystem Pillars */}
             <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto lg:mx-0">
-              <div className="p-3.5 bg-white/95 rounded-2xl border border-slate-200 text-center shadow-xs">
-                <div className="text-base sm:text-lg font-black text-[#0A1128]">MOJ</div>
-                <span className="text-[11px] text-slate-600 font-bold uppercase block mt-0.5">
-                  {language === 'am' ? 'የተረጋገጠ ፍቃድ' : 'Licensed Bar'}
-                </span>
-              </div>
-              <div className="p-3.5 bg-white/95 rounded-2xl border border-slate-200 text-center shadow-xs">
-                <div className="text-base sm:text-lg font-black text-emerald-700 font-mono">100% Free</div>
-                <span className="text-[11px] text-slate-600 font-bold uppercase block mt-0.5">
-                  {language === 'am' ? 'ያለ ክፍያ' : 'Zero Platform Fee'}
-                </span>
-              </div>
-              <div className="p-3.5 bg-white/95 rounded-2xl border border-slate-200 text-center shadow-xs">
-                <div className="text-base sm:text-lg font-black text-amber-700 font-mono">122 Laws</div>
-                <span className="text-[11px] text-slate-600 font-bold uppercase block mt-0.5">
-                  {language === 'am' ? 'ይፋዊ አዋጆች' : 'Gazette Vault'}
-                </span>
-              </div>
-              <div className="p-3.5 bg-white/95 rounded-2xl border border-slate-200 text-center shadow-xs">
-                <div className="text-base sm:text-lg font-black text-[#0A1128] font-mono">አማ / EN</div>
-                <span className="text-[11px] text-slate-600 font-bold uppercase block mt-0.5">
-                  {language === 'am' ? 'ባለሁለት ቋንቋ' : 'Bilingual Access'}
-                </span>
-              </div>
+              {heroPillars.map((pillar) => {
+                const Icon = pillar.icon;
+                return (
+                  <div
+                    key={pillar.title}
+                    className="p-3.5 bg-white/95 rounded-2xl border border-slate-200 text-center shadow-xs space-y-1"
+                  >
+                    <Icon className="w-4 h-4 text-amber-700 mx-auto" />
+                    <div className="text-xs font-black text-[#0A1128] leading-snug">
+                      {pillar.title}
+                    </div>
+                    <span className="text-[10px] text-slate-600 font-semibold block">
+                      {pillar.sub}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -225,14 +246,14 @@ export default function HomePage() {
 
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal max-w-xl mx-auto lg:mx-0">
                 {language === 'am'
-                  ? 'ጉዳይዎን በአጭሩ ይግለጹና ከሚመለከተው የፌዴራል ወይም የክልል ጠበቃ ጋር በቀጥታ ይገናኙ። ሊጋልሊንክ ምንም አይነት የመድረክ ክፍያ አያስከፍልም።'
-                  : 'Submit your legal matter by practice area, court standing, and preferred language. LegalLink routes your inquiry directly to your chosen advocate at zero platform cost.'}
+                  ? 'ጉዳይዎን በአጭሩ ይግለጹና ከሚመለከተው የኢትዮጵያ ጠበቃ ጋር በቀጥታ ይገናኙ።'
+                  : 'Submit your legal matter by practice area, location, and preferred language. LegalLink routes your inquiry directly to verified advocates with full continuity.'}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-bold text-slate-700 max-w-lg mx-auto lg:mx-0 text-left">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{language === 'am' ? 'ሙሉ በሙሉ ነፃ የመድረክ አገልግሎት' : 'No platform fees or hidden commissions'}</span>
+                  <span>{language === 'am' ? 'ቀላል እና ግልጽ የጥያቄ ሂደት' : 'Structured, transparent inquiry flow'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -384,7 +405,7 @@ export default function HomePage() {
                       <span>{lawyer.rating}</span>
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
-                      Free Inquiry
+                      Verified
                     </span>
                   </div>
 
@@ -460,7 +481,7 @@ export default function HomePage() {
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800/80">
             <span className="text-xs text-slate-300">
-              Free remote advocate matching for Ethiopian diaspora clients worldwide.
+              Remote advocate access for Ethiopian diaspora clients worldwide.
             </span>
             <Link
               href="/diaspora"
@@ -520,7 +541,7 @@ export default function HomePage() {
                   href="/library"
                   className="px-6 py-3.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold text-xs rounded-xl flex items-center justify-center transition-all cursor-pointer"
                 >
-                  <span>{language === 'am' ? '122 የፌዴራል አዋጆችን ያንብቡ' : 'Browse 122 Federal Laws'}</span>
+                  <span>{language === 'am' ? 'የፌዴራል አዋጆችን ያንብቡ' : 'Browse Federal Laws'}</span>
                 </Link>
               </div>
             </div>
@@ -532,7 +553,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 09. LegalTalk Knowledge Hub (With Real Local Cover Photos) */}
+      {/* 09. LegalTalk Knowledge Hub */}
       <section className="py-16 md:py-24 bg-[#F8FAFC] border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -597,7 +618,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 10. Why LegalLink & Partnerships Banner */}
+      {/* 10. Auto-Rotating "What Our Clients Say" (Managed Live via /admin) */}
+      <ClientTestimonialsCarousel />
+
+      {/* 11. Why LegalLink & Partnerships Banner */}
       <section id="about" className="py-16 md:py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -663,7 +687,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 11. Official Footer (Synced with Pitch Deck) */}
+      {/* 12. Official Footer */}
       <footer className="bg-[#0A1128] text-slate-300 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
@@ -720,7 +744,7 @@ export default function HomePage() {
               </strong>
               <ul className="space-y-2 text-[11px] text-slate-400">
                 <li><Link href="/legal-center" className="hover:text-white transition-colors">Legal Center &amp; Dictionary</Link></li>
-                <li><Link href="/library" className="hover:text-white transition-colors">Federal Legal Library (122)</Link></li>
+                <li><Link href="/library" className="hover:text-white transition-colors">Federal Legal Library</Link></li>
                 <li><Link href="/legaltalk" className="hover:text-white transition-colors">LegalTalk Audio Guides</Link></li>
                 <li><Link href="/tools" className="hover:text-white transition-colors">Severance &amp; DARS Tools</Link></li>
                 <li><Link href="/dashboard" className="hover:text-white transition-colors">Client Dashboard</Link></li>

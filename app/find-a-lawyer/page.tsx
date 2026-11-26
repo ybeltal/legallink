@@ -127,10 +127,9 @@ function FindLawyerWizard() {
   // Step 1
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Step 2
+  // Step 2 (Court Jurisdiction Tier removed for client simplicity)
   const [location, setLocation] = useState<string | null>('Addis Ababa');
   const [consultLanguage, setConsultLanguage] = useState<string | null>('Amharic');
-  const [courtStanding, setCourtStanding] = useState<string | null>('Open / Any Level');
   const [consultMode, setConsultMode] = useState<string | null>('Phone Call');
   const [urgency, setUrgency] = useState<string | null>('Within 3 days');
   const [situationText, setSituationText] = useState<string>('');
@@ -258,15 +257,22 @@ function FindLawyerWizard() {
           initials: getInitials(d.name),
           name: d.name,
           amharicName: d.amharic_name || d.name,
-          category: d.title || 'Federal Court Advocate',
-          amharicCategory: 'የፌዴራል ፍርድ ቤት ጠበቃ',
+          category: d.title || 'Licensed Ethiopian Advocate',
+          amharicCategory: 'ፈቃድ ያላቸው ጠበቃ',
           rating: (d.rating ?? 5.0).toString(),
           reviews: (d.reviews_count ?? 0).toString(),
           experienceYears: d.experience_years ?? 5,
           location: d.location || 'Addis Ababa',
-          languages: ['Amharic', 'English'],
-          bio: `Licensed advocate based in ${d.location || 'Addis Ababa'}. Practices before the ${d.court_jurisdiction || 'Federal Courts'} under Proclamation No. 1249/2021.`,
-          amharicBio: `በ${d.court_jurisdiction || 'ፌዴራል ፍርድ ቤቶች'} ስር በአዋጅ ቁጥር 1249/2021 ፈቃድ የተሰጣቸው ጠበቃ።`,
+          languages:
+            Array.isArray(d.languages_spoken) && d.languages_spoken.length > 0
+              ? d.languages_spoken
+              : ['Amharic', 'English'],
+          bio:
+            d.bio ||
+            `Licensed advocate based in ${d.location || 'Addis Ababa'}. Practices before the ${d.court_jurisdiction || 'Federal Courts'} under Proclamation No. 1249/2021.`,
+          amharicBio:
+            d.bio ||
+            `በ${d.court_jurisdiction || 'ፌዴራል ፍርድ ቤቶች'} ስር በአዋጅ ቁጥር 1249/2021 ፈቃድ የተሰጣቸው ጠበቃ።`,
           courtStanding: d.court_jurisdiction || 'Federal High Court',
           barLicense: d.license_number || d.id,
           isVerified: Boolean(d.is_verified),
@@ -298,12 +304,14 @@ function FindLawyerWizard() {
   };
 
   const handleProceedFromStep2 = () => {
-    if (!location || !consultLanguage || !courtStanding || !consultMode || !urgency) {
+    if (!location || !consultLanguage || !consultMode || !urgency) {
       setStepError('Please select all consultation preferences marked with *.');
       return;
     }
     if (!situationText.trim() || situationText.trim().length < 15) {
-      setStepError('Please describe your legal matter (at least 15 characters) so the advocate can prepare.');
+      setStepError(
+        'Please describe your legal matter (at least 15 characters) so the advocate can prepare.'
+      );
       return;
     }
     setStepError(null);
@@ -342,26 +350,23 @@ function FindLawyerWizard() {
     try {
       const refId = `LL-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
-      const { error } = await supabase
-        .from('consultation_bookings')
-        .insert({
-          lawyer_id: activeLawyerObj.id,
-          lawyer_name: activeLawyerObj.name,
-          client_name: clientName.trim(),
-          client_phone: clientPhone.trim(),
-          client_email: clientEmail.trim().toLowerCase() || null,
-          consultation_date: new Date().toISOString().split('T')[0],
-          consultation_time: `${urgency} (${consultMode})`,
-          practice_area: activeCategoryObj.title,
-          brief_description: situationText.trim(),
-          fee_etb: 0,
-          escrow_status: 'free_launch',
-          booking_status: 'pending',
-        });
+      const { error } = await supabase.from('consultation_bookings').insert({
+        lawyer_id: activeLawyerObj.id,
+        lawyer_name: activeLawyerObj.name,
+        client_name: clientName.trim(),
+        client_phone: clientPhone.trim(),
+        client_email: clientEmail.trim().toLowerCase() || null,
+        consultation_date: new Date().toISOString().split('T')[0],
+        consultation_time: `${urgency} (${consultMode})`,
+        practice_area: activeCategoryObj.title,
+        brief_description: situationText.trim(),
+        fee_etb: 0,
+        escrow_status: 'free_launch',
+        booking_status: 'pending',
+      });
 
       if (error) throw error;
 
-      // 1. Dispatch privacy-safe Telegram notification asynchronously
       fetch('/api/telegram-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -378,7 +383,6 @@ function FindLawyerWizard() {
         }),
       }).catch(() => {});
 
-      // 2. Dispatch branded confirmation receipt + inbox alert via info.legallinkethiopia@gmail.com
       fetch('/api/consultation-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -476,7 +480,9 @@ function FindLawyerWizard() {
                 <span>Free Direct Advocate Matching • No Platform Fee</span>
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
-                {language === 'am' ? 'በምን ጉዳይ ላይ እገዛ ይፈልጋሉ? *' : 'What legal area do you need help with? *'}
+                {language === 'am'
+                  ? 'በምን ጉዳይ ላይ እገዛ ይፈልጋሉ? *'
+                  : 'What legal area do you need help with? *'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-normal">
                 {language === 'am'
@@ -551,7 +557,7 @@ function FindLawyerWizard() {
           </div>
         )}
 
-        {/* STEP 2: DETAILS & PREFERENCES */}
+        {/* STEP 2: DETAILS & PREFERENCES (CLEAN — NO COURT JURISDICTION TIER) */}
         {currentStep === 2 && (
           <div className="space-y-8">
             <div className="space-y-2">
@@ -559,7 +565,7 @@ function FindLawyerWizard() {
                 {language === 'am' ? 'የምክክር ምርጫዎችዎን ይግለጹ' : 'Tell us your preferences'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-normal">
-                Share how you prefer to meet and a concise summary of your matter.
+                Share how you prefer to meet and a concise summary of your legal matter.
               </p>
             </div>
 
@@ -570,25 +576,31 @@ function FindLawyerWizard() {
                     Preferred Location <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {['Addis Ababa', 'Dire Dawa', 'Hawassa', 'Bahir Dar', 'Mekelle', 'Adama', 'Remote / Online'].map(
-                      (loc) => (
-                        <button
-                          key={loc}
-                          type="button"
-                          onClick={() => {
-                            setLocation(loc);
-                            setStepError(null);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                            location === loc
-                              ? 'bg-[#0A1128] text-white border-[#0A1128]'
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          {loc}
-                        </button>
-                      )
-                    )}
+                    {[
+                      'Addis Ababa',
+                      'Dire Dawa',
+                      'Hawassa',
+                      'Bahir Dar',
+                      'Mekelle',
+                      'Adama',
+                      'Remote / Online',
+                    ].map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => {
+                          setLocation(loc);
+                          setStepError(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                          location === loc
+                            ? 'bg-[#0A1128] text-white border-[#0A1128]'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -620,39 +632,6 @@ function FindLawyerWizard() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-7 pt-4 border-t border-slate-100">
                 <div className="space-y-2.5">
-                  <label className="font-bold text-slate-800 flex items-center justify-between">
-                    <span>
-                      Court Jurisdiction Tier <span className="text-red-500">*</span>
-                    </span>
-                    <span className="text-[10px] text-amber-800 font-mono">የችሎት ደረጃ</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      'Open / Any Level',
-                      'Federal First Instance',
-                      'Federal High Court',
-                      'Supreme Court & Cassation',
-                    ].map((tier) => (
-                      <button
-                        key={tier}
-                        type="button"
-                        onClick={() => {
-                          setCourtStanding(tier);
-                          setStepError(null);
-                        }}
-                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                          courtStanding === tier
-                            ? 'bg-[#0A1128] text-white border-[#0A1128]'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        {tier}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2.5">
                   <label className="font-bold text-slate-800 block">
                     Consultation Mode <span className="text-red-500">*</span>
                   </label>
@@ -676,37 +655,38 @@ function FindLawyerWizard() {
                     ))}
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-4 border-t border-slate-100 space-y-2.5">
-                <label className="font-bold text-slate-800 block">
-                  How soon do you need help? <span className="text-red-500">*</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {['Within 24 hours', 'Within 3 days', 'Within a week', 'Flexible'].map((time) => (
-                    <button
-                      key={time}
-                      type="button"
-                      onClick={() => {
-                        setUrgency(time);
-                        setStepError(null);
-                      }}
-                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                        urgency === time
-                          ? 'bg-[#0A1128] text-white border-[#0A1128]'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
+                <div className="space-y-2.5">
+                  <label className="font-bold text-slate-800 block">
+                    How soon do you need help? <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Within 24 hours', 'Within 3 days', 'Within a week', 'Flexible'].map((time) => (
+                      <button
+                        key={time}
+                        type="button"
+                        onClick={() => {
+                          setUrgency(time);
+                          setStepError(null);
+                        }}
+                        className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                          urgency === time
+                            ? 'bg-[#0A1128] text-white border-[#0A1128]'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-slate-100 space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-800 block">
-                    Briefly describe your legal matter (Amharic or English) <span className="text-red-500">*</span>
+                    Briefly describe your legal matter (Amharic or English){' '}
+                    <span className="text-red-500">*</span>
                   </label>
                   <span className="text-[11px] text-slate-500 font-mono">
                     {situationText.length}/600
@@ -847,7 +827,9 @@ function FindLawyerWizard() {
                         <div className="grid grid-cols-2 gap-2 py-2.5 border-y border-slate-100 text-center font-mono">
                           <div>
                             <span className="text-[10px] text-slate-500 uppercase block">Experience</span>
-                            <strong className="text-xs text-slate-900">{lawyer.experienceYears} yrs</strong>
+                            <strong className="text-xs text-slate-900">
+                              {lawyer.experienceYears} yrs
+                            </strong>
                           </div>
                           <div className="border-l border-slate-100">
                             <span className="text-[10px] text-slate-500 uppercase block">Standing</span>
@@ -989,15 +971,21 @@ function FindLawyerWizard() {
                   <div className="flex items-start gap-3">
                     <Building2 className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">Practice Area</span>
-                      <strong className="text-slate-900 font-bold">{activeCategoryObj?.title}</strong>
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                        Practice Area
+                      </span>
+                      <strong className="text-slate-900 font-bold">
+                        {activeCategoryObj?.title}
+                      </strong>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">Location &amp; Mode</span>
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                        Location &amp; Mode
+                      </span>
                       <strong className="text-slate-900 font-bold">
                         {location} • {consultLanguage} • {consultMode}
                       </strong>
@@ -1007,13 +995,17 @@ function FindLawyerWizard() {
                   <div className="flex items-start gap-3">
                     <Clock className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">Preferred Timeline</span>
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                        Preferred Timeline
+                      </span>
                       <strong className="text-slate-900 font-bold">{urgency}</strong>
                     </div>
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 space-y-1">
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold block">Matter Summary</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                      Matter Summary
+                    </span>
                     <p className="text-slate-700 leading-relaxed font-normal bg-slate-50 p-3 rounded-xl border border-slate-100">
                       {situationText}
                     </p>
@@ -1037,7 +1029,9 @@ function FindLawyerWizard() {
                           <strong className="text-base font-black text-[#0A1128] block">
                             {activeLawyerObj.name}
                           </strong>
-                          <span className="text-xs text-slate-600 block">{activeLawyerObj.category}</span>
+                          <span className="text-xs text-slate-600 block">
+                            {activeLawyerObj.category}
+                          </span>
                           <span className="text-[10px] font-mono text-amber-800 font-bold block mt-0.5">
                             {activeLawyerObj.barLicense}
                           </span>
@@ -1046,19 +1040,33 @@ function FindLawyerWizard() {
 
                       <div className="space-y-3 pt-4">
                         <div>
-                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">Experience</span>
-                          <strong className="text-slate-900 font-bold">{activeLawyerObj.experienceYears} years</strong>
+                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                            Experience
+                          </span>
+                          <strong className="text-slate-900 font-bold">
+                            {activeLawyerObj.experienceYears} years
+                          </strong>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">Chamber Location</span>
-                          <strong className="text-slate-900 font-bold">{activeLawyerObj.location}</strong>
+                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                            Chamber Location
+                          </span>
+                          <strong className="text-slate-900 font-bold">
+                            {activeLawyerObj.location}
+                          </strong>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">Court Standing</span>
-                          <strong className="text-slate-900 font-bold">{activeLawyerObj.courtStanding}</strong>
+                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                            Court Standing
+                          </span>
+                          <strong className="text-slate-900 font-bold">
+                            {activeLawyerObj.courtStanding}
+                          </strong>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">Platform Matching Fee</span>
+                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">
+                            Platform Matching Fee
+                          </span>
                           <strong className="text-sm font-black text-emerald-700 block">
                             Free (ETB 0)
                           </strong>
@@ -1127,7 +1135,7 @@ function FindLawyerWizard() {
         )}
       </main>
 
-      {/* Clean Free-Launch Confirmation Modal with "Before Your Call" Clarity Box */}
+      {/* Confirmation Modal */}
       {isSubmittedSuccess && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-7 sm:p-8 shadow-2xl text-center space-y-5 text-xs max-h-[92vh] overflow-y-auto">
@@ -1136,9 +1144,7 @@ function FindLawyerWizard() {
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-xl font-black text-[#0A1128]">
-                Consultation Request Sent!
-              </h3>
+              <h3 className="text-xl font-black text-[#0A1128]">Consultation Request Sent!</h3>
               <p className="text-xs text-slate-600 font-normal leading-relaxed">
                 Your inquiry has been dispatched to <strong>{activeLawyerObj?.name}</strong>. They will review your summary and contact you directly via <strong>{clientPhone}</strong>.
                 {clientEmail ? ` A confirmation receipt has been sent to ${clientEmail}.` : ''}
@@ -1184,10 +1190,10 @@ function FindLawyerWizard() {
 
             <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
               <Link
-                href="/"
+                href="/dashboard"
                 className="px-6 py-3 bg-[#0A1128] text-white font-bold rounded-xl text-center hover:bg-[#102A43] transition-all"
               >
-                Return to Home
+                Track in Dashboard
               </Link>
               <Link
                 href="/lexdraft"
