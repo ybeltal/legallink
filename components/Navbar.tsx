@@ -15,6 +15,7 @@ import {
   Briefcase,
   User,
   Scale,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { createClient } from '@/lib/supabase/client';
@@ -79,19 +80,18 @@ export default function Navbar() {
       badge: 'Free',
     },
     {
-      title: t('nav_about'),
+      title: language === 'am' ? 'ስለ እኛ እና አጋርነት' : 'About & Partnerships',
       description:
         language === 'am'
-          ? 'ስለ ሊጋል ሊንክ ተልዕኮና አሰራር'
-          : 'Platform mission & MOJ advocate standards',
-      href: '/#about',
+          ? 'ተልዕኮ፣ መሥራቾች እና የተቋማት አጋርነት'
+          : 'Mission, leadership & institutional partnerships',
+      href: '/about',
       icon: Info,
     },
   ];
 
   const isMoreActive = moreDropdownLinks.some((item) => pathname === item.href);
 
-  // Sync live authentication state from Supabase + cookies
   useEffect(() => {
     let active = true;
 
@@ -276,7 +276,6 @@ export default function Navbar() {
 
           {/* Right Header Utilities */}
           <div className="hidden sm:flex items-center gap-3">
-            {/* Language Switcher */}
             <div className="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200 text-xs font-bold">
               <button
                 type="button"
@@ -331,13 +330,22 @@ export default function Navbar() {
                         <span>Advocate Portal</span>
                       </Link>
                     ) : (
-                      <Link
-                        href="/find-a-lawyer"
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#0A1128]"
-                      >
-                        <User className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Find an Advocate</span>
-                      </Link>
+                      <>
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#0A1128]"
+                        >
+                          <LayoutDashboard className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>My Inquiries</span>
+                        </Link>
+                        <Link
+                          href="/find-a-lawyer"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#0A1128]"
+                        >
+                          <User className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Find an Advocate</span>
+                        </Link>
+                      </>
                     )}
                     <button
                       type="button"
@@ -441,7 +449,7 @@ export default function Navbar() {
                     {userRole}
                   </span>
                 </div>
-                {userRole === 'advocate' && (
+                {userRole === 'advocate' ? (
                   <Link
                     href="/advocate/portal"
                     onClick={() => setMobileMenuOpen(false)}
@@ -449,6 +457,15 @@ export default function Navbar() {
                   >
                     <Briefcase className="w-3.5 h-3.5" />
                     <span>Open Advocate Portal</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2.5 bg-[#0A1128] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5 text-amber-400" />
+                    <span>My Inquiries Dashboard</span>
                   </Link>
                 )}
                 <button
