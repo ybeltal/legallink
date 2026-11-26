@@ -13,7 +13,8 @@ import {
   GraduationCap,
   Calendar,
   Scale,
-  Briefcase,
+  Users,
+  Handshake,
   Check,
   X,
 } from 'lucide-react';
@@ -22,16 +23,22 @@ import { createClient } from '@/lib/supabase/client';
 export default function AdminConsolePage() {
   const supabase = createClient();
 
-  const [authStatus, setAuthStatus] = useState<'checking' | 'authorized' | 'unauthenticated' | 'forbidden'>('checking');
+  const [authStatus, setAuthStatus] = useState<
+    'checking' | 'authorized' | 'unauthenticated' | 'forbidden'
+  >('checking');
   const [adminEmail, setAdminEmail] = useState<string>('');
 
-  const [activeTab, setActiveTab] = useState<'inquiries' | 'advocates' | 'applications' | 'opportunities'>('inquiries');
+  const [activeTab, setActiveTab] = useState<
+    'users' | 'inquiries' | 'advocates' | 'partnerships' | 'applications' | 'opportunities'
+  >('users');
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const [platformUsers, setPlatformUsers] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [advocates, setAdvocates] = useState<any[]>([]);
+  const [partnerships, setPartnerships] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
 
@@ -43,15 +50,38 @@ export default function AdminConsolePage() {
   const fetchLiveRecords = async () => {
     setLoading(true);
     try {
-      const [bookingsRes, advRes, appsRes, oppsRes] = await Promise.all([
-        supabase.from('consultation_bookings').select('*').order('created_at', { ascending: false }),
-        supabase.from('lawyer_profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('student_applications').select('*').order('created_at', { ascending: false }),
-        supabase.from('job_opportunities').select('*').order('created_at', { ascending: false }),
-      ]);
+      const [usersRes, bookingsRes, advRes, partnersRes, appsRes, oppsRes] =
+        await Promise.all([
+          supabase
+            .from('platform_users')
+            .select('*')
+            .order('last_login_at', { ascending: false }),
+          supabase
+            .from('consultation_bookings')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('lawyer_profiles')
+            .select('*')
+            .order('name', { ascending: true }),
+          supabase
+            .from('partner_inquiries')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('student_applications')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('job_opportunities')
+            .select('*')
+            .order('created_at', { ascending: false }),
+        ]);
 
+      if (usersRes.data) setPlatformUsers(usersRes.data);
       if (bookingsRes.data) setBookings(bookingsRes.data);
       if (advRes.data) setAdvocates(advRes.data);
+      if (partnersRes.data) setPartnerships(partnersRes.data);
       if (appsRes.data) setApplications(appsRes.data);
       if (oppsRes.data) setOpportunities(oppsRes.data);
     } catch (err) {
@@ -92,10 +122,12 @@ export default function AdminConsolePage() {
       .eq('id', id);
 
     if (!error) {
-      setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, booking_status: status } : b)));
+      setBookings((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, booking_status: status } : b))
+      );
       triggerFeedback(`Inquiry status updated to ${status}.`);
     } else {
-      triggerFeedback('Failed to update status. Check Supabase RLS permissions.');
+      triggerFeedback('Failed to update status.');
     }
   };
 
@@ -112,12 +144,30 @@ export default function AdminConsolePage() {
     if (!error) {
       setAdvocates((prev) =>
         prev.map((a) =>
-          a.id === id ? { ...a, is_verified: approve, vetting_status: approve ? 'approved' : 'pending' } : a
+          a.id === id
+            ? { ...a, is_verified: approve, vetting_status: approve ? 'approved' : 'pending' }
+            : a
         )
       );
-      triggerFeedback(approve ? 'Advocate MOJ badge verified live!' : 'Advocate verification set back to pending.');
+      triggerFeedback(
+        approve ? 'Advocate MOJ badge verified live!' : 'Advocate set back to pending.'
+      );
     } else {
       triggerFeedback('Could not update advocate verification status.');
+    }
+  };
+
+  const handleUpdatePartnerStatus = async (id: string, status: string) => {
+    const { error } = await supabase
+      .from('partner_inquiries')
+      .update({ status })
+      .eq('id', id);
+
+    if (!error) {
+      setPartnerships((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status } : p))
+      );
+      triggerFeedback(`Partnership status updated to ${status}.`);
     }
   };
 
@@ -128,7 +178,9 @@ export default function AdminConsolePage() {
       .eq('id', id);
 
     if (!error) {
-      setApplications((prev) => prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
+      setApplications((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a))
+      );
       triggerFeedback(`Application updated to ${newStatus}.`);
     }
   };
@@ -149,16 +201,28 @@ export default function AdminConsolePage() {
 
   const metrics = useMemo(() => {
     return {
+      totalUsers: platformUsers.length,
       totalInquiries: bookings.length,
-      pendingInquiries: bookings.filter((b) => !b.booking_status || b.booking_status === 'pending').length,
+      pendingInquiries: bookings.filter(
+        (b) => !b.booking_status || b.booking_status === 'pending'
+      ).length,
       verifiedAdvocates: advocates.filter((a) => a.is_verified).length,
       pendingAdvocates: advocates.filter((a) => !a.is_verified).length,
+      newPartnerships: partnerships.filter((p) => p.status === 'new').length,
       pendingApps: applications.filter((a) => a.status === 'pending').length,
-      activeJobs: opportunities.filter((o) => o.is_active).length,
     };
-  }, [bookings, advocates, applications, opportunities]);
+  }, [platformUsers, bookings, advocates, partnerships, applications]);
 
   const q = searchQuery.trim().toLowerCase();
+
+  const filteredUsers = platformUsers.filter(
+    (u) =>
+      !q ||
+      String(u.full_name || '').toLowerCase().includes(q) ||
+      String(u.email || '').toLowerCase().includes(q) ||
+      String(u.role || '').toLowerCase().includes(q) ||
+      String(u.location || '').toLowerCase().includes(q)
+  );
 
   const filteredBookings = bookings.filter(
     (b) =>
@@ -174,6 +238,14 @@ export default function AdminConsolePage() {
       String(a.name || '').toLowerCase().includes(q) ||
       String(a.license_number || '').toLowerCase().includes(q) ||
       String(a.email || '').toLowerCase().includes(q)
+  );
+
+  const filteredPartnerships = partnerships.filter(
+    (p) =>
+      !q ||
+      String(p.organization_name || '').toLowerCase().includes(q) ||
+      String(p.contact_name || '').toLowerCase().includes(q) ||
+      String(p.email || '').toLowerCase().includes(q)
   );
 
   const filteredApps = applications.filter(
@@ -268,7 +340,9 @@ export default function AdminConsolePage() {
           </div>
 
           <div className="flex items-center gap-3 text-xs">
-            <span className="hidden md:inline text-slate-500 font-mono text-[11px]">{adminEmail}</span>
+            <span className="hidden md:inline text-slate-500 font-mono text-[11px]">
+              {adminEmail}
+            </span>
             <button
               type="button"
               onClick={fetchLiveRecords}
@@ -291,7 +365,16 @@ export default function AdminConsolePage() {
       {/* KPI Summary */}
       <section className="bg-white border-b border-slate-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+              <div className="flex items-center justify-between text-slate-500 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Registered Users</span>
+                <Users className="w-3.5 h-3.5 text-[#0A1128]" />
+              </div>
+              <strong className="text-xl font-black text-[#0A1128]">{metrics.totalUsers}</strong>
+              <span className="text-[10px] text-slate-500 block mt-0.5">Live sign-ins &amp; sign-ups</span>
+            </div>
+
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               <div className="flex items-center justify-between text-slate-500 mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider">Client Inquiries</span>
@@ -299,16 +382,18 @@ export default function AdminConsolePage() {
               </div>
               <strong className="text-xl font-black text-[#0A1128]">{metrics.totalInquiries}</strong>
               <span className="text-[10px] text-slate-500 block mt-0.5">
-                {metrics.pendingInquiries} awaiting advocate response
+                {metrics.pendingInquiries} awaiting response
               </span>
             </div>
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Verified Advocates</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">Advocates</span>
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               </div>
-              <strong className="text-xl font-black text-emerald-700">{metrics.verifiedAdvocates}</strong>
+              <strong className="text-xl font-black text-emerald-700">
+                {metrics.verifiedAdvocates} / {advocates.length}
+              </strong>
               <span className="text-[10px] text-amber-700 font-semibold block mt-0.5">
                 {metrics.pendingAdvocates} pending MOJ check
               </span>
@@ -316,22 +401,24 @@ export default function AdminConsolePage() {
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">NextGen Applicants</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">Partnerships</span>
+                <Handshake className="w-3.5 h-3.5 text-purple-600" />
+              </div>
+              <strong className="text-xl font-black text-purple-700">{partnerships.length}</strong>
+              <span className="text-[10px] text-slate-500 block mt-0.5">
+                {metrics.newPartnerships} new institutional leads
+              </span>
+            </div>
+
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+              <div className="flex items-center justify-between text-slate-500 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider">NextGen Apps</span>
                 <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
               </div>
               <strong className="text-xl font-black text-blue-700">{applications.length}</strong>
               <span className="text-[10px] text-slate-500 block mt-0.5">
                 {metrics.pendingApps} pending review
               </span>
-            </div>
-
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-              <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Active Opportunities</span>
-                <Briefcase className="w-3.5 h-3.5 text-slate-700" />
-              </div>
-              <strong className="text-xl font-black text-[#0A1128]">{metrics.activeJobs}</strong>
-              <span className="text-[10px] text-slate-500 block mt-0.5">Published on NextGen Hub</span>
             </div>
           </div>
         </div>
@@ -347,57 +434,153 @@ export default function AdminConsolePage() {
         )}
 
         {/* Tabs + Search */}
-        <div className="flex items-center justify-between gap-4 flex-wrap border-b border-slate-200 pb-3">
-          <div className="flex items-center gap-2 overflow-x-auto text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => setActiveTab('inquiries')}
-              className={`px-4 py-2 rounded-xl cursor-pointer whitespace-nowrap ${
-                activeTab === 'inquiries' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Client Inquiries ({bookings.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('advocates')}
-              className={`px-4 py-2 rounded-xl cursor-pointer whitespace-nowrap ${
-                activeTab === 'advocates' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Advocates & MOJ Vetting ({advocates.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('applications')}
-              className={`px-4 py-2 rounded-xl cursor-pointer whitespace-nowrap ${
-                activeTab === 'applications' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              NextGen Applications ({applications.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('opportunities')}
-              className={`px-4 py-2 rounded-xl cursor-pointer whitespace-nowrap ${
-                activeTab === 'opportunities' ? 'bg-[#0A1128] text-white' : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Job Moderation ({opportunities.length})
-            </button>
-          </div>
+        <div className="space-y-3 border-b border-slate-200 pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveTab('users')}
+                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                  activeTab === 'users' ? 'bg-[#0A1128] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Registered Users ({platformUsers.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('inquiries')}
+                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                  activeTab === 'inquiries' ? 'bg-[#0A1128] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Client Inquiries ({bookings.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('advocates')}
+                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                  activeTab === 'advocates' ? 'bg-[#0A1128] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Advocates &amp; MOJ ({advocates.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('partnerships')}
+                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                  activeTab === 'partnerships' ? 'bg-[#0A1128] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Partnerships ({partnerships.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('applications')}
+                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                  activeTab === 'applications' ? 'bg-[#0A1128] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                NextGen ({applications.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('opportunities')}
+                className={`px-3.5 py-2 rounded-xl cursor-pointer ${
+                  activeTab === 'opportunities' ? 'bg-[#0A1128] text-white' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Jobs ({opportunities.length})
+              </button>
+            </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Filter current tab..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-            />
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search current tab..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
+              />
+            </div>
           </div>
         </div>
+
+        {/* TAB 0: REGISTERED USERS */}
+        {activeTab === 'users' && (
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div>
+              <h2 className="text-base font-black text-[#0A1128]">
+                Registered Users &amp; Live Sign-In Activity
+              </h2>
+              <p className="text-xs text-slate-600">
+                Every user who signs up or signs in via Google or Email is logged here automatically and triggers instant Telegram + Gmail alerts.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[10px] font-mono uppercase text-slate-500">
+                    <th className="py-3 px-3">User Name &amp; Email</th>
+                    <th className="py-3 px-3">Role &amp; Method</th>
+                    <th className="py-3 px-3">Phone &amp; Location</th>
+                    <th className="py-3 px-3">Legal Need / Area</th>
+                    <th className="py-3 px-3">Logins</th>
+                    <th className="py-3 px-3 text-right">Last Seen</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-slate-50/70">
+                      <td className="py-3 px-3">
+                        <strong className="text-[#0A1128] block">{u.full_name || 'Member'}</strong>
+                        <span className="text-slate-600 font-mono text-[11px]">{u.email}</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase mr-1.5 ${
+                            u.role === 'advocate'
+                              ? 'bg-amber-100 text-amber-900'
+                              : 'bg-emerald-100 text-emerald-900'
+                          }`}
+                        >
+                          {u.role}
+                        </span>
+                        <span className="text-slate-500 font-mono text-[10px]">
+                          via {u.auth_provider || 'email'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="block text-slate-800 font-mono text-[11px]">
+                          {u.phone || '—'}
+                        </span>
+                        <span className="text-slate-500 text-[10px]">{u.location || '—'}</span>
+                      </td>
+                      <td className="py-3 px-3 max-w-xs text-slate-700 text-[11px]">
+                        {u.legal_need || '—'}
+                      </td>
+                      <td className="py-3 px-3 font-mono font-bold text-[#0A1128]">
+                        {u.login_count || 1}
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono text-[11px] text-slate-500">
+                        {u.last_login_at
+                          ? new Date(u.last_login_at).toLocaleString()
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-8 text-slate-500">
+                        No sign-ins logged yet. Sign in once after running the SQL to see live entries here.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: CLIENT INQUIRIES */}
         {activeTab === 'inquiries' && (
@@ -405,7 +588,7 @@ export default function AdminConsolePage() {
             <div>
               <h2 className="text-base font-black text-[#0A1128]">Client Consultation Inquiries</h2>
               <p className="text-xs text-slate-600">
-                All free consultation requests submitted via Find a Lawyer.
+                All free consultation requests submitted via Find a Lawyer and the Diaspora Hub.
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -415,7 +598,7 @@ export default function AdminConsolePage() {
                     <th className="py-3 px-3">Date / Ref</th>
                     <th className="py-3 px-3">Client</th>
                     <th className="py-3 px-3">Advocate</th>
-                    <th className="py-3 px-3">Practice Area & Brief</th>
+                    <th className="py-3 px-3">Practice Area &amp; Brief</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3 text-right">Update</th>
                   </tr>
@@ -424,18 +607,28 @@ export default function AdminConsolePage() {
                   {filteredBookings.map((b) => (
                     <tr key={b.id} className="hover:bg-slate-50/70">
                       <td className="py-3 px-3 font-mono">
-                        <strong className="text-amber-800 block">LL-{String(b.id).slice(0, 6).toUpperCase()}</strong>
-                        <span className="text-slate-500 text-[10px]">{new Date(b.created_at).toLocaleDateString()}</span>
+                        <strong className="text-amber-800 block">
+                          LL-{String(b.id).slice(0, 6).toUpperCase()}
+                        </strong>
+                        <span className="text-slate-500 text-[10px]">
+                          {new Date(b.created_at).toLocaleDateString()}
+                        </span>
                       </td>
                       <td className="py-3 px-3">
                         <strong className="text-slate-900 block">{b.client_name}</strong>
-                        <span className="text-slate-600 font-mono text-[11px] block">{b.client_phone}</span>
-                        {b.client_email && <span className="text-slate-500 text-[10px]">{b.client_email}</span>}
+                        <span className="text-slate-600 font-mono text-[11px] block">
+                          {b.client_phone}
+                        </span>
+                        {b.client_email && (
+                          <span className="text-slate-500 text-[10px]">{b.client_email}</span>
+                        )}
                       </td>
                       <td className="py-3 px-3 font-semibold text-slate-800">{b.lawyer_name}</td>
                       <td className="py-3 px-3 max-w-xs">
                         <strong className="text-[#0A1128] block">{b.practice_area}</strong>
-                        <p className="text-slate-600 text-[11px] line-clamp-2">{b.brief_description}</p>
+                        <p className="text-slate-600 text-[11px] line-clamp-2">
+                          {b.brief_description}
+                        </p>
                       </td>
                       <td className="py-3 px-3">
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-800">
@@ -469,13 +662,15 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 2: ADVOCATES & LIVE MOJ VETTING */}
+        {/* TAB 2: ADVOCATES & MOJ VETTING */}
         {activeTab === 'advocates' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
-              <h2 className="text-base font-black text-[#0A1128]">Advocate Registry & MOJ Credential Verification</h2>
+              <h2 className="text-base font-black text-[#0A1128]">
+                Advocate Registry &amp; MOJ Credential Verification
+              </h2>
               <p className="text-xs text-slate-600">
-                Verify advocate bar license numbers against Ministry of Justice / Regional Bureau records to grant the MOJ Verified badge.
+                Verify advocate bar licenses to grant the MOJ Verified badge on the public directory.
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -484,10 +679,10 @@ export default function AdminConsolePage() {
                   <tr className="border-b border-slate-200 text-[10px] font-mono uppercase text-slate-500">
                     <th className="py-3 px-3">Advocate</th>
                     <th className="py-3 px-3">Bar License</th>
-                    <th className="py-3 px-3">Court Standing & Location</th>
+                    <th className="py-3 px-3">Court Standing &amp; Location</th>
                     <th className="py-3 px-3">Contact</th>
                     <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3 text-right">Verification Action</th>
+                    <th className="py-3 px-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -497,7 +692,9 @@ export default function AdminConsolePage() {
                         <strong className="text-[#0A1128] block">{adv.name}</strong>
                         <span className="text-slate-500 text-[11px]">{adv.amharic_name}</span>
                       </td>
-                      <td className="py-3 px-3 font-mono font-bold text-amber-800">{adv.license_number}</td>
+                      <td className="py-3 px-3 font-mono font-bold text-amber-800">
+                        {adv.license_number}
+                      </td>
                       <td className="py-3 px-3">
                         <strong className="text-slate-800 block">{adv.court_jurisdiction}</strong>
                         <span className="text-slate-500 text-[11px]">{adv.location}</span>
@@ -543,7 +740,7 @@ export default function AdminConsolePage() {
                   {filteredAdvocates.length === 0 && (
                     <tr>
                       <td colSpan={6} className="text-center py-8 text-slate-500">
-                        No advocate profiles registered yet.
+                        No advocate profiles found.
                       </td>
                     </tr>
                   )}
@@ -553,11 +750,85 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 3: NEXTGEN APPLICATIONS */}
+        {/* TAB 3: INSTITUTIONAL & DONOR PARTNERSHIPS */}
+        {activeTab === 'partnerships' && (
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+            <div>
+              <h2 className="text-base font-black text-[#0A1128]">
+                Donor, University &amp; Institutional Partnership Inquiries
+              </h2>
+              <p className="text-xs text-slate-600">
+                Submissions received from `/about#partnerships`.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[10px] font-mono uppercase text-slate-500">
+                    <th className="py-3 px-3">Organization</th>
+                    <th className="py-3 px-3">Contact</th>
+                    <th className="py-3 px-3">Focus Area &amp; Message</th>
+                    <th className="py-3 px-3">Status</th>
+                    <th className="py-3 px-3 text-right">Update</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredPartnerships.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50/70">
+                      <td className="py-3 px-3">
+                        <strong className="text-[#0A1128] block">{p.organization_name}</strong>
+                        <span className="text-slate-500 text-[10px]">{p.organization_type}</span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <strong className="text-slate-900 block">{p.contact_name}</strong>
+                        <span className="text-slate-600 font-mono text-[11px] block">{p.email}</span>
+                        {p.phone && <span className="text-slate-500 text-[10px]">{p.phone}</span>}
+                      </td>
+                      <td className="py-3 px-3 max-w-sm">
+                        <strong className="text-amber-800 block text-[11px]">
+                          {p.partnership_area}
+                        </strong>
+                        <p className="text-slate-600 text-[11px] line-clamp-2">{p.message}</p>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-100 text-purple-900">
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <select
+                          value={p.status || 'new'}
+                          onChange={(e) => handleUpdatePartnerStatus(p.id, e.target.value)}
+                          className="p-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer"
+                        >
+                          <option value="new">New</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="active">Active Partner</option>
+                          <option value="archived">Archived</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPartnerships.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center py-8 text-slate-500">
+                        No partnership inquiries submitted yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: NEXTGEN APPLICATIONS */}
         {activeTab === 'applications' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
-              <h2 className="text-base font-black text-[#0A1128]">NextGen Student & Pupillage Applications</h2>
+              <h2 className="text-base font-black text-[#0A1128]">
+                NextGen Student &amp; Pupillage Applications
+              </h2>
               <p className="text-xs text-slate-600">Live submissions from `/nextgen`.</p>
             </div>
             <div className="overflow-x-auto">
@@ -581,7 +852,9 @@ export default function AdminConsolePage() {
                           {new Date(app.created_at).toLocaleDateString()}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-semibold text-slate-800">{app.opportunity_title}</td>
+                      <td className="py-3 px-3 font-semibold text-slate-800">
+                        {app.opportunity_title}
+                      </td>
                       <td className="py-3 px-3">
                         <strong className="text-[#0A1128] block">{app.university}</strong>
                         <span className="text-slate-500 text-[11px]">{app.current_year}</span>
@@ -622,12 +895,16 @@ export default function AdminConsolePage() {
           </div>
         )}
 
-        {/* TAB 4: JOB MODERATION */}
+        {/* TAB 5: JOB MODERATION */}
         {activeTab === 'opportunities' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div>
-              <h2 className="text-base font-black text-[#0A1128]">NextGen Opportunity Moderation</h2>
-              <p className="text-xs text-slate-600">Publish or hide internship and pupillage listings.</p>
+              <h2 className="text-base font-black text-[#0A1128]">
+                NextGen Opportunity Moderation
+              </h2>
+              <p className="text-xs text-slate-600">
+                Publish or hide internship and pupillage listings.
+              </p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -651,7 +928,9 @@ export default function AdminConsolePage() {
                       <td className="py-3 px-3">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            opp.is_active ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-200 text-slate-600'
+                            opp.is_active
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : 'bg-slate-200 text-slate-600'
                           }`}
                         >
                           {opp.is_active ? 'Live' : 'Hidden'}
@@ -688,7 +967,7 @@ export default function AdminConsolePage() {
 
       <footer className="bg-white border-t border-slate-200 py-5 text-slate-500 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
-          <p>© 2026 LegalLink Technologies PLC — Oversight Console</p>
+          <p>© 2026 LegalLink Ethiopia • Oversight Console</p>
           <p className="flex items-center gap-1">
             <Scale className="w-3.5 h-3.5 text-amber-600" />
             <span>Proclamation No. 1249/2021 Compliance</span>

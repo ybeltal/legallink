@@ -78,10 +78,32 @@ export async function GET(request: Request) {
     const resolvedRole: 'client' | 'advocate' =
       meta.role === 'advocate' || role === 'advocate' ? 'advocate' : 'client';
 
-    // Send welcome email once per user account via Gmail SMTP
+    const tasks: Promise<unknown>[] = [];
+
+    // 1. Record user in platform_users & alert admin via Telegram + Gmail immediately
+    if (userEmail) {
+      tasks.push(
+        fetch(`${origin}/api/track-user`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userEmail,
+            fullName: userName,
+            role: resolvedRole,
+            phone: meta.phone || '',
+            location: meta.location || '',
+            legalNeed: meta.legal_need || '',
+            provider: user.app_metadata?.provider || 'google',
+            eventType: meta.welcome_email_sent !== true ? 'signup' : 'signin',
+          }),
+        }).catch((err) => console.error('Track user error:', err))
+      );
+    }
+
+    // 2. Send welcome email once per new user account
     if (userEmail && meta.welcome_email_sent !== true) {
-      try {
-        const emailRes = await fetch(`${origin}/api/welcome-email`, {
+      tasks.push(
+        fetch(`${origin}/api/welcome-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -89,20 +111,22 @@ export async function GET(request: Request) {
             fullName: userName,
             role: resolvedRole,
           }),
-        });
-
-        if (emailRes.ok) {
-          await supabase.auth.updateUser({
-            data: {
-              role: resolvedRole,
-              welcome_email_sent: true,
-            },
-          });
-        }
-      } catch (emailErr) {
-        console.error('Welcome email dispatch error:', emailErr);
-      }
+        })
+          .then(async (emailRes) => {
+            if (emailRes.ok) {
+              await supabase.auth.updateUser({
+                data: {
+                  role: resolvedRole,
+                  welcome_email_sent: true,
+                },
+              });
+            }
+          })
+          .catch((emailErr) => console.error('Welcome email dispatch error:', emailErr))
+      );
     }
+
+    await Promise.allSettled(tasks);
 
     const safeRedirect = redirectParam.startsWith('/') ? redirectParam : '/';
     const destination =
@@ -112,7 +136,6 @@ export async function GET(request: Request) {
 
     const response = NextResponse.redirect(destination);
 
-    // Attach Supabase SSR session cookies safely
     cookiesToSet.forEach(({ name, value, options }) => {
       try {
         response.cookies.set(
@@ -125,7 +148,6 @@ export async function GET(request: Request) {
       }
     });
 
-    // Attach lightweight UI cookies for Navbar & WelcomeBanner
     const maxAge = 60 * 60 * 24 * 7;
     response.cookies.set('legallink_auth', 'authenticated', {
       path: '/',

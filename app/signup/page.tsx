@@ -31,7 +31,6 @@ function SignupContent() {
     initialRoleParam === 'advocate' ? 'advocate' : 'client'
   );
 
-  // Form states
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -40,13 +39,11 @@ function SignupContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(true);
 
-  // Client fields
   const [clientLegalNeed, setClientLegalNeed] = useState(
     'Consult a Verified Ethiopian Advocate'
   );
   const [clientLocation, setClientLocation] = useState('Addis Ababa');
 
-  // Advocate fields
   const [barLicenseNo, setBarLicenseNo] = useState('');
   const [courtTier, setCourtTier] = useState('Federal High Court');
   const [practiceArea, setPracticeArea] = useState('Commercial & Corporate Law');
@@ -63,7 +60,7 @@ function SignupContent() {
     if (redirectParam && redirectParam.startsWith('/')) {
       return redirectParam;
     }
-    return selectedRole === 'advocate' ? '/advocate/register' : '/';
+    return selectedRole === 'advocate' ? '/advocate/register' : '/dashboard';
   };
 
   const syncUiSession = (
@@ -167,25 +164,41 @@ function SignupContent() {
         return;
       }
 
-      // Send role-aware welcome email (non-blocking)
-      fetch('/api/welcome-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: trimmedEmail,
-          fullName,
-          role,
+      // Immediately save user + send instant Telegram/Email alert to LegalLink + welcome email to user
+      await Promise.allSettled([
+        fetch('/api/track-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify({
+            email: trimmedEmail,
+            fullName,
+            role,
+            phone: phone.trim(),
+            location: role === 'client' ? clientLocation : 'Ethiopia',
+            legalNeed: role === 'client' ? clientLegalNeed : `${practiceArea} (${barLicenseNo.trim()})`,
+            provider: 'email',
+            eventType: 'signup',
+          }),
         }),
-      }).catch(() => {});
+        fetch('/api/welcome-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify({
+            email: trimmedEmail,
+            fullName,
+            role,
+          }),
+        }),
+      ]);
 
-      // If Supabase immediately issued a session, log the user straight in
       if (data?.session) {
         syncUiSession(role, trimmedEmail, fullName);
         window.location.href = destination;
         return;
       }
 
-      // Otherwise Supabase requires email confirmation first
       setConfirmationEmail(trimmedEmail);
       setLoading(false);
     } catch {
@@ -194,9 +207,6 @@ function SignupContent() {
     }
   };
 
-  // =========================================================================
-  // VIEW 1: TWO-PANEL ROLE SELECTION
-  // =========================================================================
   if (step === 'select-role') {
     return (
       <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-amber-100 selection:text-[#0A1128]">
@@ -231,7 +241,6 @@ function SignupContent() {
         </header>
 
         <main className="flex-1 grid grid-cols-1 md:grid-cols-2">
-          {/* LEFT PANEL: CLIENT */}
           <section
             onClick={() => handleSelectRolePanel('client')}
             className="relative overflow-hidden bg-gradient-to-br from-[#F8FAFC] via-white to-[#FEF3C7]/35 hover:to-[#FEF3C7]/60 text-[#0A1128] px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group border-b md:border-b-0 md:border-r border-slate-200"
@@ -239,7 +248,7 @@ function SignupContent() {
             <div className="max-w-md space-y-6 relative z-10">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono uppercase tracking-widest font-bold">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Client & Public Access • የደንበኞች መግቢያ</span>
+                <span>Client &amp; Public Access • የደንበኞች መግቢያ</span>
               </div>
 
               <div className="flex justify-center">
@@ -257,7 +266,7 @@ function SignupContent() {
                   I’m seeking legal solutions
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Connect directly with MOJ-verified Ethiopian advocates, draft bilingual Amharic & English legal forms, and explore federal proclamations — completely free.
+                  Connect directly with MOJ-verified Ethiopian advocates, draft bilingual Amharic &amp; English legal forms, and explore federal proclamations — completely free.
                 </p>
               </div>
 
@@ -268,7 +277,7 @@ function SignupContent() {
                 </span>
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700">
                   <BookOpen className="w-3 h-3 text-emerald-600" />
-                  Proclamations & LegalTalk
+                  Proclamations &amp; LegalTalk
                 </span>
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700">
                   <ShieldCheck className="w-3 h-3 text-[#0A1128]" />
@@ -292,7 +301,6 @@ function SignupContent() {
             </div>
           </section>
 
-          {/* RIGHT PANEL: ADVOCATE */}
           <section
             onClick={() => handleSelectRolePanel('advocate')}
             className="relative overflow-hidden bg-gradient-to-br from-[#0A1128] via-[#0F1B3D] to-[#064E3B] text-white px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
@@ -358,9 +366,6 @@ function SignupContent() {
     );
   }
 
-  // =========================================================================
-  // VIEW 2: REGISTRATION FORM
-  // =========================================================================
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between text-slate-900 font-sans">
       <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between border-b border-slate-100">
@@ -560,10 +565,10 @@ function SignupContent() {
                         Draft Legal Forms (LexDraft)
                       </option>
                       <option value="Explore Ethiopian Proclamations & LegalTalk">
-                        Explore Proclamations & LegalTalk
+                        Explore Proclamations &amp; LegalTalk
                       </option>
                       <option value="Business & PLC Incorporation">
-                        Business & PLC Formation
+                        Business &amp; PLC Formation
                       </option>
                       <option value="Diaspora Power of Attorney & Services">
                         Diaspora Legal Support
@@ -616,7 +621,7 @@ function SignupContent() {
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
                     >
                       <option value="Federal Supreme & Cassation Court">
-                        Federal Supreme & Cassation Court
+                        Federal Supreme &amp; Cassation Court
                       </option>
                       <option value="Federal High Court">Federal High Court</option>
                       <option value="Federal First Instance Court">
@@ -637,18 +642,18 @@ function SignupContent() {
                       onChange={(e) => setPracticeArea(e.target.value)}
                       className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
                     >
-                      <option value="Commercial & Corporate Law">Commercial & Corporate Law</option>
+                      <option value="Commercial & Corporate Law">Commercial &amp; Corporate Law</option>
                       <option value="Civil, Appellate & Cassation Litigation">
-                        Civil, Appellate & Cassation Litigation
+                        Civil, Appellate &amp; Cassation Litigation
                       </option>
                       <option value="Real Estate, Land & Construction Law">
-                        Real Estate, Land & Construction Law
+                        Real Estate, Land &amp; Construction Law
                       </option>
                       <option value="Tax, Customs & Investment Law">
-                        Tax, Customs & Investment Law
+                        Tax, Customs &amp; Investment Law
                       </option>
                       <option value="Labor, Family & Administrative Law">
-                        Labor, Family & Administrative Law
+                        Labor, Family &amp; Administrative Law
                       </option>
                     </select>
                   </div>
@@ -748,7 +753,7 @@ function SignupContent() {
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Free Public Access • MOJ-Verified Ethiopian Advocate Directory</span>
           </div>
-          <p>© 2026 LegalLink Technologies PLC. Federal Proclamation No. 1249/2021.</p>
+          <p>© 2026 LegalLink Ethiopia • info.legallinkethiopia@gmail.com</p>
         </div>
       </footer>
     </div>

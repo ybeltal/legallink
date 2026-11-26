@@ -42,7 +42,7 @@ function LoginContent() {
     if (redirectParam && redirectParam.startsWith('/')) {
       return redirectParam;
     }
-    return resolvedRole === 'advocate' ? '/advocate/portal' : '/';
+    return resolvedRole === 'advocate' ? '/advocate/portal' : '/dashboard';
   };
 
   const syncUiSession = (
@@ -110,6 +110,24 @@ function LoginContent() {
         (resolvedRole === 'advocate' ? 'Advocate' : 'Member');
 
       syncUiSession(resolvedRole, trimmedEmail, displayName);
+
+      // Immediately log user & notify LegalLink team via Telegram + Email
+      await fetch('/api/track-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({
+          email: trimmedEmail,
+          fullName: displayName,
+          role: resolvedRole,
+          phone: meta.phone || '',
+          location: meta.location || '',
+          legalNeed: meta.legal_need || '',
+          provider: 'email',
+          eventType: 'signin',
+        }),
+      }).catch(() => {});
+
       window.location.href = getDestination(resolvedRole);
     } catch {
       setErrorMsg('Network error while signing in. Please try again.');
@@ -154,7 +172,6 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between text-slate-900 font-sans">
-      {/* Header */}
       <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between border-b border-slate-100">
         <div className="flex items-center gap-3.5">
           <button
@@ -185,7 +202,6 @@ function LoginContent() {
         </div>
       </header>
 
-      {/* Main Login Card */}
       <main className="max-w-md mx-auto px-4 py-10 flex-1 w-full flex flex-col justify-center">
         <div className="bg-white rounded-3xl border border-slate-200 p-7 sm:p-9 shadow-sm space-y-6">
           <div className="text-center space-y-1.5">
@@ -197,7 +213,6 @@ function LoginContent() {
             </p>
           </div>
 
-          {/* Client / Advocate Workspace Toggle */}
           <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
             <button
               type="button"
@@ -219,7 +234,6 @@ function LoginContent() {
             </button>
           </div>
 
-          {/* Google Login Button */}
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -334,14 +348,13 @@ function LoginContent() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="w-full py-5 text-center text-[11px] text-slate-500 border-t border-slate-100 bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Verified Ethiopian Advocate Directory • Free Public Access</span>
           </div>
-          <p>© 2026 LegalLink Technologies PLC. Federal Proclamation No. 1249/2021.</p>
+          <p>© 2026 LegalLink Ethiopia • info.legallinkethiopia@gmail.com</p>
         </div>
       </footer>
     </div>
