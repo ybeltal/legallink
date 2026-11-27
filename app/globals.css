@@ -1,71 +1,323 @@
 @import "tailwindcss";
 
-@layer base {
-  * {
-    font-family: "Century Gothic", AppleGothic, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-
-  body {
-    background-color: #f8fafc;
-    color: #0f172a;
-    font-family: "Century Gothic", AppleGothic, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
-  }
+:root {
+  --ll-obsidian: #060b19;
+  --ll-navy: #0a1128;
+  --ll-amber: #f59e0b;
+  --ll-emerald: #10b981;
 }
 
-/* Tactile Spring Micro-Interactions */
-button:active:not(:disabled),
-a:active:not(:disabled) {
-  transform: scale(0.96);
-  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+html {
+  scroll-behavior: smooth;
+  background-color: #060b19;
 }
 
-.card-hover {
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+body {
+  background-color: #060b19;
+  color: #f8fafc;
+  overflow-x: hidden;
 }
 
-.card-hover:hover {
-  transform: translateY(-4px) scale(1.008);
-  box-shadow: 0 16px 36px -12px rgba(10, 17, 40, 0.1);
-}
-
-/* Lady Justice Floating & Radiance Animation */
-@keyframes floatSlow {
+/* =========================================================================
+   1. VOLUMETRIC SPOTLIGHT & AMBIENT FLOATING PARTICLES
+   ========================================================================= */
+@keyframes ll-beam-breathe {
   0%, 100% {
-    transform: translateY(0px) scale(1);
+    opacity: 0.65;
+    transform: translateX(-50%) scaleX(1) scaleY(1);
   }
   50% {
-    transform: translateY(-14px) scale(1.015);
+    opacity: 0.95;
+    transform: translateX(-50%) scaleX(1.08) scaleY(1.04);
   }
 }
 
-@keyframes pulseGlow {
+@keyframes ll-mote-drift {
   0%, 100% {
-    opacity: 0.20;
-    transform: scale(1);
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0.16;
   }
   50% {
-    opacity: 0.38;
-    transform: scale(1.10);
+    transform: translate3d(12px, -22px, 0) rotate(4deg);
+    opacity: 0.42;
+  }
+}
+
+@keyframes ll-float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
   }
 }
 
 .animate-float-slow {
-  animation: floatSlow 8s ease-in-out infinite;
+  animation: ll-float-slow 7s ease-in-out infinite;
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 6s ease-in-out infinite;
+.ll-volumetric-beam {
+  position: absolute;
+  top: -140px;
+  left: 50%;
+  width: min(1100px, 140vw);
+  height: 640px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse 52% 58% at 50% 12%,
+    rgba(245, 158, 11, 0.22) 0%,
+    rgba(16, 185, 129, 0.12) 42%,
+    rgba(6, 11, 25, 0) 76%
+  );
+  pointer-events: none;
+  filter: blur(18px);
+  animation: ll-beam-breathe 8s ease-in-out infinite;
 }
 
-/* Smooth Edge Dissolve to eliminate square borders */
+.ll-mote {
+  animation: ll-mote-drift 9s ease-in-out infinite;
+}
+
 .mask-radial-fade {
-  mask-image: radial-gradient(circle at 50% 50%, black 50%, transparent 92%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 50%, transparent 92%);
+  -webkit-mask-image: radial-gradient(circle at center, black 42%, transparent 78%);
+  mask-image: radial-gradient(circle at center, black 42%, transparent 78%);
+}
+
+/* =========================================================================
+   2. WORD-BY-WORD BLUR-TO-FOCUS KINETIC HEADLINE REVEAL
+   ========================================================================= */
+@keyframes ll-word-focus-in {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translate3d(0, 18px, 0) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.ll-word-reveal {
+  display: inline-block;
+  opacity: 0;
+  animation: ll-word-focus-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* =========================================================================
+   3. SCROLL-TRIGGERED SECTION REVEALS
+   ========================================================================= */
+.ll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ll-reveal.ll-reveal-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* =========================================================================
+   4. GIANT HORIZONTAL KINETIC MARQUEE
+   ========================================================================= */
+@keyframes ll-marquee-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes ll-marquee-scroll-reverse {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.ll-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: ll-marquee-scroll 34s linear infinite;
+}
+
+.ll-marquee-track-reverse {
+  display: flex;
+  width: max-content;
+  animation: ll-marquee-scroll-reverse 38s linear infinite;
+}
+
+.ll-marquee-wrapper:hover .ll-marquee-track,
+.ll-marquee-wrapper:hover .ll-marquee-track-reverse {
+  animation-play-state: paused;
+}
+
+/* =========================================================================
+   5. VERTICAL SINUSOIDAL WORD STACK WAVE (VIDEO 00:14–00:17)
+   ========================================================================= */
+@keyframes ll-wave-sway {
+  0%, 100% {
+    transform: translate3d(-14px, 0, 0);
+    opacity: 0.48;
+  }
+  50% {
+    transform: translate3d(18px, 0, 0);
+    opacity: 1;
+  }
+}
+
+.ll-wave-row {
+  animation: ll-wave-sway 4.4s ease-in-out infinite;
+}
+
+/* =========================================================================
+   6. SILK AURORA RIBBON WAVE FOR 3-STEP STAGE (VIDEO 00:18–00:25)
+   ========================================================================= */
+@keyframes ll-silk-flow {
+  0% {
+    transform: translate3d(-6%, -2%, 0) rotate(-3deg) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 3%, 0) rotate(3deg) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-6%, -2%, 0) rotate(-3deg) scale(1);
+  }
+}
+
+.ll-silk-ribbon {
+  animation: ll-silk-flow 10s ease-in-out infinite;
+}
+
+/* =========================================================================
+   7. POINTER-TRACKING RADIAL SPOTLIGHT CARD (VIDEO 00:36–00:55)
+   ========================================================================= */
+.ll-spotlight-card {
+  position: relative;
+  --mx: 50%;
+  --my: 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.78) 0%,
+    rgba(9, 14, 29, 0.92) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+}
+
+.ll-spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    360px circle at var(--mx) var(--my),
+    rgba(245, 158, 11, 0.16),
+    rgba(16, 185, 129, 0.08) 40%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.ll-spotlight-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.ll-spotlight-card:hover::before {
+  opacity: 1;
+}
+
+/* =========================================================================
+   8. GLOWING HORIZON DOME & SHOOTING STREAKS (VIDEO 00:44–00:49)
+   ========================================================================= */
+@keyframes ll-shooting-streak {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-32deg);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  45% {
+    opacity: 0;
+    transform: translate3d(-220px, 140px, 0) rotate(-32deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-220px, 140px, 0) rotate(-32deg);
+  }
+}
+
+.ll-shooting-star {
+  position: absolute;
+  width: 90px;
+  height: 1.5px;
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.95), transparent);
+  border-radius: 999px;
+  animation: ll-shooting-streak 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   9. CONCENTRIC RADAR RINGS & GLASS LENSES (VIDEO 01:28–01:36)
+   ========================================================================= */
+@keyframes ll-radar-pulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+.ll-radar-ring {
+  animation: ll-radar-pulse 4.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes ll-lens-tilt {
+  0%, 100% {
+    transform: translateY(0px) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-3deg);
+  }
+}
+
+.ll-glass-lens {
+  animation: ll-lens-tilt 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ll-volumetric-beam,
+  .ll-mote,
+  .animate-float-slow,
+  .ll-word-reveal,
+  .ll-marquee-track,
+  .ll-marquee-track-reverse,
+  .ll-wave-row,
+  .ll-silk-ribbon,
+  .ll-shooting-star,
+  .ll-radar-ring,
+  .ll-glass-lens {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .ll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

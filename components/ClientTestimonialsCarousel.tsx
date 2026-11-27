@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
+import { RevealOnScroll, SpotlightCard } from '@/components/MotionPrimitives';
 
 export interface TestimonialItem {
   id: string;
@@ -75,7 +76,7 @@ export default function ClientTestimonialsCarousel() {
           setActiveIndex(0);
         }
       } catch {
-        // Keep clean fallback testimonials
+        // Keep fallback testimonials
       }
     };
 
@@ -95,7 +96,6 @@ export default function ClientTestimonialsCarousel() {
     setActiveIndex((prev) => (total > 0 ? (prev - 1 + total) % total : 0));
   }, [total]);
 
-  // Smooth auto-rotation every 5.5 seconds (pauses on hover)
   useEffect(() => {
     if (isPaused || total <= 1) return;
     const timer = setInterval(goNext, 5500);
@@ -113,115 +113,114 @@ export default function ClientTestimonialsCarousel() {
     .toUpperCase();
 
   return (
-    <section className="py-16 md:py-24 bg-[#F8FAFC] border-b border-slate-200">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest block font-mono">
+    <section className="py-20 md:py-28 bg-[#050914] border-b border-white/10 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
+        <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-widest block font-mono">
             {language === 'am' ? 'የደንበኞች አስተያየት' : 'CLIENT STORIES'}
           </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-[#0A1128]">
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
             {language === 'am' ? 'ደንበኞቻችን ምን ይላሉ?' : 'What Our Clients Say'}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600">
+          <p className="text-xs sm:text-sm text-slate-400">
             {language === 'am'
               ? 'በመላው ኢትዮጵያና በዲያስፖራ የሚገኙ ተገልጋዮች ስለ ሊጋልሊንክ የሚሰጡት ተሞክሮ።'
               : 'Real experiences from individuals, founders, and diaspora users navigating Ethiopian law with LegalLink.'}
           </p>
-        </div>
+        </RevealOnScroll>
 
-        {/* Rotating Card */}
         <div
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="relative bg-white rounded-3xl border border-slate-200 shadow-sm p-8 sm:p-12 transition-all"
         >
-          <div className="flex flex-col justify-between min-h-[220px] space-y-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0">
-                <Quote className="w-5 h-5" />
-              </div>
-
-              <div className="flex items-center gap-1" aria-label={`${current.rating} out of 5 stars`}>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i < (current.rating || 5)
-                        ? 'fill-amber-500 text-amber-500'
-                        : 'text-slate-200'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <blockquote
-              key={current.id}
-              className="text-base sm:text-xl font-semibold text-[#0A1128] leading-relaxed"
-            >
-              “{language === 'am' && current.amharic_quote ? current.amharic_quote : current.quote}”
-            </blockquote>
-
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-[#0A1128] text-amber-400 font-black text-xs flex items-center justify-center shrink-0">
-                  {initials}
+          <SpotlightCard className="rounded-3xl p-8 sm:p-12 shadow-2xl">
+            <div className="flex flex-col justify-between min-h-[220px] space-y-6 relative z-10">
+              <div className="flex items-center justify-between gap-4">
+                <div className="w-11 h-11 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center justify-center shrink-0">
+                  <Quote className="w-5 h-5" />
                 </div>
-                <div>
-                  <strong className="text-sm font-black text-[#0A1128] block">
-                    {current.client_name}
-                  </strong>
-                  <span className="text-xs text-slate-600 block">{current.client_role}</span>
+
+                <div className="flex items-center gap-1" aria-label={`${current.rating} out of 5 stars`}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < (current.rating || 5)
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-slate-700'
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
 
-              {current.practice_area && (
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold w-fit">
-                  {current.practice_area}
-                </span>
-              )}
-            </div>
-          </div>
+              <blockquote
+                key={current.id}
+                className="ll-word-reveal text-base sm:text-xl font-semibold text-white leading-relaxed"
+              >
+                “{language === 'am' && current.amharic_quote ? current.amharic_quote : current.quote}”
+              </blockquote>
 
-          {/* Controls: Prev / Dots / Next */}
-          {total > 1 && (
-            <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                {items.map((item, idx) => (
+              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-amber-400 text-[#060B19] font-black text-xs flex items-center justify-center shrink-0">
+                    {initials}
+                  </div>
+                  <div>
+                    <strong className="text-sm font-black text-white block">
+                      {current.client_name}
+                    </strong>
+                    <span className="text-xs text-slate-400 block">{current.client_role}</span>
+                  </div>
+                </div>
+
+                {current.practice_area && (
+                  <span className="px-3 py-1 rounded-full bg-white/[0.06] text-amber-300 border border-white/10 text-[11px] font-bold w-fit">
+                    {current.practice_area}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {total > 1 && (
+              <div className="mt-8 pt-5 border-t border-white/10 flex items-center justify-between gap-4 relative z-10">
+                <div className="flex items-center gap-2">
+                  {items.map((item, idx) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveIndex(idx)}
+                      aria-label={`Show testimonial ${idx + 1}`}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        idx === activeIndex
+                          ? 'w-8 bg-amber-400'
+                          : 'w-2 bg-white/25 hover:bg-white/40'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button
-                    key={item.id}
                     type="button"
-                    onClick={() => setActiveIndex(idx)}
-                    aria-label={`Show testimonial ${idx + 1}`}
-                    className={`h-2 rounded-full transition-all cursor-pointer ${
-                      idx === activeIndex
-                        ? 'w-8 bg-[#0A1128]'
-                        : 'w-2 bg-slate-300 hover:bg-slate-400'
-                    }`}
-                  />
-                ))}
+                    onClick={goPrev}
+                    aria-label="Previous testimonial"
+                    className="w-9 h-9 rounded-xl bg-white/[0.07] hover:bg-amber-400 text-slate-200 hover:text-[#060B19] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    aria-label="Next testimonial"
+                    className="w-9 h-9 rounded-xl bg-white/[0.07] hover:bg-amber-400 text-slate-200 hover:text-[#060B19] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  aria-label="Previous testimonial"
-                  className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0A1128] text-slate-700 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  aria-label="Next testimonial"
-                  className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0A1128] text-slate-700 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </SpotlightCard>
         </div>
       </div>
     </section>
