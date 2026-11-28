@@ -1,759 +1,824 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Search,
   BookOpen,
   Scale,
-  ShieldCheck,
   ArrowRight,
   CheckCircle2,
   HelpCircle,
-  MessageSquarePlus,
+  Sparkles,
   FileText,
-  Clock,
-  ChevronDown,
-  X,
   Send,
   Loader2,
   AlertCircle,
-  Sparkles,
+  Headphones,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { useLanguage } from '@/context/LanguageContext';
-import { createClient } from '@/lib/supabase/client';
-import { LEGAL_ARTICLES, VERIFIED_QA_DATA } from '@/lib/legaltalk-data';
 import {
-  ETHIOPIAN_LEGAL_DICTIONARY,
-  CLIENT_LEGAL_TIPS,
-} from '@/lib/legal-center-data';
+  RevealOnScroll,
+  KineticHeadline,
+  SpotlightCard,
+} from '@/components/MotionPrimitives';
+import { LEGAL_ARTICLES } from '@/lib/legaltalk-data';
+import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/context/LanguageContext';
 
-interface CommunityQuestionRow {
+interface DictionaryTerm {
+  id: string;
+  term: string;
+  amharicTerm: string;
+  category: 'Litigation' | 'Contracts & Business' | 'Property & Land' | 'Labour & Family';
+  plainDefinition: string;
+  amharicDefinition: string;
+  statute: string;
+  relatedCategorySlug: string;
+  relatedLexDraftId?: string;
+}
+
+interface LegalTipGuide {
+  id: string;
+  tag: string;
+  title: string;
+  amharicTitle: string;
+  summary: string;
+  checklist: string[];
+  ctaLabel: string;
+  ctaHref: string;
+}
+
+interface LiveQuestion {
   id: string;
   category: string;
-  question: string;
   city: string;
-  answer: string | null;
-  answered_by: string | null;
+  question: string;
+  answer?: string | null;
+  answered_by?: string | null;
+  status: string;
   created_at: string;
 }
+
+const ETHIOPIAN_LEGAL_DICTIONARY: DictionaryTerm[] = [
+  {
+    id: 'cassation',
+    term: 'Cassation (Säbär)',
+    amharicTerm: 'ሰበር ሰሚ ችሎት',
+    category: 'Litigation',
+    plainDefinition:
+      'A final review by the Federal Supreme Court Cassation Division available only when a lower court’s final decision contains a basic and fundamental error of law—not simply disagreement over facts.',
+    amharicDefinition:
+      'የመጨረሻ ውሳኔ በተሰጠበት ጉዳይ ላይ መሠረታዊ የሕግ ስህተት ሲፈጸም ብቻ ለፌዴራል ጠቅላይ ፍርድ ቤት ሰበር ሰሚ ችሎት የሚቀርብ አቤቱታ።',
+    statute: 'FDRE Constitution Art. 80(3)(a) & Proc. No. 1234/2021',
+    relatedCategorySlug: 'corporate',
+    relatedLexDraftId: 'application-for-cassation',
+  },
+  {
+    id: 'power-of-attorney',
+    term: 'Power of Attorney (Agency)',
+    amharicTerm: 'ውክልና',
+    category: 'Contracts & Business',
+    plainDefinition:
+      'A written legal document authorizing another person (agent) or licensed advocate to act, sign contracts, manage property, or appear in court on your behalf. Usually authenticated before DARS (or an Ethiopian Embassy for diaspora).',
+    amharicDefinition:
+      'አንድ ሰው ሌላ ሰው ወይም ጠበቃ በእርሱ ስም ውል እንዲፈርም፣ ንብረት እንዲያስተዳድር ወይም በፍርድ ቤት እንዲከራከር የሚሰጥ ሕጋዊ ሥልጣን።',
+    statute: 'Ethiopian Civil Code Art. 2199–2233',
+    relatedCategorySlug: 'immigration',
+    relatedLexDraftId: 'agency-attorney',
+  },
+  {
+    id: 'temporary-injunction',
+    term: 'Temporary Injunction',
+    amharicTerm: 'ጊዜያዊ የዕግድ ትዕዛዝ',
+    category: 'Litigation',
+    plainDefinition:
+      'An urgent court order stopping a party from selling, transferring, demolishing, or damaging disputed property until the court delivers a final judgment.',
+    amharicDefinition:
+      'ክርክር የተነሳበት ንብረት ውሳኔ እስኪሰጥ ድረስ እንዳይሸጥ፣ እንዳይለወጥ ወይም እንዳይባክን ፍርድ ቤት የሚሰጠው አስቸኳይ የዕግድ ትዕዛዝ።',
+    statute: 'Civil Procedure Code Art. 154–155',
+    relatedCategorySlug: 'property',
+    relatedLexDraftId: 'injunction-order',
+  },
+  {
+    id: 'ex-parte',
+    term: 'Ex-Parte Judgment',
+    amharicTerm: 'በሌለበት የተሰጠ ውሳኔ',
+    category: 'Litigation',
+    plainDefinition:
+      'A court order or verdict issued in the absence of the defendant after valid summons was served. A defendant with good cause (or improper summons) can petition to cancel it within 30 days.',
+    amharicDefinition:
+      'ተከሳሽ በችሎት ባልተገኘበት የሚሰጥ የፍርድ ቤት ውሳኔ። በቂ ምክንያት ያለው ተከሳሽ በ30 ቀን ውስጥ እንዲነሳለት ማመልከት ይችላል።',
+    statute: 'Civil Procedure Code Art. 78',
+    relatedCategorySlug: 'corporate',
+    relatedLexDraftId: 'cancellation-ex-parte-order',
+  },
+  {
+    id: 'severance-pay',
+    term: 'Severance Pay',
+    amharicTerm: 'የሥራ ስንብት ክፍያ',
+    category: 'Labour & Family',
+    plainDefinition:
+      'Statutory compensation owed to an employee who completed probation and is terminated without fault (such as redundancy or unlawful dismissal): 30 days wages for Year 1 plus one-third of monthly wages for each additional year.',
+    amharicDefinition:
+      'የሙከራ ጊዜውን የጨረሰ ሠራተኛ ያለጥፋቱ ከሥራ ሲሰናበት ለመጀመሪያው ዓመት የ30 ቀን ደመወዝ እና ለቀጣይ እያንዳንዱ ዓመት የአንድ ሦስተኛ ወር ደመወዝ የሚከፈል ካሳ።',
+    statute: 'Labour Proclamation No. 1156/2019 Art. 39–40',
+    relatedCategorySlug: 'employment',
+    relatedLexDraftId: 'employment-agreement',
+  },
+  {
+    id: 'urban-leasehold',
+    term: 'Urban Land Leasehold (Karta)',
+    amharicTerm: 'የከተማ ቦታ ሊዝ / ካርታ',
+    category: 'Property & Land',
+    plainDefinition:
+      'In Ethiopia, land is public property; individuals and companies own buildings and hold long-term municipal leasehold rights evidenced by a Title Deed (ካርታ). Always verify encumbrances at the sub-city land office before buying.',
+    amharicDefinition:
+      'በኢትዮጵያ መሬት የመንግሥትና የሕዝብ ሲሆን፣ ግለሰቦችና ድርጅቶች ሕንፃን በባለቤትነት፣ ቦታውን ደግሞ በሊዝ ይዞታ (ካርታ) ይይዛሉ።',
+    statute: 'Urban Lands Lease Holding Proc. No. 721/2011',
+    relatedCategorySlug: 'property',
+    relatedLexDraftId: 'commercial-lease',
+  },
+  {
+    id: 'single-member-plc',
+    term: 'Single-Member PLC',
+    amharicTerm: 'ባለ አንድ አባል ኃ/የተ/የግ/ማኅበር',
+    category: 'Contracts & Business',
+    plainDefinition:
+      'A Private Limited Company formed by a single founder under Ethiopia’s revised 2021 Commercial Code, offering limited liability protection without requiring a second shareholder.',
+    amharicDefinition:
+      'በአዲሱ የ2013 የንግድ ሕግ መሠረት በአንድ መሥራች ብቻ የሚቋቋምና የግል ንብረትን ከኩባንያው ዕዳ የሚለይ ኃላፊነቱ የተወሰነ የግል ማኅበር።',
+    statute: 'Commercial Code Proclamation No. 1243/2021 Art. 534+',
+    relatedCategorySlug: 'corporate',
+    relatedLexDraftId: 'plc-articles-of-association',
+  },
+  {
+    id: 'force-majeure',
+    term: 'Force Majeure',
+    amharicTerm: 'ከአቅም በላይ የሆነ ምክንያት',
+    category: 'Contracts & Business',
+    plainDefinition:
+      'An unforeseeable external event that makes performing a contract absolutely impossible (not merely more expensive), excusing the non-performing party from paying damages.',
+    amharicDefinition:
+      'አስቀድሞ ሊገመት የማይችልና የውል ግዴታን መፈጸም ፈጽሞ የማይቻል የሚያደርግ ከአቅም በላይ የሆነ ክስተት።',
+    statute: 'Ethiopian Civil Code Art. 1792–1793',
+    relatedCategorySlug: 'corporate',
+  },
+  {
+    id: 'certificate-of-heirship',
+    term: 'Certificate of Heirship',
+    amharicTerm: 'የውርስ አጣሪነት / የወራሽነት ማረጋገጫ',
+    category: 'Labour & Family',
+    plainDefinition:
+      'A court-issued certificate officially recognizing the lawful heirs of a deceased person—required before banks unfreeze accounts or land offices transfer inherited houses.',
+    amharicDefinition:
+      'የሟች ሕጋዊ ወራሾች እነማን መሆናቸውን ፍርድ ቤት የሚያረጋግጥበትና ባንኮች ወይም የመሬት ጽ/ቤቶች ንብረት ለማስተላለፍ የሚጠይቁት ማስረጃ።',
+    statute: 'Ethiopian Civil Code Art. 996–1002',
+    relatedCategorySlug: 'family',
+  },
+  {
+    id: 'dars',
+    term: 'DARS Authentication',
+    amharicTerm: 'የሰነዶች ማረጋገጫና ምዝገባ አገልግሎት',
+    category: 'Property & Land',
+    plainDefinition:
+      'The Federal Documents Authentication and Registration Service (formerly DARA), which notarizes powers of attorney, vehicle sales, property transfers, and company formation articles so they carry legal validity.',
+    amharicDefinition:
+      'የውክልና፣ የንብረት ሽያጭ፣ የኩባንያ መመሥረቻ ጽሑፍ እና ሌሎች ሕጋዊ ውሎች ተቀባይነት እንዲኖራቸው የሚያረጋግጥና የሚመዘግብ ተቋም።',
+    statute: 'Authentication & Registration of Documents Proc. No. 922/2015',
+    relatedCategorySlug: 'property',
+    relatedLexDraftId: 'general-special-agency',
+  },
+];
+
+const CLIENT_LEGAL_TIPS: LegalTipGuide[] = [
+  {
+    id: 'verify-advocate',
+    tag: 'Hiring Guide',
+    title: 'How to Verify an Ethiopian Advocate Before Hiring',
+    amharicTitle: 'ጠበቃ ከመቅጠርዎ በፊት ፈቃዱን እንዴት ማረጋገጥ ይችላሉ?',
+    summary:
+      'Under Federal Advocacy Proclamation No. 1249/2021, practicing advocates hold tiered licenses tied to specific court levels.',
+    checklist: [
+      'Confirm whether your case is in Federal First Instance, High Court, Supreme Court, or a Regional Court—and match the advocate’s license tier.',
+      'Ask to see the current-year renewed Ministry of Justice (or Regional Justice Bureau) practicing license number.',
+      'Request a simple written engagement agreement outlining scope of work, deliverables, and payment milestones.',
+    ],
+    ctaLabel: 'Browse Verified Advocates',
+    ctaHref: '/find-a-lawyer',
+  },
+  {
+    id: 'first-consultation-prep',
+    tag: 'Preparation',
+    title: '5 Things to Prepare Before Your First Legal Consultation',
+    amharicTitle: 'ለመጀመሪያው የህግ ምክክር ማዘጋጀት ያለብዎት 5 ነገሮች',
+    summary:
+      'Arriving organized saves hours of legal time and helps your advocate give clear, accurate advice on the very first call.',
+    checklist: [
+      'Write a 1-page timeline of key dates (contract signing, dismissal date, court summons date, or notice received).',
+      'Gather copies—not originals—of contracts, payslips, title deeds (ካርታ), receipts, or court letters.',
+      'Check statutory deadlines immediately (for example, labour dismissal claims generally have a 3-month filing window).',
+      'List your 3 most urgent questions and your ideal outcome (settlement vs. court litigation).',
+    ],
+    ctaLabel: 'Draft a Form First (LexDraft)',
+    ctaHref: '/lexdraft',
+  },
+  {
+    id: 'understand-fees',
+    tag: 'Transparency',
+    title: 'Understanding Advocate Fee Agreements in Ethiopia',
+    amharicTitle: 'በኢትዮጵያ የጥብቅና አገልግሎት ክፍያ አሰራርን መረዳት',
+    summary:
+      'LegalLink connects you to advocates for free. Any formal representation fee is agreed directly between you and your advocate.',
+    checklist: [
+      'Fixed-fee services work best for predictable tasks like PLC incorporation, contract review, or DARS power of attorney.',
+      'Stage-based retainers are common for court litigation (pleadings, hearings, judgment execution).',
+      'Always clarify upfront who covers court filing stamps, translation costs, and DARS authentication fees.',
+    ],
+    ctaLabel: 'Submit a Free Case Inquiry',
+    ctaHref: '/find-a-lawyer',
+  },
+  {
+    id: 'diaspora-remote-guide',
+    tag: 'Diaspora',
+    title: 'Managing Property or Inheritance in Ethiopia From Abroad',
+    amharicTitle: 'ከውጭ ሀገር ሆነው በኢትዮጵያ ያለ ንብረትን ወይም ውርስን ማስተዳደር',
+    summary:
+      'You do not need to fly to Addis Ababa for routine property audits, lease management, or court filings if your Power of Attorney is properly authenticated.',
+    checklist: [
+      'Draft a specific (not vague) Power of Attorney naming exact parcel/karta numbers or bank branches.',
+      'Sign and stamp the Power of Attorney at the nearest Ethiopian Embassy or Consulate, then authenticate via MoFA and DARS in Addis Ababa.',
+      'Keep your Ethiopian Origin ID (Yellow Card) active to exercise full urban property ownership rights under Proc. No. 270/2002.',
+    ],
+    ctaLabel: 'Connect with a Diaspora Advocate',
+    ctaHref: '/find-a-lawyer?category=immigration',
+  },
+];
 
 export default function LegalCenterPage() {
   const { language } = useLanguage();
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = useState<'dictionary' | 'tips' | 'popular' | 'qa'>('dictionary');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'dictionary' | 'tips' | 'guides' | 'qa'>('dictionary');
   const [dictCategory, setDictCategory] = useState<string>('All');
-  const [openTipId, setOpenTipId] = useState<string | null>(CLIENT_LEGAL_TIPS[0].id);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Avvo-Style Free Anonymous Q&A Modal State
-  const [askModalOpen, setAskModalOpen] = useState(false);
-  const [qCategory, setQCategory] = useState('Corporate & Business');
+  // Live Free Q&A State
+  const [questions, setQuestions] = useState<LiveQuestion[]>([]);
+  const [qCategory, setQCategory] = useState('Employment & Labour');
   const [qCity, setQCity] = useState('Addis Ababa');
   const [qText, setQText] = useState('');
-  const [qSubmitting, setQSubmitting] = useState(false);
-  const [qSuccess, setQSuccess] = useState(false);
+  const [submittingQ, setSubmittingQ] = useState(false);
+  const [qFeedback, setQFeedback] = useState<string | null>(null);
   const [qError, setQError] = useState<string | null>(null);
-  const [liveQuestions, setLiveQuestions] = useState<CommunityQuestionRow[]>([]);
 
   useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        const { data } = await supabase
-          .from('legal_questions')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(20);
-        if (data && data.length > 0) {
-          setLiveQuestions(data as CommunityQuestionRow[]);
-        }
-      } catch {
-        // Silently fall back to verified Q&A seed items if table not yet created
-      }
-    };
-    loadQuestions();
+    supabase
+      .from('legal_questions')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setQuestions(data as LiveQuestion[]);
+      });
   }, []);
 
-  const dictCategories = [
-    'All',
-    'Litigation',
-    'Contracts & Business',
-    'Property & Land',
-    'Labour & Family',
-  ];
-
-  const filteredDictionary = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return ETHIOPIAN_LEGAL_DICTIONARY.filter((item) => {
-      const matchesCat = dictCategory === 'All' || item.category === dictCategory;
-      if (!q) return matchesCat;
-      return (
-        matchesCat &&
-        (item.term.toLowerCase().includes(q) ||
-          item.amharicTerm.includes(q) ||
-          item.plainDefinition.toLowerCase().includes(q) ||
-          item.amharicDefinition.includes(q) ||
-          item.statute.toLowerCase().includes(q))
-      );
-    });
-  }, [searchQuery, dictCategory]);
-
-  const filteredArticles = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return LEGAL_ARTICLES;
-    return LEGAL_ARTICLES.filter(
-      (a) =>
-        a.title.toLowerCase().includes(q) ||
-        a.amharicTitle.includes(q) ||
-        a.excerpt.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q)
-    );
-  }, [searchQuery]);
-
-  const handleAskQuestionSubmit = async (e: React.FormEvent) => {
+  const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     setQError(null);
+    setQFeedback(null);
 
     if (qText.trim().length < 20) {
-      setQError('Please provide at least 20 characters so an advocate can understand your question.');
+      setQError('Please describe your legal question in at least 20 characters.');
       return;
     }
 
-    setQSubmitting(true);
+    setSubmittingQ(true);
     try {
-      const { error } = await supabase.from('legal_questions').insert({
-        category: qCategory,
-        city: qCity,
-        question: qText.trim(),
-        status: 'pending',
-      });
-
-      if (error) throw error;
-
-      // Also show optimistically in the user's current view
-      setLiveQuestions((prev) => [
-        {
-          id: `local-${Date.now()}`,
+      const { data, error } = await supabase
+        .from('legal_questions')
+        .insert({
           category: qCategory,
           city: qCity,
           question: qText.trim(),
-          answer: null,
-          answered_by: null,
-          created_at: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+          status: 'pending',
+        })
+        .select()
+        .single();
 
-      setQSuccess(true);
+      if (error) throw error;
+
+      if (data) {
+        setQuestions((prev) => [data as LiveQuestion, ...prev]);
+      }
       setQText('');
-      setActiveTab('qa');
-      setTimeout(() => {
-        setQSuccess(false);
-        setAskModalOpen(false);
-      }, 1500);
+      setQFeedback('Your anonymous legal question has been submitted! Our legal advisory desk will publish an answer soon.');
     } catch (err: any) {
-      setQError(
-        err?.message ||
-          'Could not post question yet. Make sure the legal_questions SQL table is created in Supabase.'
-      );
+      setQError(err?.message || 'Could not submit your question right now.');
     } finally {
-      setQSubmitting(false);
+      setSubmittingQ(false);
     }
   };
 
+  const q = searchQuery.toLowerCase().trim();
+
+  const filteredDictionary = ETHIOPIAN_LEGAL_DICTIONARY.filter((item) => {
+    const matchCat = dictCategory === 'All' || item.category === dictCategory;
+    if (!matchCat) return false;
+    if (!q) return true;
+    return (
+      item.term.toLowerCase().includes(q) ||
+      item.amharicTerm.includes(q) ||
+      item.plainDefinition.toLowerCase().includes(q) ||
+      item.statute.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredTips = CLIENT_LEGAL_TIPS.filter((tip) => {
+    if (!q) return true;
+    return (
+      tip.title.toLowerCase().includes(q) ||
+      tip.amharicTitle.includes(q) ||
+      tip.summary.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredGuides = LEGAL_ARTICLES.filter((art) => {
+    if (!q) return true;
+    return (
+      art.title.toLowerCase().includes(q) ||
+      art.amharicTitle.includes(q) ||
+      art.excerpt.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredQuestions = questions.filter((item) => {
+    if (!q) return true;
+    return (
+      item.question.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q) ||
+      (item.answer || '').toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-amber-100 selection:text-amber-900 flex flex-col">
+    <div className="min-h-screen bg-[#F5F7FB] text-[#182235] font-sans selection:bg-[#3B66B8] selection:text-white flex flex-col">
       <Navbar />
 
-      {/* Hero Header */}
-      <section className="bg-white border-b border-slate-200 pt-12 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-950 border border-amber-200 text-[11px] font-bold w-fit">
-              <Scale className="w-3.5 h-3.5 text-amber-700" />
-              <span>
-                {language === 'am'
-                  ? 'የኢትዮጵያ የህግ መረጃ ማዕከል'
-                  : 'Ethiopia’s Free Consumer Legal Resource Center'}
-              </span>
+      {/* Sunlit Sky Azure Hero */}
+      <section className="relative overflow-hidden ll-sky-canvas pt-14 pb-16 md:pt-18 md:pb-20 text-white">
+        <div
+          aria-hidden="true"
+          className="ll-cloud-left pointer-events-none absolute top-6 -left-20 w-[420px] h-[190px] rounded-full bg-white/25 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="ll-cloud-right pointer-events-none absolute top-16 -right-20 w-[460px] h-[210px] rounded-full bg-white/30 blur-3xl"
+        />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div className="space-y-4 max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 text-white border border-white/35 backdrop-blur-md text-[11px] font-bold">
+                <Scale className="w-3.5 h-3.5 text-amber-300" />
+                <span>Ethiopia’s Free Consumer Legal Resource Center</span>
+              </div>
+
+              <KineticHeadline
+                primaryText={language === 'am' ? 'የሊጋልሊንክ' : 'LegalLink'}
+                accentText={language === 'am' ? 'የህግ መረጃ ማዕከል' : 'Legal Center'}
+              />
+
+              <p className="text-xs sm:text-sm text-white/95 leading-relaxed font-medium max-w-2xl">
+                Understand Ethiopian legal terms in plain Amharic &amp; English, prepare before meeting an advocate, browse top guides, or post an anonymous legal question for free.
+              </p>
+
+              {/* Frosted Search Pill */}
+              <div className="relative max-w-xl pt-1">
+                <Search className="w-4 h-4 text-[#3B66B8] absolute left-4 top-4" />
+                <input
+                  type="text"
+                  placeholder="Search legal terms, statutes, or guides (e.g. Cassation, Karta, Severance, PLC)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-white/95 text-[#182235] placeholder:text-slate-400 border border-white rounded-full text-xs font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-white/70"
+                />
+              </div>
             </div>
 
             <button
               type="button"
-              onClick={() => {
-                setQError(null);
-                setQSuccess(false);
-                setAskModalOpen(true);
-              }}
-              className="px-4 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-xl inline-flex items-center gap-2 shadow-xs cursor-pointer w-fit"
+              onClick={() => setActiveTab('qa')}
+              className="px-5 py-3 bg-white hover:bg-slate-50 text-[#182235] font-black text-xs rounded-full inline-flex items-center gap-2 shadow-md transition-all cursor-pointer shrink-0 w-fit"
             >
-              <MessageSquarePlus className="w-4 h-4 text-amber-400" />
-              <span>{language === 'am' ? 'ነፃ የህግ ጥያቄ ይጠይቁ' : 'Ask a Free Legal Question'}</span>
+              <HelpCircle className="w-4 h-4 text-[#3B66B8]" />
+              <span>Ask a Free Legal Question</span>
             </button>
-          </div>
-
-          <div className="max-w-3xl space-y-2">
-            <h1 className="text-3xl sm:text-5xl font-black text-[#0A1128] tracking-tight">
-              {language === 'am' ? 'ሊጋልሊንክ የህግ ማዕከል' : 'LegalLink Legal Center'}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              {language === 'am'
-                ? 'የህግ ቃላትን በቀላል ቋንቋ ይረዱ፣ ጠበቃ ከማግኘትዎ በፊት ማወቅ ያለብዎትን ምክሮች ያንብቡ፣ ወይም ነፃ የህግ ጥያቄ ይጠይቁ።'
-                : 'Understand Ethiopian legal terms in plain Amharic & English, prepare before meeting an advocate, browse top guides, or post an anonymous legal question for free.'}
-            </p>
-          </div>
-
-          {/* Unified Global Search Bar */}
-          <div className="relative max-w-xl pt-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 mt-0.5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                language === 'am'
-                  ? 'ቃላትን ወይም ርዕሶችን ይፈልጉ (ለምሳሌ፡ ሰበር፣ ውክልና፣ ካርታ፣ ስንብት)...'
-                  : 'Search legal terms, statutes, or guides (e.g. Cassation, Karta, Severance, PLC)...'
-              }
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
-            />
           </div>
         </div>
       </section>
 
-      {/* Main Layout: 8 Cols Content + 4 Cols Sticky "Present Your Case Free" Sidebar */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT: Interactive Tabs & Content */}
+          {/* LEFT 8 COLUMNS: TABS & CONTENT */}
           <div className="lg:col-span-8 space-y-6">
-            {/* Section Navigation Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 text-xs font-bold">
+            {/* Primary Tabs */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
               <button
                 type="button"
                 onClick={() => setActiveTab('dictionary')}
-                className={`px-4 py-2 rounded-xl whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-full inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'dictionary'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#182235] text-white shadow-xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-[#3B66B8]'
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5 text-amber-500" />
-                <span>
-                  {language === 'am' ? 'የህግ መዝገበ ቃላት' : 'Legal Dictionary'} (
-                  {ETHIOPIAN_LEGAL_DICTIONARY.length})
-                </span>
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Legal Dictionary ({ETHIOPIAN_LEGAL_DICTIONARY.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('tips')}
-                className={`px-4 py-2 rounded-xl whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-full inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'tips'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#182235] text-white shadow-xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-[#3B66B8]'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>{language === 'am' ? 'የጠበቃ መምረጫ ምክሮች' : 'Hiring & Prep Tips'}</span>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Hiring &amp; Prep Tips</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveTab('popular')}
-                className={`px-4 py-2 rounded-xl whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 ${
-                  activeTab === 'popular'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                onClick={() => setActiveTab('guides')}
+                className={`px-4 py-2.5 rounded-full inline-flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeTab === 'guides'
+                    ? 'bg-[#182235] text-white shadow-xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-[#3B66B8]'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 text-amber-500" />
-                <span>{language === 'am' ? 'ተወዳጅ ጽሑፎች' : 'Most Popular Guides'}</span>
+                <Headphones className="w-3.5 h-3.5" />
+                <span>Most Popular Guides</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('qa')}
-                className={`px-4 py-2 rounded-xl whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-full inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'qa'
-                    ? 'bg-[#0A1128] text-white'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#182235] text-white shadow-xs'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-[#3B66B8]'
                 }`}
               >
-                <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
-                <span>
-                  {language === 'am' ? 'ነፃ ጥያቄና መልስ' : 'Free Legal Q&A'} (
-                  {VERIFIED_QA_DATA.length + liveQuestions.length})
-                </span>
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>Free Legal Q&amp;A ({questions.length})</span>
               </button>
             </div>
 
-            {/* TAB 1: BILINGUAL ETHIOPIAN LEGAL DICTIONARY */}
+            {/* TAB 1: LEGAL DICTIONARY */}
             {activeTab === 'dictionary' && (
               <div className="space-y-5">
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {dictCategories.map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setDictCategory(cat)}
-                      className={`px-3 py-1.5 rounded-full font-bold cursor-pointer transition-all ${
-                        dictCategory === cat
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {['All', 'Litigation', 'Contracts & Business', 'Property & Land', 'Labour & Family'].map(
+                    (cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setDictCategory(cat)}
+                        className={`px-3.5 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
+                          dictCategory === cat
+                            ? 'bg-[#3B66B8] text-white shadow-xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:border-[#3B66B8]/50'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 <div className="space-y-4">
-                  {filteredDictionary.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <h2 className="text-base font-black text-[#0A1128]">{item.term}</h2>
-                          <span className="text-xs font-bold text-emerald-700 block">
-                            {item.amharicTerm}
+                  {filteredDictionary.map((item, idx) => (
+                    <RevealOnScroll key={item.id} delayMs={(idx % 5) * 45}>
+                      <SpotlightCard className="p-6 rounded-3xl space-y-3">
+                        <div className="flex items-start justify-between gap-3 relative z-10">
+                          <div>
+                            <h2 className="text-base font-black text-[#182235]">{item.term}</h2>
+                            <span className="text-xs font-bold text-[#3B66B8] block mt-0.5">
+                              {item.amharicTerm}
+                            </span>
+                          </div>
+                          <span className="px-3 py-1 rounded-full bg-[#EEF3FB] text-[#3B66B8] border border-[#D6E2F5] text-[10px] font-bold shrink-0">
+                            {item.category}
                           </span>
                         </div>
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                          {item.category}
-                        </span>
-                      </div>
 
-                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-                        {language === 'am' ? item.amharicDefinition : item.plainDefinition}
-                      </p>
+                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed relative z-10">
+                          {item.plainDefinition}
+                        </p>
 
-                      {language === 'en' && (
-                        <p className="text-xs text-slate-500 leading-relaxed border-l-2 border-amber-400 pl-3">
+                        <p className="text-xs text-slate-600 leading-relaxed pl-3 border-l-2 border-[#3B66B8]/50 relative z-10">
                           {item.amharicDefinition}
                         </p>
-                      )}
 
-                      <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <span className="font-mono text-[11px] text-slate-500">{item.statute}</span>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {item.relatedLexDraftId && (
+                        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 relative z-10">
+                          <span className="text-[11px] font-mono text-slate-500">
+                            {item.statute}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {item.relatedLexDraftId && (
+                              <Link
+                                href={`/lexdraft?template=${item.relatedLexDraftId}`}
+                                className="px-3.5 py-1.5 rounded-full bg-[#EEF3FB] hover:bg-[#dfe9fa] text-[#3B66B8] font-bold text-[11px]"
+                              >
+                                Draft Form →
+                              </Link>
+                            )}
                             <Link
-                              href={`/lexdraft?template=${item.relatedLexDraftId}`}
-                              className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-200"
+                              href={`/find-a-lawyer?category=${item.relatedCategorySlug}`}
+                              className="px-3.5 py-1.5 rounded-full bg-[#182235] hover:bg-[#3B66B8] text-white font-bold text-[11px] transition-colors"
                             >
-                              Draft Form →
+                              Find Advocate →
                             </Link>
-                          )}
-                          <Link
-                            href={`/find-a-lawyer?category=${item.relatedCategorySlug}`}
-                            className="px-3 py-1.5 rounded-lg bg-[#0A1128] hover:bg-[#102A43] text-white font-bold text-[11px]"
-                          >
-                            Find Advocate →
-                          </Link>
+                          </div>
                         </div>
+                      </SpotlightCard>
+                    </RevealOnScroll>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: HIRING & PREP TIPS */}
+            {activeTab === 'tips' && (
+              <div className="space-y-5">
+                {filteredTips.map((tip, idx) => (
+                  <RevealOnScroll key={tip.id} delayMs={idx * 65}>
+                    <SpotlightCard className="p-6 sm:p-7 rounded-3xl space-y-4">
+                      <div className="space-y-1 relative z-10">
+                        <span className="px-3 py-0.5 rounded-full bg-[#EEF3FB] text-[#3B66B8] border border-[#D6E2F5] text-[10px] font-mono font-bold uppercase">
+                          {tip.tag}
+                        </span>
+                        <h2 className="text-base sm:text-lg font-black text-[#182235] pt-1">
+                          {language === 'am' ? tip.amharicTitle : tip.title}
+                        </h2>
+                        <p className="text-xs text-slate-600 leading-relaxed">{tip.summary}</p>
+                      </div>
+
+                      <ul className="space-y-2 text-xs text-slate-700 relative z-10">
+                        {tip.checklist.map((step, sIdx) => (
+                          <li key={sIdx} className="flex items-start gap-2.5">
+                            <CheckCircle2 className="w-4 h-4 text-[#3B66B8] shrink-0 mt-0.5" />
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="pt-2 relative z-10">
+                        <Link
+                          href={tip.ctaHref}
+                          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#182235] hover:bg-[#3B66B8] text-white font-bold text-xs transition-colors"
+                        >
+                          <span>{tip.ctaLabel}</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
+                        </Link>
+                      </div>
+                    </SpotlightCard>
+                  </RevealOnScroll>
+                ))}
+              </div>
+            )}
+
+            {/* TAB 3: MOST POPULAR GUIDES */}
+            {activeTab === 'guides' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {filteredGuides.slice(0, 6).map((art, idx) => (
+                  <RevealOnScroll key={art.slug} delayMs={idx * 55}>
+                    <Link href={`/legaltalk/${art.slug}`} className="block h-full group">
+                      <SpotlightCard className="p-5 rounded-3xl h-full flex flex-col justify-between space-y-3">
+                        <div className="space-y-2 relative z-10">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#EEF3FB] text-[#3B66B8] text-[10px] font-bold">
+                              {art.category}
+                            </span>
+                            {art.audioDuration && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-slate-500">
+                                <Headphones className="w-3 h-3 text-[#3B66B8]" />
+                                {art.audioDuration}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-sm font-black text-[#182235] group-hover:text-[#3B66B8] transition-colors">
+                            {language === 'am' ? art.amharicTitle : art.title}
+                          </h3>
+                          <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                            {language === 'am' ? art.amharicExcerpt : art.excerpt}
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-[#3B66B8] relative z-10">
+                          Read or Listen →
+                        </span>
+                      </SpotlightCard>
+                    </Link>
+                  </RevealOnScroll>
+                ))}
+              </div>
+            )}
+
+            {/* TAB 4: FREE ANONYMOUS LEGAL Q&A */}
+            {activeTab === 'qa' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-3xl border border-[#D6E2F5] p-6 sm:p-7 shadow-xs space-y-4 text-xs">
+                  <div>
+                    <h2 className="text-base font-black text-[#182235]">
+                      Ask a Free Anonymous Legal Question
+                    </h2>
+                    <p className="text-slate-600 mt-0.5">
+                      No account required. Share general facts only — our legal advisory desk publishes plain-language answers below.
+                    </p>
+                  </div>
+
+                  {qError && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-bold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{qError}</span>
+                    </div>
+                  )}
+
+                  {qFeedback && (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{qFeedback}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmitQuestion} className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-[#182235] mb-1">Legal Category</label>
+                        <select
+                          value={qCategory}
+                          onChange={(e) => setQCategory(e.target.value)}
+                          className="w-full p-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                        >
+                          <option value="Employment & Labour">Employment &amp; Labour</option>
+                          <option value="Property & Lease">Property &amp; Lease</option>
+                          <option value="Family & Inheritance">Family &amp; Inheritance</option>
+                          <option value="Business & PLC">Business &amp; PLC</option>
+                          <option value="Diaspora & PoA">Diaspora &amp; PoA</option>
+                          <option value="Criminal & Courts">Criminal &amp; Courts</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block font-bold text-[#182235] mb-1">City / Region</label>
+                        <input
+                          type="text"
+                          value={qCity}
+                          onChange={(e) => setQCity(e.target.value)}
+                          className="w-full p-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                        />
                       </div>
                     </div>
-                  ))}
 
-                  {filteredDictionary.length === 0 && (
-                    <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center space-y-3 text-xs">
-                      <p className="text-slate-600 font-semibold">
-                        No dictionary term matched &ldquo;{searchQuery}&rdquo;.
+                    <div>
+                      <label className="block font-bold text-[#182235] mb-1">
+                        Your Question (Amharic or English) *
+                      </label>
+                      <textarea
+                        rows={3}
+                        required
+                        placeholder="E.g. My employer terminated my contract after 2 years without written notice. What severance am I entitled to?"
+                        value={qText}
+                        onChange={(e) => setQText(e.target.value)}
+                        className="w-full p-3 bg-[#F5F7FB] border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={submittingQ}
+                      className="px-6 py-3 bg-[#3B66B8] hover:bg-[#2F56A6] text-white font-bold rounded-full inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {submittingQ ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Submitting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Post Anonymous Question</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+
+                <div className="space-y-4">
+                  {filteredQuestions.map((item) => (
+                    <SpotlightCard key={item.id} className="p-6 rounded-3xl space-y-3 text-xs">
+                      <div className="flex items-center justify-between gap-2 relative z-10">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#EEF3FB] text-[#3B66B8] font-bold text-[10px]">
+                          {item.category}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {item.city} • {new Date(item.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-sm font-black text-[#182235] relative z-10">
+                        {item.question}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setQText(`What does "${searchQuery}" mean under Ethiopian law?`);
-                          setAskModalOpen(true);
-                        }}
-                        className="px-4 py-2 bg-[#0A1128] text-white font-bold rounded-xl cursor-pointer"
-                      >
-                        Ask an Advocate for Free →
-                      </button>
+                      {item.answer ? (
+                        <div className="p-4 bg-[#EEF3FB]/70 border border-[#D6E2F5] rounded-2xl text-slate-700 space-y-1 relative z-10">
+                          <strong className="text-[11px] text-[#3B66B8] block">
+                            {item.answered_by || 'LegalLink Legal Advisory Desk'}
+                          </strong>
+                          <p className="leading-relaxed whitespace-pre-wrap">{item.answer}</p>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] italic text-slate-500 relative z-10">
+                          Awaiting review from a verified Ethiopian advocate...
+                        </p>
+                      )}
+                    </SpotlightCard>
+                  ))}
+                  {filteredQuestions.length === 0 && (
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+                      Be the first to post an anonymous legal question above.
                     </div>
                   )}
                 </div>
               </div>
             )}
-
-            {/* TAB 2: CLIENT LEGAL TIPS & HIRING PLAYBOOKS */}
-            {activeTab === 'tips' && (
-              <div className="space-y-4">
-                {CLIENT_LEGAL_TIPS.map((tip) => {
-                  const isOpen = openTipId === tip.id;
-                  return (
-                    <div
-                      key={tip.id}
-                      className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setOpenTipId(isOpen ? null : tip.id)}
-                        className="w-full p-6 text-left flex items-start justify-between gap-4 cursor-pointer hover:bg-slate-50/70"
-                      >
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200">
-                            {tip.tag}
-                          </span>
-                          <h2 className="text-base font-black text-[#0A1128] pt-1">
-                            {language === 'am' ? tip.amharicTitle : tip.title}
-                          </h2>
-                          <p className="text-xs text-slate-600">{tip.summary}</p>
-                        </div>
-                        <ChevronDown
-                          className={`w-5 h-5 text-slate-400 shrink-0 mt-1 transition-transform ${
-                            isOpen ? 'rotate-180 text-[#0A1128]' : ''
-                          }`}
-                        />
-                      </button>
-
-                      {isOpen && (
-                        <div className="px-6 pb-6 pt-2 border-t border-slate-100 space-y-4 text-xs">
-                          <ul className="space-y-2.5">
-                            {tip.checklist.map((point, idx) => (
-                              <li key={idx} className="flex items-start gap-2.5 text-slate-700 leading-relaxed">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                                <span>{point}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          <div className="pt-2">
-                            <Link
-                              href={tip.ctaHref}
-                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl text-xs"
-                            >
-                              <span>{tip.ctaLabel}</span>
-                              <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-                            </Link>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* TAB 3: MOST POPULAR GUIDES (LINKS TO EXISTING LEGALTALK ARTICLES) */}
-            {activeTab === 'popular' && (
-              <div className="space-y-4">
-                {filteredArticles.map((art, idx) => (
-                  <Link
-                    key={art.slug}
-                    href={`/legaltalk/${art.slug}`}
-                    className="block bg-white rounded-3xl border border-slate-200 hover:border-[#0A1128] p-6 shadow-xs transition-all group"
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-mono font-black text-xs flex items-center justify-center shrink-0">
-                        #{idx + 1}
-                      </span>
-                      <div className="space-y-1.5 flex-1">
-                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase">
-                          <span className="font-bold text-amber-700">
-                            {language === 'am' ? art.amharicCategory : art.category}
-                          </span>
-                          <span className="text-slate-400">•</span>
-                          <span className="text-slate-500 flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> {art.readTime}
-                          </span>
-                        </div>
-                        <h2 className="text-base font-black text-[#0A1128] group-hover:text-amber-700 transition-colors">
-                          {language === 'am' ? art.amharicTitle : art.title}
-                        </h2>
-                        <p className="text-xs text-slate-600 leading-relaxed">
-                          {language === 'am' ? art.amharicExcerpt : art.excerpt}
-                        </p>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0A1128] shrink-0 mt-1" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {/* TAB 4: FREE ANONYMOUS Q&A (AVVO-STYLE) */}
-            {activeTab === 'qa' && (
-              <div className="space-y-5">
-                <div className="p-5 bg-amber-50 border border-amber-200 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-                  <div className="space-y-1">
-                    <strong className="text-sm font-black text-[#0A1128] block">
-                      Have a quick Ethiopian legal question?
-                    </strong>
-                    <p className="text-amber-950">
-                      Post anonymously for free. Verified advocates answer general legal questions publicly.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAskModalOpen(true)}
-                    className="px-5 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl shrink-0 cursor-pointer"
-                  >
-                    Ask Anonymously (Free)
-                  </button>
-                </div>
-
-                {/* Live Community Questions */}
-                {liveQuestions.map((lq) => (
-                  <div
-                    key={lq.id}
-                    className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-3 text-xs"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-[10px] font-bold">
-                        {lq.category}
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-500">
-                        Anonymous • {lq.city}
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-black text-[#0A1128]">{lq.question}</h3>
-                    {lq.answer ? (
-                      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-950 space-y-1">
-                        <strong className="block text-xs">{lq.answered_by || 'Verified Advocate'}</strong>
-                        <p className="leading-relaxed">{lq.answer}</p>
-                      </div>
-                    ) : (
-                      <span className="inline-block text-[11px] font-semibold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                        Awaiting advocate response
-                      </span>
-                    )}
-                  </div>
-                ))}
-
-                {/* Verified Seed Q&As */}
-                {VERIFIED_QA_DATA.map((qa) => (
-                  <div
-                    key={qa.id}
-                    className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs"
-                  >
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase font-mono">
-                        {qa.category}
-                      </span>
-                      <h3 className="text-sm sm:text-base font-black text-[#0A1128] pt-1">
-                        {language === 'am' ? qa.amharicQuestion : qa.question}
-                      </h3>
-                      <span className="text-[11px] text-slate-500 block">
-                        {qa.asker} • {qa.date}
-                      </span>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                        <strong className="text-[#0A1128]">{qa.advocateName}</strong>
-                        <span className="text-[10px] font-mono text-slate-500">{qa.advocateLicense}</span>
-                      </div>
-                      <p className="text-slate-700 leading-relaxed">
-                        {language === 'am' ? qa.amharicAnswer : qa.answer}
-                      </p>
-                      <span className="text-[10px] font-mono text-emerald-800 block">
-                        Statutory Basis: {qa.statutoryBasis}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* RIGHT SIDEBAR: LegalMatch-Style "Present Your Case Free" Box + Quick Links */}
+          {/* RIGHT 4 COLUMNS: STICKY SKY CTA + QUICK TOOLS */}
           <aside className="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
-            <div className="bg-[#0A1128] text-white rounded-3xl p-7 shadow-lg space-y-5">
-              <div className="space-y-2">
-                <span className="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-mono font-bold uppercase">
-                  Free Advocate Matching
-                </span>
-                <h2 className="text-xl font-black leading-snug">
-                  Need a Licensed Ethiopian Advocate?
-                </h2>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Present your legal issue in minutes and connect directly with verified Federal or Regional advocates.
-                </p>
-              </div>
-
-              <ul className="space-y-2.5 text-xs text-slate-200">
+            <div className="p-7 rounded-3xl bg-gradient-to-br from-[#2E55A5] via-[#3B66B8] to-[#5784D6] text-white shadow-md space-y-4 text-xs">
+              <span className="inline-block px-3 py-0.5 rounded-full bg-white/20 text-[10px] font-mono font-bold uppercase">
+                Free Advocate Matching
+              </span>
+              <h3 className="text-xl font-black leading-snug">
+                Need a Licensed Ethiopian Advocate?
+              </h3>
+              <p className="text-white/90 leading-relaxed">
+                Present your legal issue in minutes and connect directly with verified Federal or Regional advocates.
+              </p>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
                   <span>No fee to present your case</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
                   <span>Private &amp; role-restricted inquiries</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
                   <span>Zero obligation to hire</span>
                 </li>
               </ul>
-
               <Link
                 href="/find-a-lawyer"
-                className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 bg-white hover:bg-slate-100 text-[#182235] font-black rounded-full inline-flex items-center justify-center gap-1.5 shadow-sm transition-all"
               >
                 <span>Present Your Case Now</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-[#3B66B8]" />
               </Link>
             </div>
 
-            {/* Quick Resource Links */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-3 text-xs">
-              <strong className="text-xs font-mono uppercase tracking-wider text-slate-500 block">
+              <strong className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block">
                 More Free LegalLink Tools
               </strong>
-              <Link
-                href="/lexdraft"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-between font-bold text-[#0A1128]"
-              >
-                <span>LexDraft Bilingual Forms</span>
-                <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
-              </Link>
-              <Link
-                href="/library"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-between font-bold text-[#0A1128]"
-              >
-                <span>122 Federal Proclamations</span>
-                <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
-              </Link>
-              <Link
-                href="/nextgen"
-                className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-between font-bold text-[#0A1128]"
-              >
-                <span>NextGen Law Student Hub</span>
-                <ArrowRight className="w-3.5 h-3.5 text-amber-700" />
-              </Link>
+              {[
+                { label: 'LexDraft Bilingual Forms', href: '/lexdraft', icon: FileText },
+                { label: '122 Federal Proclamations', href: '/library', icon: BookOpen },
+                { label: 'NextGen Law Student Hub', href: '/nextgen', icon: Sparkles },
+                { label: 'Severance & DARS Tools', href: '/tools', icon: Scale },
+              ].map((tool) => (
+                <Link
+                  key={tool.href}
+                  href={tool.href}
+                  className="p-3 rounded-2xl bg-[#F5F7FB] hover:bg-[#EEF3FB] text-[#182235] hover:text-[#3B66B8] font-bold flex items-center justify-between transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <tool.icon className="w-4 h-4 text-[#3B66B8]" />
+                    <span>{tool.label}</span>
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              ))}
             </div>
           </aside>
         </div>
       </main>
 
-      {/* Ask a Free Anonymous Question Modal */}
-      {askModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 text-xs relative">
-            <button
-              type="button"
-              onClick={() => setAskModalOpen(false)}
-              aria-label="Close modal"
-              className="absolute top-5 right-5 p-2 rounded-full text-slate-500 hover:text-slate-900 bg-slate-100 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="space-y-1 pr-8">
-              <span className="text-[10px] font-mono uppercase font-bold text-amber-700">
-                100% Anonymous &amp; Free
-              </span>
-              <h3 className="text-lg font-black text-[#0A1128]">Ask an Ethiopian Legal Question</h3>
-              <p className="text-slate-600">
-                Do not include full names, ID numbers, or phone numbers—this is for general legal guidance.
-              </p>
-            </div>
-
-            {qError && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{qError}</span>
-              </div>
-            )}
-
-            {qSuccess && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Question submitted! Advocates can now review and respond.</span>
-              </div>
-            )}
-
-            <form onSubmit={handleAskQuestionSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-800 mb-1">Legal Category *</label>
-                  <select
-                    value={qCategory}
-                    onChange={(e) => setQCategory(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                  >
-                    <option value="Corporate & Business">Corporate &amp; Business</option>
-                    <option value="Property & Real Estate">Property &amp; Real Estate</option>
-                    <option value="Employment & Labour">Employment &amp; Labour</option>
-                    <option value="Family & Inheritance">Family &amp; Inheritance</option>
-                    <option value="Diaspora & Immigration">Diaspora &amp; Immigration</option>
-                    <option value="Criminal & Litigation">Criminal &amp; Litigation</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-800 mb-1">City / Region *</label>
-                  <select
-                    value={qCity}
-                    onChange={(e) => setQCity(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                  >
-                    <option value="Addis Ababa">Addis Ababa</option>
-                    <option value="Adama / Oromia">Adama / Oromia</option>
-                    <option value="Bahir Dar / Amhara">Bahir Dar / Amhara</option>
-                    <option value="Hawassa / Sidama">Hawassa / Sidama</option>
-                    <option value="Mekelle / Tigray">Mekelle / Tigray</option>
-                    <option value="Dire Dawa">Dire Dawa</option>
-                    <option value="Diaspora (Abroad)">Diaspora (Abroad)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-800 mb-1">Your Question (English or Amharic) *</label>
-                <textarea
-                  rows={4}
-                  maxLength={500}
-                  required
-                  value={qText}
-                  onChange={(e) => setQText(e.target.value)}
-                  placeholder="E.g. My employer ended my contract after 2 years without written notice. What severance am I entitled to under Proclamation 1156/2019?"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#0A1128]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setAskModalOpen(false)}
-                  className="px-4 py-2 font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={qSubmitting}
-                  className="px-6 py-2.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-xl inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {qSubmitting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                      <span>Posting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Post Question Free</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <footer className="bg-[#0A1128] text-slate-400 text-xs mt-auto">
+      <footer className="bg-[#182235] text-slate-400 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-          <p>© 2026 LegalLink Technologies PLC. General legal information only — not formal legal advice.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-          </div>
+          <p>© 2026 LegalLink Ethiopia • info.legallinkethiopia@gmail.com • +251-964-600-737</p>
+          <p>Plain-language Ethiopian legal definitions &amp; preparation resources.</p>
         </div>
       </footer>
     </div>

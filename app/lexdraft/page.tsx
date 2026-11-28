@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Globe,
 } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 export type DocLanguageMode = 'am' | 'en' | 'bilingual';
 
@@ -1318,62 +1319,9 @@ function LexDraftContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#F5F7FB] text-[#182235] font-sans">
       {/* Unified Light Header Matching Landing Page + Back Button */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                if (activeTemplate) {
-                  setActiveTemplate(null);
-                } else {
-                  router.push('/');
-                }
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>{activeTemplate ? 'Back to All Forms' : 'Back to Home'}</span>
-            </button>
-
-            <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
-              <span className="font-black text-lg tracking-tight text-[#0A1128]">
-                Legal<span className="text-amber-500">Link</span>
-              </span>
-            </Link>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
-            <Link href="/find-a-lawyer" className="hover:text-[#0A1128] transition-colors">Find a Lawyer</Link>
-            <Link href="/for-lawyers" className="hover:text-[#0A1128] transition-colors">For Lawyers</Link>
-            <Link href="/legaltalk" className="hover:text-[#0A1128] transition-colors">LegalTalk</Link>
-            <Link
-              href="/lexdraft"
-              onClick={() => setActiveTemplate(null)}
-              className="text-[#0A1128] font-bold"
-            >
-              LexDraft
-            </Link>
-            <Link href="/library" className="hover:text-[#0A1128] transition-colors">Library</Link>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-xs font-bold text-slate-700 hover:text-[#0A1128]">
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white text-xs font-bold rounded-full inline-flex items-center gap-1.5 transition-all"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-3 h-3 text-amber-400" />
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* VIEW 1: FOCUSED FORM QUESTIONNAIRE (WHEN A FORM IS CLICKED) */}
       {activeTemplate ? (
@@ -1382,7 +1330,7 @@ function LexDraftContent() {
             <button
               type="button"
               onClick={() => setActiveTemplate(null)}
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#0A1128] cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#182235] cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Legal Templates List</span>
@@ -1430,10 +1378,10 @@ function LexDraftContent() {
                 <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
                   {activeTemplate.category}
                 </span>
-                <h1 className="text-xl sm:text-2xl font-black text-[#0A1128] pt-1">
+                <h1 className="text-xl sm:text-2xl font-black text-[#182235] pt-1">
                   {activeTemplate.title}
                 </h1>
-                <p className="text-xs font-bold text-emerald-700">
+                <p className="text-xs font-bold text-[#3B66B8]">
                   {activeTemplate.amharicTitle}
                 </p>
                 <p className="text-[11px] text-slate-500">{activeTemplate.legalBasis}</p>
@@ -1482,7 +1430,7 @@ function LexDraftContent() {
             <div className="lg:col-span-6 bg-[#F8FAFC] rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 sticky top-24">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
                 <div>
-                  <h2 className="text-sm font-black text-[#0A1128]">
+                  <h2 className="text-sm font-black text-[#182235]">
                     Step 2: Completed Document Preview ({docLang === 'am' ? 'አማርኛ' : docLang === 'en' ? 'English' : 'አማርኛ + English'})
                   </h2>
                   <p className="text-[11px] text-slate-500">
@@ -1512,7 +1460,7 @@ function LexDraftContent() {
                   <button
                     type="button"
                     onClick={handleDownloadWord}
-                    className="px-4 py-2 bg-[#0A1128] hover:bg-[#102A43] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    className="px-4 py-2 bg-[#182235] hover:bg-[#3B66B8] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5 text-amber-400" />
                     <span>Download Word (.doc)</span>
@@ -1535,7 +1483,7 @@ function LexDraftContent() {
                 </div>
                 <Link
                   href="/find-a-lawyer"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-[#0A1128] font-black text-xs rounded-xl inline-flex items-center justify-center gap-1.5 shrink-0 transition-all"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-[#182235] font-black text-xs rounded-xl inline-flex items-center justify-center gap-1.5 shrink-0 transition-all"
                 >
                   <span>Request Free Review</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1548,11 +1496,11 @@ function LexDraftContent() {
         /* VIEW 2: CLEAN, UNCLUTTERED TEMPLATE SELECTION GRID */
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
           <div className="max-w-2xl space-y-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF3FB] border border-[#D6E2F5] text-[#3B66B8] text-[11px] font-bold">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
               <span>Ethiopian Legal Templates, Contracts & Court Forms (አማርኛ እና እንግሊዝኛ)</span>
             </span>
-            <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-black text-[#182235] tracking-tight">
               Select a Legal Form to Draft
             </h1>
             <p className="text-xs sm:text-sm text-slate-500">
@@ -1570,8 +1518,8 @@ function LexDraftContent() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === cat
-                      ? 'bg-[#0A1128] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-[#3B66B8] text-white shadow-xs rounded-full'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:border-[#3B66B8]/50 rounded-full'
                   }`}
                 >
                   {cat}
@@ -1597,7 +1545,7 @@ function LexDraftContent() {
               <div
                 key={template.id}
                 onClick={() => openTemplateQuestionnaire(template)}
-                className="group bg-white rounded-3xl border border-slate-200 hover:border-[#0A1128] p-6 transition-all cursor-pointer flex flex-col justify-between space-y-5 shadow-2xs hover:shadow-md"
+                className="group bg-white rounded-3xl border border-slate-200 hover:border-[#3B66B8] hover:-translate-y-1 p-6 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-5 shadow-2xs hover:shadow-md"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-2">
@@ -1607,10 +1555,10 @@ function LexDraftContent() {
                     <FileText className="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
                   </div>
 
-                  <h2 className="text-base font-black text-[#0A1128] leading-snug">
+                  <h2 className="text-base font-black text-[#182235] leading-snug">
                     {template.title}
                   </h2>
-                  <p className="text-xs font-bold text-emerald-700">
+                  <p className="text-xs font-bold text-[#3B66B8]">
                     {template.amharicTitle}
                   </p>
                   <p className="text-xs text-slate-500 leading-relaxed">
@@ -1622,7 +1570,7 @@ function LexDraftContent() {
                   <span className="text-[10px] font-mono text-slate-400 truncate max-w-[65%]">
                     {template.legalBasis}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#0A1128] group-hover:text-amber-600">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#182235] group-hover:text-[#3B66B8]">
                     <span>አዘጋጅ / Draft</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
