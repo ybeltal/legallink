@@ -164,7 +164,6 @@ function SignupContent() {
         return;
       }
 
-      // Immediately save user + send instant Telegram/Email alert to LegalLink + welcome email to user
       await Promise.allSettled([
         fetch('/api/track-user', {
           method: 'POST',
@@ -209,22 +208,22 @@ function SignupContent() {
 
   if (step === 'select-role') {
     return (
-      <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-amber-100 selection:text-[#0A1128]">
-        <header className="w-full px-5 sm:px-10 py-4 bg-white border-b border-slate-200 flex items-center justify-between z-20">
+      <div className="min-h-screen flex flex-col bg-[#F5F7FB] font-sans selection:bg-[#3B66B8] selection:text-white">
+        <header className="w-full px-5 sm:px-10 py-4 bg-white/95 backdrop-blur-md border-b border-slate-200 flex items-center justify-between z-20">
           <div className="flex items-center gap-3.5">
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F5F7FB] hover:bg-[#EEF3FB] text-[#182235] text-xs font-bold transition-all cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5 text-[#3B66B8]" />
               <span>Back</span>
             </button>
 
             <Link href="/" className="flex items-center gap-2">
               <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
-              <span className="font-black text-lg tracking-tight text-[#0A1128]">
-                Legal<span className="text-amber-600">Link</span>
+              <span className="font-black text-lg tracking-tight text-[#182235]">
+                Legal<span className="text-[#3B66B8]">Link</span>
               </span>
             </Link>
           </div>
@@ -233,7 +232,7 @@ function SignupContent() {
             <span className="hidden sm:inline">Already have an account? </span>
             <Link
               href={loginHref}
-              className="text-emerald-700 font-bold hover:text-emerald-800 underline underline-offset-4"
+              className="text-[#3B66B8] font-bold hover:text-[#2E55A5] underline underline-offset-4"
             >
               Log in
             </Link>
@@ -241,28 +240,44 @@ function SignupContent() {
         </header>
 
         <main className="flex-1 grid grid-cols-1 md:grid-cols-2">
+          {/* Left Panel: Client (Cloud Alabaster & Soft Sky) */}
           <section
             onClick={() => handleSelectRolePanel('client')}
-            className="relative overflow-hidden bg-gradient-to-br from-[#F8FAFC] via-white to-[#FEF3C7]/35 hover:to-[#FEF3C7]/60 text-[#0A1128] px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group border-b md:border-b-0 md:border-r border-slate-200"
+            className="relative overflow-hidden bg-gradient-to-br from-[#F5F7FB] via-white to-[#EEF3FB] hover:to-[#E1ECFC] text-[#182235] px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group border-b md:border-b-0 md:border-r border-slate-200"
           >
-            <div className="max-w-md space-y-6 relative z-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono uppercase tracking-widest font-bold">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="ll-window-rise max-w-md space-y-6 relative z-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#EEF3FB] border border-[#D6E2F5] text-[#3B66B8] text-[10px] font-mono uppercase tracking-widest font-bold">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#3B66B8]" />
                 <span>Client &amp; Public Access • የደንበኞች መግቢያ</span>
               </div>
 
               <div className="flex justify-center">
-                <svg className="w-24 h-24 group-hover:scale-105 transition-transform" viewBox="0 0 120 120" fill="none">
-                  <path d="M60 12L95 26V58C95 82 80 102 60 108C40 102 25 82 25 58V26L60 12Z" fill="#F0FDF4" stroke="#10B981" strokeWidth="2.5" />
-                  <circle cx="60" cy="46" r="14" fill="#0A1128" />
-                  <path d="M40 78C40 68 49 64 60 64C71 64 80 68 80 78V84H40V78Z" fill="#0A1128" />
-                  <circle cx="78" cy="74" r="10" fill="#F59E0B" />
-                  <path d="M74 74L77 77L83 71" stroke="#0A1128" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  className="w-24 h-24 animate-float-slow group-hover:scale-105 transition-transform"
+                  viewBox="0 0 120 120"
+                  fill="none"
+                >
+                  <path
+                    d="M60 12L95 26V58C95 82 80 102 60 108C40 102 25 82 25 58V26L60 12Z"
+                    fill="#EEF3FB"
+                    stroke="#3B66B8"
+                    strokeWidth="2.5"
+                  />
+                  <circle cx="60" cy="46" r="14" fill="#182235" />
+                  <path d="M40 78C40 68 49 64 60 64C71 64 80 68 80 78V84H40V78Z" fill="#182235" />
+                  <circle cx="78" cy="74" r="10" fill="#10B981" />
+                  <path
+                    d="M74 74L77 77L83 71"
+                    stroke="#FFFFFF"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </div>
 
               <div className="space-y-2.5">
-                <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0A1128] leading-tight">
+                <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#182235] leading-tight">
                   I’m seeking legal solutions
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -271,16 +286,16 @@ function SignupContent() {
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700">
-                  <FileText className="w-3 h-3 text-amber-600" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                  <FileText className="w-3 h-3 text-[#3B66B8]" />
                   LexDraft Forms (አማ / EN)
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
                   <BookOpen className="w-3 h-3 text-emerald-600" />
                   Proclamations &amp; LegalTalk
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700">
-                  <ShieldCheck className="w-3 h-3 text-[#0A1128]" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 shadow-2xs">
+                  <ShieldCheck className="w-3 h-3 text-[#182235]" />
                   Verified Advocates
                 </span>
               </div>
@@ -292,37 +307,51 @@ function SignupContent() {
                     e.stopPropagation();
                     handleSelectRolePanel('client');
                   }}
-                  className="px-8 py-3.5 rounded-full bg-[#0A1128] group-hover:bg-[#102A43] text-white font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
+                  className="px-8 py-3.5 rounded-full bg-[#182235] group-hover:bg-[#3B66B8] text-white font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-md transition-all cursor-pointer"
                 >
                   <span>Continue as Client (Free)</span>
-                  <ArrowRight className="w-4 h-4 text-amber-400" />
+                  <ArrowRight className="w-4 h-4 text-amber-300" />
                 </button>
               </div>
             </div>
           </section>
 
+          {/* Right Panel: Advocate (Sunlit Sky Azure Gradient with Drifting Clouds) */}
           <section
             onClick={() => handleSelectRolePanel('advocate')}
-            className="relative overflow-hidden bg-gradient-to-br from-[#0A1128] via-[#0F1B3D] to-[#064E3B] text-white px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+            className="relative overflow-hidden bg-gradient-to-br from-[#2E55A5] via-[#3B66B8] to-[#6B99DF] text-white px-8 py-14 sm:px-14 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
           >
-            <div className="max-w-md space-y-6 relative z-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-mono uppercase tracking-widest font-bold">
-                <Scale className="w-3.5 h-3.5 text-amber-400" />
+            <div
+              aria-hidden="true"
+              className="ll-cloud-left pointer-events-none absolute top-12 -left-16 w-80 h-44 rounded-full bg-white/15 blur-3xl"
+            />
+            <div
+              aria-hidden="true"
+              className="ll-cloud-right pointer-events-none absolute bottom-10 -right-16 w-96 h-48 rounded-full bg-white/20 blur-3xl"
+            />
+
+            <div className="ll-window-rise max-w-md space-y-6 relative z-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/35 backdrop-blur-md text-white text-[10px] font-mono uppercase tracking-widest font-bold">
+                <Scale className="w-3.5 h-3.5 text-amber-300" />
                 <span>Proclamation No. 1249/2021 • የጠበቆች መግቢያ</span>
               </div>
 
               <div className="flex justify-center">
-                <svg className="w-24 h-24 group-hover:scale-105 transition-transform" viewBox="0 0 120 120" fill="none">
-                  <rect x="25" y="90" width="70" height="8" rx="2" fill="#334155" />
-                  <rect x="30" y="24" width="60" height="6" rx="2" fill="#475569" />
-                  <path d="M60 10L30 24H90L60 10Z" fill="#F59E0B" />
-                  <path d="M60 28V84" stroke="#F8FAFC" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M38 42H82" stroke="#F8FAFC" strokeWidth="2.5" strokeLinecap="round" />
-                  <path d="M38 42L30 58M38 42L46 58" stroke="#F59E0B" strokeWidth="1.8" />
-                  <path d="M26 58H50C50 64 26 64 26 58Z" fill="#F59E0B" />
-                  <path d="M82 42L74 58M82 42L90 58" stroke="#F59E0B" strokeWidth="1.8" />
-                  <path d="M70 58H94C94 64 70 64 70 58Z" fill="#F59E0B" />
-                  <circle cx="60" cy="56" r="7" fill="#10B981" />
+                <svg
+                  className="w-24 h-24 animate-float-slow group-hover:scale-105 transition-transform"
+                  viewBox="0 0 120 120"
+                  fill="none"
+                >
+                  <rect x="25" y="90" width="70" height="8" rx="2" fill="rgba(255,255,255,0.35)" />
+                  <rect x="30" y="24" width="60" height="6" rx="2" fill="rgba(255,255,255,0.5)" />
+                  <path d="M60 10L30 24H90L60 10Z" fill="#FCD34D" />
+                  <path d="M60 28V84" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M38 42H82" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M38 42L30 58M38 42L46 58" stroke="#FCD34D" strokeWidth="1.8" />
+                  <path d="M26 58H50C50 64 26 64 26 58Z" fill="#FCD34D" />
+                  <path d="M82 42L74 58M82 42L90 58" stroke="#FCD34D" strokeWidth="1.8" />
+                  <path d="M70 58H94C94 64 70 64 70 58Z" fill="#FCD34D" />
+                  <circle cx="60" cy="56" r="7" fill="#34D399" />
                 </svg>
               </div>
 
@@ -330,18 +359,18 @@ function SignupContent() {
                 <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
                   I’m an advocate or legal professional
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
                   Verify your Federal or Regional Bar credentials, receive direct client inquiries in your portal, and mentor NextGen law interns — zero listing fees.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 border border-white/15 text-slate-200">
-                  <Scale className="w-3 h-3 text-amber-400" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white backdrop-blur-xs">
+                  <Scale className="w-3 h-3 text-amber-300" />
                   Verified Advocate Profile
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 border border-white/15 text-slate-200">
-                  <Users className="w-3 h-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-white/15 border border-white/25 text-white backdrop-blur-xs">
+                  <Users className="w-3 h-3 text-emerald-300" />
                   NextGen Mentorship
                 </span>
               </div>
@@ -353,10 +382,10 @@ function SignupContent() {
                     e.stopPropagation();
                     handleSelectRolePanel('advocate');
                   }}
-                  className="px-8 py-3.5 rounded-full bg-amber-500 group-hover:bg-amber-400 text-[#0A1128] font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+                  className="px-8 py-3.5 rounded-full bg-white group-hover:bg-slate-100 text-[#182235] font-black text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg transition-all cursor-pointer"
                 >
                   <span>Join as Advocate (Free)</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-[#3B66B8]" />
                 </button>
               </div>
             </div>
@@ -367,390 +396,388 @@ function SignupContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-between text-slate-900 font-sans">
-      <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between border-b border-slate-100">
-        <div className="flex items-center gap-3.5">
-          <button
-            type="button"
-            onClick={() => setStep('select-role')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back</span>
-          </button>
+    <div className="min-h-screen bg-[#F5F7FB] flex flex-col justify-between text-[#182235] font-sans">
+      <header className="w-full px-4 sm:px-6 lg:px-8 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto w-full flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <button
+              type="button"
+              onClick={() => setStep('select-role')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F5F7FB] hover:bg-[#EEF3FB] text-[#182235] text-xs font-bold transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-[#3B66B8]" />
+              <span>Back</span>
+            </button>
 
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
-            <span className="font-black text-lg tracking-tight text-[#0A1128]">
-              Legal<span className="text-amber-600">Link</span>
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
+              <span className="font-black text-lg tracking-tight text-[#182235]">
+                Legal<span className="text-[#3B66B8]">Link</span>
+              </span>
+            </Link>
+          </div>
+
+          <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+            <span className="hidden sm:inline">
+              {role === 'client' ? 'Are you a licensed advocate?' : 'Looking for legal help?'}
             </span>
-          </Link>
-        </div>
-
-        <div className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
-          <span className="hidden sm:inline">
-            {role === 'client' ? 'Are you a licensed advocate?' : 'Looking for legal help?'}
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              setRole(role === 'client' ? 'advocate' : 'client');
-              setErrorMsg(null);
-            }}
-            className="text-emerald-700 font-bold hover:text-emerald-800 underline underline-offset-4 cursor-pointer"
-          >
-            {role === 'client' ? 'Switch to Advocate' : 'Switch to Client'}
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRole(role === 'client' ? 'advocate' : 'client');
+                setErrorMsg(null);
+              }}
+              className="text-[#3B66B8] font-bold hover:text-[#2E55A5] underline underline-offset-4 cursor-pointer"
+            >
+              {role === 'client' ? 'Switch to Advocate' : 'Switch to Client'}
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 sm:px-6 py-8 flex-1 w-full flex flex-col justify-center space-y-6">
-        {confirmationEmail ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center space-y-4">
-            <div className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-7 h-7" />
-            </div>
-            <h1 className="text-xl font-black text-emerald-950">Check Your Email Inbox</h1>
-            <p className="text-xs text-emerald-900 leading-relaxed">
-              We sent a verification link to <strong>{confirmationEmail}</strong>. Click the link in your email to activate your LegalLink {role === 'advocate' ? 'Advocate' : 'Client'} account and sign in.
-            </p>
-            <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
-              <Link
-                href="/login"
-                className="px-6 py-3 bg-[#0A1128] text-white font-bold text-xs rounded-xl hover:bg-[#102A43]"
-              >
-                Go to Login
-              </Link>
-              <Link
-                href="/"
-                className="px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50"
-              >
-                Return Home
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="text-center space-y-1.5">
-              <span
-                className={`inline-block text-[10px] font-mono uppercase tracking-widest font-bold px-3 py-1 rounded-full ${
-                  role === 'client'
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-50 text-amber-800 border border-amber-200'
-                }`}
-              >
-                {role === 'client'
-                  ? 'Free Client Account • LexDraft, Library & Advocates'
-                  : 'Free Advocate Account • Proclamation No. 1249/2021'}
-              </span>
-
-              <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight pt-1">
-                {role === 'client'
-                  ? 'Create your LegalLink account'
-                  : 'Create your Advocate account'}
-              </h1>
-              <p className="text-xs text-slate-600">
-                {role === 'client'
-                  ? 'Access bilingual legal templates, Ethiopian proclamations, and MOJ-verified advocates for free.'
-                  : 'Create your login first, then complete your Ministry of Justice chamber profile to receive direct client inquiries.'}
+      <main className="max-w-lg mx-auto px-4 sm:px-6 py-10 flex-1 w-full flex flex-col justify-center">
+        <div className="ll-window-rise bg-white rounded-3xl border border-slate-200 p-7 sm:p-9 shadow-sm space-y-6">
+          {confirmationEmail ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-7 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-7 h-7" />
+              </div>
+              <h1 className="text-xl font-black text-emerald-950">Check Your Email Inbox</h1>
+              <p className="text-xs text-emerald-900 leading-relaxed">
+                We sent a verification link to <strong>{confirmationEmail}</strong>. Click the link in your email to activate your LegalLink {role === 'advocate' ? 'Advocate' : 'Client'} account and sign in.
               </p>
+              <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                <Link
+                  href="/login"
+                  className="px-6 py-3 bg-[#182235] text-white font-bold text-xs rounded-full hover:bg-[#24324d]"
+                >
+                  Go to Login
+                </Link>
+                <Link
+                  href="/"
+                  className="px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-full hover:bg-slate-50"
+                >
+                  Return Home
+                </Link>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="text-center space-y-1.5">
+                <span className="inline-block text-[10px] font-mono uppercase tracking-widest font-bold px-3.5 py-1 rounded-full bg-[#EEF3FB] text-[#3B66B8] border border-[#D6E2F5]">
+                  {role === 'client'
+                    ? 'Free Client Account • LexDraft, Library & Advocates'
+                    : 'Free Advocate Account • Proclamation No. 1249/2021'}
+                </span>
 
-            <button
-              type="button"
-              onClick={handleGoogleSignUp}
-              disabled={googleLoading || loading}
-              className="w-full py-3 px-4 bg-[#0A1128] hover:bg-[#102A43] text-white rounded-full text-xs font-bold flex items-center justify-center gap-3 transition-all shadow-sm cursor-pointer disabled:opacity-60"
-            >
-              <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-              </span>
-              <span>
-                {googleLoading
-                  ? 'Connecting with Google...'
-                  : `Continue with Google (${role === 'client' ? 'Client' : 'Advocate'})`}
-              </span>
-            </button>
-
-            <div className="relative flex items-center">
-              <div className="flex-grow border-t border-slate-200" />
-              <span className="flex-shrink mx-4 text-xs font-semibold text-slate-400">or</span>
-              <div className="flex-grow border-t border-slate-200" />
-            </div>
-
-            {errorMsg && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">First name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="e.g., Abebe"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Last name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="e.g., Kebede"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                  />
-                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-[#182235] tracking-tight pt-1">
+                  {role === 'client'
+                    ? 'Create your LegalLink account'
+                    : 'Create your Advocate account'}
+                </h1>
+                <p className="text-xs text-slate-600">
+                  {role === 'client'
+                    ? 'Access bilingual legal templates, Ethiopian proclamations, and MOJ-verified advocates for free.'
+                    : 'Create your login first, then complete your Ministry of Justice chamber profile to receive direct client inquiries.'}
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">
-                    {role === 'client' ? 'Email address *' : 'Chamber email address *'}
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                  />
-                </div>
+              <button
+                type="button"
+                onClick={handleGoogleSignUp}
+                disabled={googleLoading || loading}
+                className="w-full py-3 px-4 bg-[#3B66B8] hover:bg-[#2F56A6] text-white rounded-full text-xs font-bold flex items-center justify-center gap-3 transition-all shadow-sm cursor-pointer disabled:opacity-60"
+              >
+                <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                </span>
+                <span>
+                  {googleLoading
+                    ? 'Connecting with Google...'
+                    : `Continue with Google (${role === 'client' ? 'Client' : 'Advocate'})`}
+                </span>
+              </button>
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">
-                    {role === 'client' ? 'Phone (Optional)' : 'Phone / WhatsApp *'}
-                  </label>
-                  <input
-                    type="tel"
-                    required={role === 'advocate'}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+251 911 000 000"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                  />
-                </div>
+              <div className="relative flex items-center">
+                <div className="flex-grow border-t border-slate-200" />
+                <span className="flex-shrink mx-4 text-xs font-semibold text-slate-400">or</span>
+                <div className="flex-grow border-t border-slate-200" />
               </div>
 
-              {role === 'client' ? (
+              {errorMsg && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-800">
-                      What brings you to LegalLink?
-                    </label>
-                    <select
-                      value={clientLegalNeed}
-                      onChange={(e) => setClientLegalNeed(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                    >
-                      <option value="Consult a Verified Ethiopian Advocate">
-                        Consult a Verified Ethiopian Advocate
-                      </option>
-                      <option value="Draft Amharic & English Legal Forms (LexDraft)">
-                        Draft Legal Forms (LexDraft)
-                      </option>
-                      <option value="Explore Ethiopian Proclamations & LegalTalk">
-                        Explore Proclamations &amp; LegalTalk
-                      </option>
-                      <option value="Business & PLC Incorporation">
-                        Business &amp; PLC Formation
-                      </option>
-                      <option value="Diaspora Power of Attorney & Services">
-                        Diaspora Legal Support
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-800">Location / Region</label>
-                    <select
-                      value={clientLocation}
-                      onChange={(e) => setClientLocation(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                    >
-                      <option value="Addis Ababa">Addis Ababa</option>
-                      <option value="Adama / Oromia">Adama / Oromia</option>
-                      <option value="Bahir Dar / Amhara">Bahir Dar / Amhara</option>
-                      <option value="Hawassa / Sidama">Hawassa / Sidama</option>
-                      <option value="Mekelle / Tigray">Mekelle / Tigray</option>
-                      <option value="Dire Dawa">Dire Dawa</option>
-                      <option value="Ethiopian Diaspora (International)">
-                        Ethiopian Diaspora (International)
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-800">
-                      MOJ / Bar License Number *
-                    </label>
+                    <label className="block text-xs font-bold text-[#182235]">First name *</label>
                     <input
                       type="text"
                       required
-                      value={barLicenseNo}
-                      onChange={(e) => setBarLicenseNo(e.target.value)}
-                      placeholder="e.g., MOJ/FED/1842/2021"
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-mono uppercase focus:outline-none focus:border-[#0A1128]"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="e.g., Abebe"
+                      className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-800">
-                      Court Admission Tier
-                    </label>
-                    <select
-                      value={courtTier}
-                      onChange={(e) => setCourtTier(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                    >
-                      <option value="Federal Supreme & Cassation Court">
-                        Federal Supreme &amp; Cassation Court
-                      </option>
-                      <option value="Federal High Court">Federal High Court</option>
-                      <option value="Federal First Instance Court">
-                        Federal First Instance Court
-                      </option>
-                      <option value="Regional Supreme / High Court">
-                        Regional Supreme / High Court
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="block text-xs font-bold text-slate-800">
-                      Primary Practice Specialization
-                    </label>
-                    <select
-                      value={practiceArea}
-                      onChange={(e) => setPracticeArea(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                    >
-                      <option value="Commercial & Corporate Law">Commercial &amp; Corporate Law</option>
-                      <option value="Civil, Appellate & Cassation Litigation">
-                        Civil, Appellate &amp; Cassation Litigation
-                      </option>
-                      <option value="Real Estate, Land & Construction Law">
-                        Real Estate, Land &amp; Construction Law
-                      </option>
-                      <option value="Tax, Customs & Investment Law">
-                        Tax, Customs &amp; Investment Law
-                      </option>
-                      <option value="Labor, Family & Administrative Law">
-                        Labor, Family &amp; Administrative Law
-                      </option>
-                    </select>
+                    <label className="block text-xs font-bold text-[#182235]">Last name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="e.g., Kebede"
+                      className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                    />
                   </div>
                 </div>
-              )}
 
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-800">Password *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={8}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password (8 or more characters)"
-                    className="w-full pl-3.5 pr-10 py-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#0A1128]"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-[#182235]">
+                      {role === 'client' ? 'Email address *' : 'Chamber email address *'}
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com"
+                      className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-[#182235]">
+                      {role === 'client' ? 'Phone (Optional)' : 'Phone / WhatsApp *'}
+                    </label>
+                    <input
+                      type="tel"
+                      required={role === 'advocate'}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+251 911 000 000"
+                      className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                    />
+                  </div>
+                </div>
+
+                {role === 'client' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-[#182235]">
+                        What brings you to LegalLink?
+                      </label>
+                      <select
+                        value={clientLegalNeed}
+                        onChange={(e) => setClientLegalNeed(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                      >
+                        <option value="Consult a Verified Ethiopian Advocate">
+                          Consult a Verified Ethiopian Advocate
+                        </option>
+                        <option value="Draft Amharic & English Legal Forms (LexDraft)">
+                          Draft Legal Forms (LexDraft)
+                        </option>
+                        <option value="Explore Ethiopian Proclamations & LegalTalk">
+                          Explore Proclamations &amp; LegalTalk
+                        </option>
+                        <option value="Business & PLC Incorporation">
+                          Business &amp; PLC Formation
+                        </option>
+                        <option value="Diaspora Power of Attorney & Services">
+                          Diaspora Legal Support
+                        </option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-[#182235]">Location / Region</label>
+                      <select
+                        value={clientLocation}
+                        onChange={(e) => setClientLocation(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                      >
+                        <option value="Addis Ababa">Addis Ababa</option>
+                        <option value="Adama / Oromia">Adama / Oromia</option>
+                        <option value="Bahir Dar / Amhara">Bahir Dar / Amhara</option>
+                        <option value="Hawassa / Sidama">Hawassa / Sidama</option>
+                        <option value="Mekelle / Tigray">Mekelle / Tigray</option>
+                        <option value="Dire Dawa">Dire Dawa</option>
+                        <option value="Ethiopian Diaspora (International)">
+                          Ethiopian Diaspora (International)
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-[#182235]">
+                        MOJ / Bar License Number *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={barLicenseNo}
+                        onChange={(e) => setBarLicenseNo(e.target.value)}
+                        placeholder="e.g., MOJ/FED/1842/2021"
+                        className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs font-mono uppercase focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-[#182235]">
+                        Court Admission Tier
+                      </label>
+                      <select
+                        value={courtTier}
+                        onChange={(e) => setCourtTier(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                      >
+                        <option value="Federal Supreme & Cassation Court">
+                          Federal Supreme &amp; Cassation Court
+                        </option>
+                        <option value="Federal High Court">Federal High Court</option>
+                        <option value="Federal First Instance Court">
+                          Federal First Instance Court
+                        </option>
+                        <option value="Regional Supreme / High Court">
+                          Regional Supreme / High Court
+                        </option>
+                      </select>
+                    </div>
+
+                    <div className="sm:col-span-2 space-y-1">
+                      <label className="block text-xs font-bold text-[#182235]">
+                        Primary Practice Specialization
+                      </label>
+                      <select
+                        value={practiceArea}
+                        onChange={(e) => setPracticeArea(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                      >
+                        <option value="Commercial & Corporate Law">Commercial &amp; Corporate Law</option>
+                        <option value="Civil, Appellate & Cassation Litigation">
+                          Civil, Appellate &amp; Cassation Litigation
+                        </option>
+                        <option value="Real Estate, Land & Construction Law">
+                          Real Estate, Land &amp; Construction Law
+                        </option>
+                        <option value="Tax, Customs & Investment Law">
+                          Tax, Customs &amp; Investment Law
+                        </option>
+                        <option value="Labor, Family & Administrative Law">
+                          Labor, Family &amp; Administrative Law
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-[#182235]">Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password (8 or more characters)"
+                      className="w-full pl-3.5 pr-10 py-2.5 bg-[#F5F7FB] border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:border-[#3B66B8]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#182235] cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => {
+                        setAgreedToTerms(e.target.checked);
+                        if (errorMsg) setErrorMsg(null);
+                      }}
+                      className="mt-0.5 w-4 h-4 rounded border-slate-300 accent-[#3B66B8] cursor-pointer"
+                    />
+                    <span className="text-xs text-slate-600 leading-snug">
+                      I agree to the{' '}
+                      <Link
+                        href="/terms"
+                        target="_blank"
+                        className="font-bold text-[#182235] underline hover:text-[#3B66B8]"
+                      >
+                        LegalLink Terms of Service
+                      </Link>{' '}
+                      and{' '}
+                      <Link
+                        href="/privacy"
+                        target="_blank"
+                        className="font-bold text-[#182235] underline hover:text-[#3B66B8]"
+                      >
+                        Privacy Policy
+                      </Link>
+                      .
+                    </span>
+                  </label>
+                </div>
+
+                <div className="pt-2 flex flex-col items-center space-y-4">
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                    type="submit"
+                    disabled={loading || googleLoading}
+                    className="w-full py-3.5 bg-[#182235] hover:bg-[#24324d] text-white font-bold rounded-full text-xs inline-flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-60"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <span>
+                      {loading
+                        ? 'Creating Account...'
+                        : role === 'client'
+                        ? 'Create Free Account'
+                        : 'Create Advocate Account & Continue'}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
                   </button>
-                </div>
-              </div>
 
-              <div className="pt-1">
-                <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => {
-                      setAgreedToTerms(e.target.checked);
-                      if (errorMsg) setErrorMsg(null);
-                    }}
-                    className="mt-0.5 w-4 h-4 rounded border-slate-300 accent-[#0A1128] cursor-pointer"
-                  />
-                  <span className="text-xs text-slate-600 leading-snug">
-                    I agree to the{' '}
+                  <p className="text-xs text-slate-600">
+                    Already have an account?{' '}
                     <Link
-                      href="/terms"
-                      target="_blank"
-                      className="font-bold text-[#0A1128] underline hover:text-amber-700"
+                      href={loginHref}
+                      className="text-[#3B66B8] font-bold underline underline-offset-4 hover:text-[#2E55A5]"
                     >
-                      LegalLink Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link
-                      href="/privacy"
-                      target="_blank"
-                      className="font-bold text-[#0A1128] underline hover:text-amber-700"
-                    >
-                      Privacy Policy
+                      Log in
                     </Link>
-                    .
-                  </span>
-                </label>
-              </div>
-
-              <div className="pt-2 flex flex-col items-center space-y-4">
-                <button
-                  type="submit"
-                  disabled={loading || googleLoading}
-                  className="w-full py-3.5 bg-[#0A1128] hover:bg-[#102A43] text-white font-bold rounded-full text-xs inline-flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-60"
-                >
-                  <span>
-                    {loading
-                      ? 'Creating Account...'
-                      : role === 'client'
-                      ? 'Create Free Account'
-                      : 'Create Advocate Account & Continue'}
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-                </button>
-
-                <p className="text-xs text-slate-600">
-                  Already have an account?{' '}
-                  <Link
-                    href={loginHref}
-                    className="text-emerald-700 font-bold underline underline-offset-4 hover:text-emerald-800"
-                  >
-                    Log in
-                  </Link>
-                </p>
-              </div>
-            </form>
-          </>
-        )}
+                  </p>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
       </main>
 
-      <footer className="w-full py-5 text-center text-[11px] text-slate-500 border-t border-slate-100 bg-white">
+      <footer className="w-full py-5 text-center text-[11px] text-slate-500 border-t border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-[#3B66B8] shrink-0" />
             <span>Free Public Access • MOJ-Verified Ethiopian Advocate Directory</span>
           </div>
           <p>© 2026 LegalLink Ethiopia • info.legallinkethiopia@gmail.com</p>
@@ -764,7 +791,7 @@ export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center text-xs font-bold text-slate-500">
+        <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center text-xs font-bold text-slate-500">
           Loading LegalLink...
         </div>
       }
