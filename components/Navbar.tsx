@@ -31,7 +31,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -42,13 +42,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const supabase = createClient();
 
-  const isHomeSkyOverlay = pathname === '/' && !scrolled && !mobileMenuOpen;
+  const isHomeTop = pathname === '/' && !isScrolled;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 36);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 36);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const primaryLinks = [
@@ -187,35 +189,30 @@ export default function Navbar() {
 
   return (
     <header
-      className={`z-50 transition-all duration-300 ${
-        pathname === '/' ? 'fixed top-0 inset-x-0' : 'sticky top-0'
-      } ${
-        isHomeSkyOverlay
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isHomeTop
           ? 'bg-transparent border-b border-white/15 text-white'
-          : 'bg-white/92 backdrop-blur-xl border-b border-[#E5EAF5] text-[#141B2D] shadow-[0_4px_24px_-12px_rgba(20,27,45,0.08)]'
+          : 'bg-white/95 backdrop-blur-xl border-b border-slate-200/80 text-[#182235] shadow-2xs'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group cursor-pointer shrink-0">
-            <img src="/logo.png" alt="LegalLink Logo" className="w-7 h-7 object-contain" />
+            <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
             <span
-              className={`font-bold text-lg tracking-tight transition-colors ${
-                isHomeSkyOverlay ? 'text-white' : 'text-[#141B2D]'
+              className={`font-black text-xl tracking-tight transition-colors ${
+                isHomeTop ? 'text-white' : 'text-[#182235]'
               }`}
             >
-              Legal
-              <span className={isHomeSkyOverlay ? 'text-white/85' : 'text-[#5D6DF7]'}>
-                Link
-              </span>
+              Legal<span className={isHomeTop ? 'text-amber-300' : 'text-[#3B66B8]'}>Link</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
           <nav
-            className={`hidden md:flex items-center gap-6 lg:gap-8 text-xs font-medium ${
-              isHomeSkyOverlay ? 'text-white/90' : 'text-[#525E75]'
+            className={`hidden md:flex items-center gap-5 lg:gap-7 text-xs font-bold transition-colors ${
+              isHomeTop ? 'text-white/90' : 'text-slate-600'
             }`}
           >
             {primaryLinks.map((link) => {
@@ -225,13 +222,13 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={`transition-colors py-1 ${
-                    isActive
-                      ? isHomeSkyOverlay
-                        ? 'text-white font-semibold'
-                        : 'text-[#141B2D] font-semibold border-b-2 border-[#5D6DF7]'
-                      : isHomeSkyOverlay
-                      ? 'hover:text-white'
-                      : 'hover:text-[#141B2D]'
+                    isHomeTop
+                      ? isActive
+                        ? 'text-white font-black border-b-2 border-white'
+                        : 'hover:text-white'
+                      : isActive
+                      ? 'text-[#182235] font-black border-b-2 border-[#3B66B8]'
+                      : 'hover:text-[#182235]'
                   }`}
                 >
                   {link.label}
@@ -245,26 +242,24 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
                 className={`py-1 flex items-center gap-1 transition-colors cursor-pointer ${
-                  isMoreActive || moreDropdownOpen
-                    ? isHomeSkyOverlay
-                      ? 'text-white font-semibold'
-                      : 'text-[#141B2D] font-semibold'
-                    : isHomeSkyOverlay
+                  isHomeTop
                     ? 'hover:text-white'
-                    : 'hover:text-[#141B2D]'
+                    : isMoreActive || moreDropdownOpen
+                    ? 'text-[#182235] font-black'
+                    : 'hover:text-[#182235]'
                 }`}
                 aria-expanded={moreDropdownOpen}
               >
                 <span>{language === 'am' ? 'ተጨማሪ' : 'More'}</span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    moreDropdownOpen ? 'rotate-180' : ''
-                  }`}
+                    isHomeTop ? 'text-white/80' : 'text-slate-500'
+                  } ${moreDropdownOpen ? 'rotate-180' : ''}`}
                 />
               </button>
 
               {moreDropdownOpen && (
-                <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-2xl border border-[#E4E9F5] shadow-xl p-2 space-y-1 z-50 text-[#141B2D]">
+                <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 space-y-1 z-50 text-[#182235]">
                   {moreDropdownLinks.map((item) => {
                     const isActive = pathname === item.href;
                     const IconComponent = item.icon;
@@ -274,30 +269,30 @@ export default function Navbar() {
                         href={item.href}
                         onClick={() => setMoreDropdownOpen(false)}
                         className={`p-2.5 rounded-xl flex items-start gap-3 transition-colors group cursor-pointer ${
-                          isActive ? 'bg-[#ECEFFE] text-[#141B2D]' : 'hover:bg-[#F5F7FC] text-[#525E75]'
+                          isActive
+                            ? 'bg-[#EEF3FB] text-[#182235]'
+                            : 'hover:bg-slate-50 text-slate-700'
                         }`}
                       >
                         <div
                           className={`p-2 rounded-lg shrink-0 mt-0.5 ${
                             isActive
-                              ? 'bg-[#5D6DF7] text-white'
-                              : 'bg-[#F5F7FC] text-[#5D6DF7] group-hover:bg-[#5D6DF7] group-hover:text-white transition-colors'
+                              ? 'bg-[#3B66B8] text-white font-bold'
+                              : 'bg-[#EEF3FB] text-[#3B66B8] group-hover:bg-[#3B66B8] group-hover:text-white transition-colors'
                           }`}
                         >
                           <IconComponent className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-semibold text-xs text-[#141B2D]">
-                              {item.title}
-                            </span>
+                            <span className="font-bold text-xs text-[#182235]">{item.title}</span>
                             {item.badge && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#ECEFFE] text-[#5D6DF7]">
+                              <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full bg-[#EEF3FB] text-[#3B66B8]">
                                 {item.badge}
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-[#647087] leading-snug line-clamp-1 font-normal mt-0.5">
+                          <p className="text-[11px] text-slate-500 leading-snug line-clamp-1 font-normal mt-0.5">
                             {item.description}
                           </p>
                         </div>
@@ -312,10 +307,10 @@ export default function Navbar() {
           {/* Right Header Utilities */}
           <div className="hidden sm:flex items-center gap-3">
             <div
-              className={`flex items-center rounded-full p-0.5 border text-[11px] font-semibold ${
-                isHomeSkyOverlay
-                  ? 'bg-white/15 border-white/25'
-                  : 'bg-[#F5F7FC] border-[#E4E9F5]'
+              className={`flex items-center rounded-full p-1 border text-xs font-bold transition-colors ${
+                isHomeTop
+                  ? 'bg-white/15 border-white/25 backdrop-blur-md'
+                  : 'bg-slate-100 border-slate-200'
               }`}
             >
               <button
@@ -323,10 +318,10 @@ export default function Navbar() {
                 onClick={() => setLanguage('en')}
                 className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   language === 'en'
-                    ? 'bg-white text-[#141B2D] shadow-2xs'
-                    : isHomeSkyOverlay
+                    ? 'bg-white text-[#182235] shadow-xs'
+                    : isHomeTop
                     ? 'text-white/85 hover:text-white'
-                    : 'text-[#647087] hover:text-[#141B2D]'
+                    : 'text-slate-600 hover:text-[#182235]'
                 }`}
               >
                 EN
@@ -336,10 +331,10 @@ export default function Navbar() {
                 onClick={() => setLanguage('am')}
                 className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   language === 'am'
-                    ? 'bg-white text-[#141B2D] shadow-2xs'
-                    : isHomeSkyOverlay
+                    ? 'bg-white text-[#182235] shadow-xs'
+                    : isHomeTop
                     ? 'text-white/85 hover:text-white'
-                    : 'text-[#647087] hover:text-[#141B2D]'
+                    : 'text-slate-600 hover:text-[#182235]'
                 }`}
               >
                 አማ
@@ -351,10 +346,10 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className={`px-3.5 py-2 rounded-full border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all ${
-                    isHomeSkyOverlay
-                      ? 'bg-white/20 hover:bg-white/30 border-white/35 text-white'
-                      : 'bg-[#F5F7FC] hover:bg-[#ECEFFE] border-[#E4E9F5] text-[#141B2D]'
+                  className={`px-3.5 py-2 rounded-full border text-xs font-bold flex items-center gap-2 cursor-pointer transition-all ${
+                    isHomeTop
+                      ? 'bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-md'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-[#182235]'
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -363,35 +358,35 @@ export default function Navbar() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[#E4E9F5] shadow-xl p-2 space-y-1 z-50 text-xs text-[#141B2D]">
-                    <div className="px-3 py-2 border-b border-[#F1F4FA]">
-                      <p className="font-bold text-[#141B2D] truncate">{displayName}</p>
-                      <p className="text-[10px] font-mono uppercase text-[#7A859E]">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 space-y-1 z-50 text-xs text-[#182235]">
+                    <div className="px-3 py-2 border-b border-slate-100">
+                      <p className="font-bold text-[#182235] truncate">{displayName}</p>
+                      <p className="text-[10px] font-mono uppercase text-slate-500">
                         {userRole === 'advocate' ? 'Advocate Account' : 'Client Account'}
                       </p>
                     </div>
                     {userRole === 'advocate' ? (
                       <Link
                         href="/advocate/portal"
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#182235]"
                       >
-                        <Briefcase className="w-3.5 h-3.5 text-[#5D6DF7]" />
+                        <Briefcase className="w-3.5 h-3.5 text-[#3B66B8]" />
                         <span>Advocate Portal</span>
                       </Link>
                     ) : (
                       <>
                         <Link
                           href="/dashboard"
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#182235]"
                         >
-                          <LayoutDashboard className="w-3.5 h-3.5 text-[#5D6DF7]" />
+                          <LayoutDashboard className="w-3.5 h-3.5 text-emerald-600" />
                           <span>My Inquiries</span>
                         </Link>
                         <Link
                           href="/find-a-lawyer"
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#182235]"
                         >
-                          <User className="w-3.5 h-3.5 text-[#5D6DF7]" />
+                          <User className="w-3.5 h-3.5 text-[#3B66B8]" />
                           <span>Find an Advocate</span>
                         </Link>
                       </>
@@ -399,7 +394,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-red-600 hover:bg-red-50 cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -411,24 +406,24 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className={`px-3 py-2 text-xs font-medium transition-colors ${
-                    isHomeSkyOverlay
-                      ? 'text-white/90 hover:text-white'
-                      : 'text-[#525E75] hover:text-[#141B2D]'
+                  className={`px-3.5 py-2 text-xs font-bold transition-colors ${
+                    isHomeTop ? 'text-white/90 hover:text-white' : 'text-slate-700 hover:text-[#182235]'
                   }`}
                 >
                   {t('nav_sign_in')}
                 </Link>
                 <Link
                   href="/signup"
-                  className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-                    isHomeSkyOverlay
-                      ? 'bg-white/90 hover:bg-white text-[#141B2D] shadow-xs'
-                      : 'bg-[#ECEFFE] hover:bg-[#5D6DF7] text-[#141B2D] hover:text-white'
+                  className={`px-5 py-2.5 text-xs font-bold rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer ${
+                    isHomeTop
+                      ? 'bg-white hover:bg-slate-100 text-[#182235]'
+                      : 'bg-[#182235] hover:bg-[#24324d] text-white'
                   }`}
                 >
                   <span>{t('nav_get_started')}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight
+                    className={`w-3.5 h-3.5 ${isHomeTop ? 'text-[#3B66B8]' : 'text-amber-400'}`}
+                  />
                 </Link>
               </>
             )}
@@ -439,10 +434,10 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer ${
-                isHomeSkyOverlay
-                  ? 'bg-white/20 text-white border border-white/30'
-                  : 'bg-[#F5F7FC] text-[#141B2D] border border-[#E4E9F5]'
+              className={`px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer border ${
+                isHomeTop
+                  ? 'bg-white/20 border-white/30 text-white'
+                  : 'bg-slate-100 border-slate-200 text-[#182235]'
               }`}
             >
               {language === 'en' ? 'አማ' : 'EN'}
@@ -450,7 +445,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 cursor-pointer"
+              className={`p-2 cursor-pointer ${isHomeTop ? 'text-white' : 'text-[#182235]'}`}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -461,22 +456,22 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#E4E9F5] bg-white text-[#141B2D] px-4 py-6 space-y-5 shadow-xl">
-          <nav className="flex flex-col space-y-2 text-sm font-semibold text-[#525E75]">
+        <div className="md:hidden border-t border-slate-200 bg-white text-[#182235] px-4 py-6 space-y-5 shadow-xl">
+          <nav className="flex flex-col space-y-2 text-sm font-bold text-slate-700">
             {primaryLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-[#141B2D]"
+                className="py-1.5 hover:text-[#3B66B8]"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          <div className="pt-3 border-t border-[#F1F4FA] space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A859E] block px-1">
+          <div className="pt-3 border-t border-slate-100 space-y-2">
+            <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-500 block px-1">
               {language === 'am' ? 'ተጨማሪ አገልግሎቶች' : 'More Resources'}
             </span>
             <div className="grid grid-cols-1 gap-1">
@@ -485,14 +480,14 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-xl flex items-center justify-between text-xs font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
+                  className="p-2 rounded-xl flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-[#182235]"
                 >
                   <div className="flex items-center gap-2">
-                    <item.icon className="w-4 h-4 text-[#5D6DF7]" />
+                    <item.icon className="w-4 h-4 text-[#3B66B8]" />
                     <span>{item.title}</span>
                   </div>
                   {item.badge && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#ECEFFE] text-[#5D6DF7]">
+                    <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full bg-[#EEF3FB] text-[#3B66B8]">
                       {item.badge}
                     </span>
                   )}
@@ -501,29 +496,38 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#F1F4FA] space-y-3">
+          <div className="pt-2 border-t border-slate-100 space-y-3">
             {isAuthenticated ? (
               <>
                 <div className="flex items-center justify-between px-2 py-1 text-xs">
-                  <span className="font-bold text-[#141B2D]">{displayName}</span>
-                  <span className="font-mono uppercase text-[10px] px-2 py-0.5 rounded-full bg-[#ECEFFE] text-[#5D6DF7]">
+                  <span className="font-bold text-[#182235]">{displayName}</span>
+                  <span className="font-mono uppercase text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
                     {userRole}
                   </span>
                 </div>
-                <Link
-                  href={userRole === 'advocate' ? '/advocate/portal' : '/dashboard'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-2.5 bg-[#5D6DF7] text-white text-xs font-semibold rounded-full flex items-center justify-center gap-1.5"
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>
-                    {userRole === 'advocate' ? 'Open Advocate Portal' : 'My Inquiries Dashboard'}
-                  </span>
-                </Link>
+                {userRole === 'advocate' ? (
+                  <Link
+                    href="/advocate/portal"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2.5 bg-[#182235] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
+                  >
+                    <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Open Advocate Portal</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2.5 bg-[#182235] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5 text-amber-400" />
+                    <span>My Inquiries Dashboard</span>
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full py-2.5 border border-red-200 text-red-600 text-xs font-semibold rounded-full flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2.5 border border-red-200 text-red-600 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>
@@ -534,17 +538,17 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block text-center py-2 text-xs font-semibold text-[#525E75] hover:text-[#141B2D]"
+                  className="block text-center py-2 text-xs font-bold text-slate-700 hover:text-[#182235]"
                 >
                   {t('nav_sign_in')}
                 </Link>
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 bg-[#5D6DF7] text-white text-xs font-semibold rounded-full flex items-center justify-center gap-1.5"
+                  className="w-full py-3 bg-[#182235] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <span>{t('nav_get_started')}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
                 </Link>
               </>
             )}

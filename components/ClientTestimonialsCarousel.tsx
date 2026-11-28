@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/context/LanguageContext';
-import { RevealOnScroll, SkyGlassCard } from '@/components/MotionPrimitives';
+import { RevealOnScroll, SpotlightCard } from '@/components/MotionPrimitives';
 
 export interface TestimonialItem {
   id: string;
@@ -113,16 +113,16 @@ export default function ClientTestimonialsCarousel() {
     .toUpperCase();
 
   return (
-    <section className="py-20 md:py-28 bg-white border-y border-[#E6EBF6]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <section className="py-20 md:py-28 bg-[#F5F7FB] border-b border-slate-200/80 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
         <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2.5">
-          <span className="inline-block px-3.5 py-1 rounded-full bg-[#ECEFFE] text-[#5D6DF7] text-[10px] font-bold uppercase tracking-widest">
-            {language === 'am' ? 'የደንበኞች አስተያየት' : 'TESTIMONIALS'}
+          <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-[#EEF3FB] border border-[#D6E2F5] text-[11px] font-bold text-[#3B66B8] uppercase tracking-widest font-mono">
+            {language === 'am' ? 'የደንበኞች አስተያየት' : 'CLIENT STORIES'}
           </span>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-[#141B2D] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-[#182235] tracking-tight">
             {language === 'am' ? 'ደንበኞቻችን ምን ይላሉ?' : 'What Our Clients Say'}
           </h2>
-          <p className="text-xs sm:text-sm text-[#647087]">
+          <p className="text-xs sm:text-sm text-slate-600">
             {language === 'am'
               ? 'በመላው ኢትዮጵያና በዲያስፖራ የሚገኙ ተገልጋዮች ስለ ሊጋልሊንክ የሚሰጡት ተሞክሮ።'
               : 'Real experiences from individuals, founders, and diaspora users navigating Ethiopian law with LegalLink.'}
@@ -133,10 +133,10 @@ export default function ClientTestimonialsCarousel() {
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <SkyGlassCard className="rounded-3xl p-8 sm:p-12">
-            <div className="flex flex-col justify-between min-h-[210px] space-y-6">
+          <SpotlightCard className="rounded-3xl p-8 sm:p-12">
+            <div className="flex flex-col justify-between min-h-[220px] space-y-6 relative z-10">
               <div className="flex items-center justify-between gap-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#ECEFFE] text-[#5D6DF7] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#3B66B8] text-white flex items-center justify-center shrink-0">
                   <Quote className="w-5 h-5" />
                 </div>
 
@@ -146,8 +146,8 @@ export default function ClientTestimonialsCarousel() {
                       key={i}
                       className={`w-4 h-4 ${
                         i < (current.rating || 5)
-                          ? 'fill-[#5D6DF7] text-[#5D6DF7]'
-                          : 'text-[#E4E9F5]'
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-slate-200'
                       }`}
                     />
                   ))}
@@ -156,26 +156,26 @@ export default function ClientTestimonialsCarousel() {
 
               <blockquote
                 key={current.id}
-                className="ll-sky-reveal text-base sm:text-xl font-medium text-[#141B2D] leading-relaxed"
+                className="ll-word-reveal text-base sm:text-xl font-semibold text-[#182235] leading-relaxed"
               >
                 “{language === 'am' && current.amharic_quote ? current.amharic_quote : current.quote}”
               </blockquote>
 
-              <div className="pt-4 border-t border-[#EEF2FA] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#5D6DF7] to-[#8EA2FF] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-[#3B66B8] text-white font-black text-xs flex items-center justify-center shrink-0">
                     {initials}
                   </div>
                   <div>
-                    <strong className="text-sm font-bold text-[#141B2D] block">
+                    <strong className="text-sm font-black text-[#182235] block">
                       {current.client_name}
                     </strong>
-                    <span className="text-xs text-[#647087] block">{current.client_role}</span>
+                    <span className="text-xs text-slate-600 block">{current.client_role}</span>
                   </div>
                 </div>
 
                 {current.practice_area && (
-                  <span className="px-3 py-1 rounded-full bg-[#F5F7FC] text-[#4F61F0] border border-[#E4E9F5] text-[11px] font-semibold w-fit">
+                  <span className="px-3 py-1 rounded-full bg-[#EEF3FB] text-[#3B66B8] border border-[#D6E2F5] text-[11px] font-bold w-fit">
                     {current.practice_area}
                   </span>
                 )}
@@ -183,7 +183,7 @@ export default function ClientTestimonialsCarousel() {
             </div>
 
             {total > 1 && (
-              <div className="mt-8 pt-5 border-t border-[#EEF2FA] flex items-center justify-between gap-4">
+              <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-2">
                   {items.map((item, idx) => (
                     <button
@@ -193,8 +193,8 @@ export default function ClientTestimonialsCarousel() {
                       aria-label={`Show testimonial ${idx + 1}`}
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         idx === activeIndex
-                          ? 'w-8 bg-[#5D6DF7]'
-                          : 'w-2 bg-[#D5DDF2] hover:bg-[#AAB8E6]'
+                          ? 'w-8 bg-[#3B66B8]'
+                          : 'w-2 bg-slate-300 hover:bg-slate-400'
                       }`}
                     />
                   ))}
@@ -205,7 +205,7 @@ export default function ClientTestimonialsCarousel() {
                     type="button"
                     onClick={goPrev}
                     aria-label="Previous testimonial"
-                    className="w-9 h-9 rounded-full bg-[#F5F7FC] hover:bg-[#5D6DF7] text-[#141B2D] hover:text-white border border-[#E4E9F5] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#3B66B8] text-[#182235] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -213,14 +213,14 @@ export default function ClientTestimonialsCarousel() {
                     type="button"
                     onClick={goNext}
                     aria-label="Next testimonial"
-                    className="w-9 h-9 rounded-full bg-[#F5F7FC] hover:bg-[#5D6DF7] text-[#141B2D] hover:text-white border border-[#E4E9F5] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#3B66B8] text-[#182235] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             )}
-          </SkyGlassCard>
+          </SpotlightCard>
         </div>
       </div>
     </section>

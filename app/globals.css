@@ -1,94 +1,111 @@
 @import "tailwindcss";
 
 :root {
-  --ll-sky-top: #4b75ba;
-  --ll-sky-mid: #7ea6de;
-  --ll-sky-horizon: #c9ddf5;
-  --ll-surface: #f5f7fc;
+  --ll-sky-deep: #2f56a6;
+  --ll-sky-mid: #4e7cd1;
+  --ll-sky-soft: #9ec0f2;
+  --ll-cloud-bg: #f5f7fb;
   --ll-white: #ffffff;
-  --ll-border: #e4e9f5;
-  --ll-ink: #141b2d;
-  --ll-muted: #647087;
-  --ll-accent: #5d6df7;
-  --ll-accent-soft: #eceffe;
+  --ll-slate-ink: #182235;
+  --ll-slate-muted: #526077;
+  --ll-amber: #f59e0b;
 }
 
 html {
   scroll-behavior: smooth;
-  background-color: #f5f7fc;
+  background-color: #f5f7fb;
 }
 
 body {
-  background-color: #f5f7fc;
-  color: #141b2d;
+  background-color: #f5f7fb;
+  color: #182235;
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
 }
 
 /* =========================================================================
-   1. DAYLIGHT SKY GRADIENT & DRIFTING CLOUD LAYERS (VIDEO 00:00–00:02)
+   1. SUNLIT AZURE SKY CANVAS & DRIFTING CLOUD WISPS (VIDEO 00:00–00:02)
    ========================================================================= */
 .ll-sky-canvas {
   background: linear-gradient(
     180deg,
-    #456fb5 0%,
-    #638ece 32%,
-    #94b8e6 64%,
-    #d5e4f7 86%,
-    #f5f7fc 100%
+    #2e55a5 0%,
+    #4876cc 36%,
+    #86afea 72%,
+    #dfe9fa 91%,
+    #f5f7fb 100%
   );
 }
 
-@keyframes ll-cloud-drift-slow {
-  0% {
-    transform: translate3d(-4%, 0, 0) scale(1);
+@keyframes ll-cloud-drift-left {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(5%, -10px, 0) scale(1.05);
-  }
-  100% {
-    transform: translate3d(-4%, 0, 0) scale(1);
+    transform: translate3d(-28px, -8px, 0) scale(1.04);
   }
 }
 
-@keyframes ll-cloud-drift-reverse {
-  0% {
-    transform: translate3d(4%, 0, 0) scale(1.03);
+@keyframes ll-cloud-drift-right {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(-5%, 8px, 0) scale(0.98);
-  }
-  100% {
-    transform: translate3d(4%, 0, 0) scale(1.03);
+    transform: translate3d(28px, 6px, 0) scale(1.05);
   }
 }
 
-.ll-cloud-layer-a {
-  background:
-    radial-gradient(ellipse 36% 24% at 18% 28%, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(ellipse 42% 28% at 78% 22%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 74%),
-    radial-gradient(ellipse 30% 22% at 52% 48%, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 70%);
-  filter: blur(26px);
-  animation: ll-cloud-drift-slow 24s ease-in-out infinite;
+.ll-cloud-left {
+  animation: ll-cloud-drift-left 14s ease-in-out infinite;
 }
 
-.ll-cloud-layer-b {
-  background:
-    radial-gradient(ellipse 48% 30% at 24% 68%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 74%),
-    radial-gradient(ellipse 44% 28% at 84% 62%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 75%),
-    radial-gradient(ellipse 34% 20% at 46% 18%, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 70%);
-  filter: blur(32px);
-  animation: ll-cloud-drift-reverse 30s ease-in-out infinite;
+.ll-cloud-right {
+  animation: ll-cloud-drift-right 16s ease-in-out infinite;
 }
 
 /* =========================================================================
-   2. HERO BLUR-TO-FOCUS ENTRY & RISING MOCKUP (VIDEO 00:00–00:01)
+   2. CREATIVE SKY LADY JUSTICE LEVITATION & HALO
    ========================================================================= */
-@keyframes ll-sky-fade-up {
+@keyframes ll-justice-levitate {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) scale(1.015);
+  }
+}
+
+@keyframes ll-halo-pulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+.animate-float-slow {
+  animation: ll-justice-levitate 8s ease-in-out infinite;
+}
+
+.ll-justice-halo {
+  animation: ll-halo-pulse 7s ease-in-out infinite;
+}
+
+.mask-radial-fade {
+  -webkit-mask-image: radial-gradient(circle at center, black 44%, transparent 78%);
+  mask-image: radial-gradient(circle at center, black 44%, transparent 78%);
+}
+
+/* =========================================================================
+   3. WORD-BY-WORD BLUR-TO-FOCUS KINETIC HEADLINE REVEAL
+   ========================================================================= */
+@keyframes ll-word-focus-in {
   0% {
     opacity: 0;
     filter: blur(10px);
-    transform: translate3d(0, 22px, 0) scale(0.985);
+    transform: translate3d(0, 16px, 0) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -97,20 +114,53 @@ body {
   }
 }
 
-.ll-sky-reveal {
+.ll-word-reveal {
+  display: inline-block;
   opacity: 0;
-  animation: ll-sky-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: ll-word-focus-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* =========================================================================
-   3. SCROLL-TRIGGERED SECTION & GRID REVEALS (VIDEO 00:07–00:09)
+   4. FLOATING DASHBOARD RISE & 3D PERSPECTIVE TILT (VIDEO 00:01–00:06)
+   ========================================================================= */
+@keyframes ll-window-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 36px, 0) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.ll-window-rise {
+  animation: ll-window-rise 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+.ll-perspective-stage {
+  perspective: 1200px;
+}
+
+.ll-tilt-card {
+  transform: rotateY(-7deg) rotateX(2deg);
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.65s ease;
+}
+
+.ll-tilt-card:hover {
+  transform: rotateY(0deg) rotateX(0deg) translateY(-4px);
+}
+
+/* =========================================================================
+   5. STAGGERED SCROLL-TRIGGERED SECTION REVEALS (VIDEO 00:07–00:09)
    ========================================================================= */
 .ll-reveal {
   opacity: 0;
   transform: translate3d(0, 24px, 0);
   transition:
-    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ll-reveal.ll-reveal-visible {
@@ -119,9 +169,9 @@ body {
 }
 
 /* =========================================================================
-   4. MINIMAL MONOCHROME ECOSYSTEM TICKER (VIDEO 00:06–00:08)
+   6. CLEAN HORIZONTAL CAPABILITY STRIP MARQUEE (VIDEO 00:06.5)
    ========================================================================= */
-@keyframes ll-ticker-scroll {
+@keyframes ll-marquee-scroll {
   0% {
     transform: translate3d(0, 0, 0);
   }
@@ -130,65 +180,142 @@ body {
   }
 }
 
-.ll-ticker-track {
+.ll-marquee-track {
   display: flex;
   width: max-content;
-  animation: ll-ticker-scroll 34s linear infinite;
+  animation: ll-marquee-scroll 34s linear infinite;
 }
 
-.ll-ticker-wrapper:hover .ll-ticker-track {
+.ll-marquee-wrapper:hover .ll-marquee-track {
   animation-play-state: paused;
 }
 
 /* =========================================================================
-   5. AIRY ELEVATED WHITE CARDS & SOFT PERIWINKLE HOVER GLOW
+   7. SILK SKY WAVE & SINUSOIDAL WORD STACK
    ========================================================================= */
-.ll-air-card {
+@keyframes ll-silk-flow {
+  0% {
+    transform: translate3d(-5%, -2%, 0) rotate(-2deg) scale(1);
+  }
+  50% {
+    transform: translate3d(5%, 2%, 0) rotate(2deg) scale(1.05);
+  }
+  100% {
+    transform: translate3d(-5%, -2%, 0) rotate(-2deg) scale(1);
+  }
+}
+
+.ll-silk-ribbon {
+  animation: ll-silk-flow 10s ease-in-out infinite;
+}
+
+@keyframes ll-wave-sway {
+  0%, 100% {
+    transform: translate3d(-10px, 0, 0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translate3d(14px, 0, 0);
+    opacity: 1;
+  }
+}
+
+.ll-wave-row {
+  animation: ll-wave-sway 4.4s ease-in-out infinite;
+}
+
+/* =========================================================================
+   8. POINTER-TRACKING SKY-TINTED SPOTLIGHT CARD
+   ========================================================================= */
+.ll-spotlight-card {
   position: relative;
+  --mx: 50%;
+  --my: 50%;
   background: #ffffff;
-  border: 1px solid #e4e9f5;
-  box-shadow: 0 8px 30px -12px rgba(20, 27, 45, 0.06);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 24px -6px rgba(24, 34, 53, 0.06);
   transition:
     transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s ease,
+    border-color 0.35s ease,
     box-shadow 0.35s ease;
 }
 
-.ll-air-card:hover {
+.ll-spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    360px circle at var(--mx) var(--my),
+    rgba(59, 102, 184, 0.09),
+    rgba(245, 158, 11, 0.06) 45%,
+    transparent 76%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.ll-spotlight-card:hover {
   transform: translateY(-4px);
-  border-color: #c5d0f9;
-  box-shadow: 0 18px 40px -14px rgba(93, 109, 247, 0.16);
+  border-color: #b8ccf0;
+  box-shadow: 0 16px 34px -10px rgba(46, 85, 165, 0.14);
 }
 
-/* Soft glass surface for hero input bar & floating cards */
-.ll-sky-glass {
-  background: rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  box-shadow: 0 12px 32px -12px rgba(27, 56, 110, 0.25);
+.ll-spotlight-card:hover::before {
+  opacity: 1;
 }
 
-.ll-dashboard-frame {
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 248, 0.95);
-  box-shadow:
-    0 30px 70px -20px rgba(30, 48, 96, 0.18),
-    0 10px 24px -12px rgba(30, 48, 96, 0.08);
-  will-change: transform;
+/* =========================================================================
+   9. RADAR PULSE & GLASS LENSES
+   ========================================================================= */
+@keyframes ll-radar-pulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+.ll-radar-ring {
+  animation: ll-radar-pulse 4.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes ll-lens-tilt {
+  0%, 100% {
+    transform: translateY(0px) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-3deg);
+  }
+}
+
+.ll-glass-lens {
+  animation: ll-lens-tilt 8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ll-cloud-layer-a,
-  .ll-cloud-layer-b,
-  .ll-sky-reveal,
-  .ll-ticker-track {
+  .ll-cloud-left,
+  .ll-cloud-right,
+  .animate-float-slow,
+  .ll-justice-halo,
+  .ll-word-reveal,
+  .ll-window-rise,
+  .ll-marquee-track,
+  .ll-silk-ribbon,
+  .ll-wave-row,
+  .ll-radar-ring,
+  .ll-glass-lens {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;
   }
-  .ll-reveal {
+  .ll-reveal,
+  .ll-tilt-card {
     opacity: 1 !important;
     transform: none !important;
   }
