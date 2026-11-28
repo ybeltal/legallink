@@ -31,6 +31,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -40,6 +41,15 @@ export default function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const supabase = createClient();
+
+  const isHomeSkyOverlay = pathname === '/' && !scrolled && !mobileMenuOpen;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 36);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const primaryLinks = [
     { label: t('nav_find_lawyer'), href: '/find-a-lawyer' },
@@ -176,19 +186,38 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 text-[#18181B]">
+    <header
+      className={`z-50 transition-all duration-300 ${
+        pathname === '/' ? 'fixed top-0 inset-x-0' : 'sticky top-0'
+      } ${
+        isHomeSkyOverlay
+          ? 'bg-transparent border-b border-white/15 text-white'
+          : 'bg-white/92 backdrop-blur-xl border-b border-[#E5EAF5] text-[#141B2D] shadow-[0_4px_24px_-12px_rgba(20,27,45,0.08)]'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group cursor-pointer shrink-0">
-            <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
-            <span className="font-black text-xl tracking-tight text-[#18181B]">
-              Legal<span className="text-amber-600">Link</span>
+            <img src="/logo.png" alt="LegalLink Logo" className="w-7 h-7 object-contain" />
+            <span
+              className={`font-bold text-lg tracking-tight transition-colors ${
+                isHomeSkyOverlay ? 'text-white' : 'text-[#141B2D]'
+              }`}
+            >
+              Legal
+              <span className={isHomeSkyOverlay ? 'text-white/85' : 'text-[#5D6DF7]'}>
+                Link
+              </span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-xs font-bold text-slate-600">
+          <nav
+            className={`hidden md:flex items-center gap-6 lg:gap-8 text-xs font-medium ${
+              isHomeSkyOverlay ? 'text-white/90' : 'text-[#525E75]'
+            }`}
+          >
             {primaryLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -197,8 +226,12 @@ export default function Navbar() {
                   href={link.href}
                   className={`transition-colors py-1 ${
                     isActive
-                      ? 'text-[#18181B] font-black border-b-2 border-[#18181B]'
-                      : 'hover:text-[#18181B]'
+                      ? isHomeSkyOverlay
+                        ? 'text-white font-semibold'
+                        : 'text-[#141B2D] font-semibold border-b-2 border-[#5D6DF7]'
+                      : isHomeSkyOverlay
+                      ? 'hover:text-white'
+                      : 'hover:text-[#141B2D]'
                   }`}
                 >
                   {link.label}
@@ -212,20 +245,26 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
                 className={`py-1 flex items-center gap-1 transition-colors cursor-pointer ${
-                  isMoreActive || moreDropdownOpen ? 'text-[#18181B] font-black' : 'hover:text-[#18181B]'
+                  isMoreActive || moreDropdownOpen
+                    ? isHomeSkyOverlay
+                      ? 'text-white font-semibold'
+                      : 'text-[#141B2D] font-semibold'
+                    : isHomeSkyOverlay
+                    ? 'hover:text-white'
+                    : 'hover:text-[#141B2D]'
                 }`}
                 aria-expanded={moreDropdownOpen}
               >
                 <span>{language === 'am' ? 'ተጨማሪ' : 'More'}</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${
-                    moreDropdownOpen ? 'rotate-180 text-[#18181B]' : ''
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    moreDropdownOpen ? 'rotate-180' : ''
                   }`}
                 />
               </button>
 
               {moreDropdownOpen && (
-                <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 space-y-1 z-50">
+                <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-2xl border border-[#E4E9F5] shadow-xl p-2 space-y-1 z-50 text-[#141B2D]">
                   {moreDropdownLinks.map((item) => {
                     const isActive = pathname === item.href;
                     const IconComponent = item.icon;
@@ -235,32 +274,30 @@ export default function Navbar() {
                         href={item.href}
                         onClick={() => setMoreDropdownOpen(false)}
                         className={`p-2.5 rounded-xl flex items-start gap-3 transition-colors group cursor-pointer ${
-                          isActive
-                            ? 'bg-slate-100 text-[#18181B]'
-                            : 'hover:bg-slate-50 text-slate-700'
+                          isActive ? 'bg-[#ECEFFE] text-[#141B2D]' : 'hover:bg-[#F5F7FC] text-[#525E75]'
                         }`}
                       >
                         <div
                           className={`p-2 rounded-lg shrink-0 mt-0.5 ${
                             isActive
-                              ? 'bg-[#18181B] text-amber-400 font-bold'
-                              : 'bg-slate-100 text-[#18181B] group-hover:bg-[#18181B] group-hover:text-amber-400 transition-colors'
+                              ? 'bg-[#5D6DF7] text-white'
+                              : 'bg-[#F5F7FC] text-[#5D6DF7] group-hover:bg-[#5D6DF7] group-hover:text-white transition-colors'
                           }`}
                         >
                           <IconComponent className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-bold text-xs text-[#18181B]">
+                            <span className="font-semibold text-xs text-[#141B2D]">
                               {item.title}
                             </span>
                             {item.badge && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full bg-amber-100 text-amber-900">
+                              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#ECEFFE] text-[#5D6DF7]">
                                 {item.badge}
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-slate-500 leading-snug line-clamp-1 font-normal mt-0.5">
+                          <p className="text-[11px] text-[#647087] leading-snug line-clamp-1 font-normal mt-0.5">
                             {item.description}
                           </p>
                         </div>
@@ -274,14 +311,22 @@ export default function Navbar() {
 
           {/* Right Header Utilities */}
           <div className="hidden sm:flex items-center gap-3">
-            <div className="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200 text-xs font-bold">
+            <div
+              className={`flex items-center rounded-full p-0.5 border text-[11px] font-semibold ${
+                isHomeSkyOverlay
+                  ? 'bg-white/15 border-white/25'
+                  : 'bg-[#F5F7FC] border-[#E4E9F5]'
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => setLanguage('en')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   language === 'en'
-                    ? 'bg-white text-[#18181B] shadow-xs'
-                    : 'text-slate-600 hover:text-[#18181B]'
+                    ? 'bg-white text-[#141B2D] shadow-2xs'
+                    : isHomeSkyOverlay
+                    ? 'text-white/85 hover:text-white'
+                    : 'text-[#647087] hover:text-[#141B2D]'
                 }`}
               >
                 EN
@@ -289,10 +334,12 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setLanguage('am')}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                   language === 'am'
-                    ? 'bg-white text-[#18181B] shadow-xs'
-                    : 'text-slate-600 hover:text-[#18181B]'
+                    ? 'bg-white text-[#141B2D] shadow-2xs'
+                    : isHomeSkyOverlay
+                    ? 'text-white/85 hover:text-white'
+                    : 'text-[#647087] hover:text-[#141B2D]'
                 }`}
               >
                 አማ
@@ -304,43 +351,47 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-[#18181B] flex items-center gap-2 cursor-pointer"
+                  className={`px-3.5 py-2 rounded-full border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all ${
+                    isHomeSkyOverlay
+                      ? 'bg-white/20 hover:bg-white/30 border-white/35 text-white'
+                      : 'bg-[#F5F7FC] hover:bg-[#ECEFFE] border-[#E4E9F5] text-[#141B2D]'
+                  }`}
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   <span className="max-w-[120px] truncate">{displayName}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                  <ChevronDown className="w-3.5 h-3.5 opacity-75" />
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-xl p-2 space-y-1 z-50 text-xs">
-                    <div className="px-3 py-2 border-b border-slate-100">
-                      <p className="font-bold text-[#18181B] truncate">{displayName}</p>
-                      <p className="text-[10px] font-mono uppercase text-slate-500">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[#E4E9F5] shadow-xl p-2 space-y-1 z-50 text-xs text-[#141B2D]">
+                    <div className="px-3 py-2 border-b border-[#F1F4FA]">
+                      <p className="font-bold text-[#141B2D] truncate">{displayName}</p>
+                      <p className="text-[10px] font-mono uppercase text-[#7A859E]">
                         {userRole === 'advocate' ? 'Advocate Account' : 'Client Account'}
                       </p>
                     </div>
                     {userRole === 'advocate' ? (
                       <Link
                         href="/advocate/portal"
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#18181B]"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
                       >
-                        <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                        <Briefcase className="w-3.5 h-3.5 text-[#5D6DF7]" />
                         <span>Advocate Portal</span>
                       </Link>
                     ) : (
                       <>
                         <Link
                           href="/dashboard"
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#18181B]"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
                         >
-                          <LayoutDashboard className="w-3.5 h-3.5 text-emerald-600" />
+                          <LayoutDashboard className="w-3.5 h-3.5 text-[#5D6DF7]" />
                           <span>My Inquiries</span>
                         </Link>
                         <Link
                           href="/find-a-lawyer"
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:text-[#18181B]"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
                         >
-                          <User className="w-3.5 h-3.5 text-amber-600" />
+                          <User className="w-3.5 h-3.5 text-[#5D6DF7]" />
                           <span>Find an Advocate</span>
                         </Link>
                       </>
@@ -348,7 +399,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-red-600 hover:bg-red-50 cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -360,16 +411,24 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-[#18181B] transition-colors"
+                  className={`px-3 py-2 text-xs font-medium transition-colors ${
+                    isHomeSkyOverlay
+                      ? 'text-white/90 hover:text-white'
+                      : 'text-[#525E75] hover:text-[#141B2D]'
+                  }`}
                 >
                   {t('nav_sign_in')}
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-4 py-2.5 bg-[#18181B] hover:bg-[#27272A] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isHomeSkyOverlay
+                      ? 'bg-white/90 hover:bg-white text-[#141B2D] shadow-xs'
+                      : 'bg-[#ECEFFE] hover:bg-[#5D6DF7] text-[#141B2D] hover:text-white'
+                  }`}
                 >
                   <span>{t('nav_get_started')}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </>
             )}
@@ -380,14 +439,18 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
-              className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-[#18181B] cursor-pointer"
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer ${
+                isHomeSkyOverlay
+                  ? 'bg-white/20 text-white border border-white/30'
+                  : 'bg-[#F5F7FC] text-[#141B2D] border border-[#E4E9F5]'
+              }`}
             >
               {language === 'en' ? 'አማ' : 'EN'}
             </button>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-[#18181B] cursor-pointer"
+              className="p-2 cursor-pointer"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -398,22 +461,22 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-6 space-y-5">
-          <nav className="flex flex-col space-y-2 text-sm font-bold text-slate-700">
+        <div className="md:hidden border-t border-[#E4E9F5] bg-white text-[#141B2D] px-4 py-6 space-y-5 shadow-xl">
+          <nav className="flex flex-col space-y-2 text-sm font-semibold text-[#525E75]">
             {primaryLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-[#18181B]"
+                className="py-1.5 hover:text-[#141B2D]"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          <div className="pt-3 border-t border-slate-100 space-y-2">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-500 block px-1">
+          <div className="pt-3 border-t border-[#F1F4FA] space-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7A859E] block px-1">
               {language === 'am' ? 'ተጨማሪ አገልግሎቶች' : 'More Resources'}
             </span>
             <div className="grid grid-cols-1 gap-1">
@@ -422,14 +485,14 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-xl flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-[#18181B]"
+                  className="p-2 rounded-xl flex items-center justify-between text-xs font-semibold text-[#525E75] hover:bg-[#F5F7FC] hover:text-[#141B2D]"
                 >
                   <div className="flex items-center gap-2">
-                    <item.icon className="w-4 h-4 text-amber-600" />
+                    <item.icon className="w-4 h-4 text-[#5D6DF7]" />
                     <span>{item.title}</span>
                   </div>
                   {item.badge && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full bg-amber-100 text-amber-900">
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#ECEFFE] text-[#5D6DF7]">
                       {item.badge}
                     </span>
                   )}
@@ -438,38 +501,29 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-100 space-y-3">
+          <div className="pt-2 border-t border-[#F1F4FA] space-y-3">
             {isAuthenticated ? (
               <>
                 <div className="flex items-center justify-between px-2 py-1 text-xs">
-                  <span className="font-bold text-[#18181B]">{displayName}</span>
-                  <span className="font-mono uppercase text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                  <span className="font-bold text-[#141B2D]">{displayName}</span>
+                  <span className="font-mono uppercase text-[10px] px-2 py-0.5 rounded-full bg-[#ECEFFE] text-[#5D6DF7]">
                     {userRole}
                   </span>
                 </div>
-                {userRole === 'advocate' ? (
-                  <Link
-                    href="/advocate/portal"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 bg-[#18181B] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
-                  >
-                    <Briefcase className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Open Advocate Portal</span>
-                  </Link>
-                ) : (
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 bg-[#18181B] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5 text-amber-400" />
-                    <span>My Inquiries Dashboard</span>
-                  </Link>
-                )}
+                <Link
+                  href={userRole === 'advocate' ? '/advocate/portal' : '/dashboard'}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 bg-[#5D6DF7] text-white text-xs font-semibold rounded-full flex items-center justify-center gap-1.5"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>
+                    {userRole === 'advocate' ? 'Open Advocate Portal' : 'My Inquiries Dashboard'}
+                  </span>
+                </Link>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full py-2.5 border border-red-200 text-red-600 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2.5 border border-red-200 text-red-600 text-xs font-semibold rounded-full flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>
@@ -480,17 +534,17 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block text-center py-2 text-xs font-bold text-slate-700 hover:text-[#18181B]"
+                  className="block text-center py-2 text-xs font-semibold text-[#525E75] hover:text-[#141B2D]"
                 >
                   {t('nav_sign_in')}
                 </Link>
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-3 bg-[#18181B] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full py-3 bg-[#5D6DF7] text-white text-xs font-semibold rounded-full flex items-center justify-center gap-1.5"
                 >
                   <span>{t('nav_get_started')}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </>
             )}

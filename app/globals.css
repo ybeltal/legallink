@@ -1,98 +1,94 @@
 @import "tailwindcss";
 
 :root {
+  --ll-sky-top: #4b75ba;
+  --ll-sky-mid: #7ea6de;
+  --ll-sky-horizon: #c9ddf5;
+  --ll-surface: #f5f7fc;
   --ll-white: #ffffff;
-  --ll-alabaster: #f8fafc;
-  --ll-ink: #18181b;
-  --ll-charcoal: #27272a;
-  --ll-amber: #d97706;
-  --ll-emerald: #059669;
+  --ll-border: #e4e9f5;
+  --ll-ink: #141b2d;
+  --ll-muted: #647087;
+  --ll-accent: #5d6df7;
+  --ll-accent-soft: #eceffe;
 }
 
 html {
   scroll-behavior: smooth;
-  background-color: #ffffff;
+  background-color: #f5f7fc;
 }
 
 body {
-  background-color: #ffffff;
-  color: #18181b;
+  background-color: #f5f7fc;
+  color: #141b2d;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* =========================================================================
-   1. VOLUMETRIC SPOTLIGHT & AMBIENT FLOATING LEGAL MOTES (LIGHT MODE)
+   1. DAYLIGHT SKY GRADIENT & DRIFTING CLOUD LAYERS (VIDEO 00:00–00:02)
    ========================================================================= */
-@keyframes ll-beam-breathe {
-  0%, 100% {
-    opacity: 0.75;
-    transform: translateX(-50%) scaleX(1) scaleY(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-50%) scaleX(1.06) scaleY(1.03);
-  }
-}
-
-@keyframes ll-mote-drift {
-  0%, 100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-    opacity: 0.25;
-  }
-  50% {
-    transform: translate3d(10px, -18px, 0) rotate(3deg);
-    opacity: 0.55;
-  }
-}
-
-@keyframes ll-float-slow {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.animate-float-slow {
-  animation: ll-float-slow 7s ease-in-out infinite;
-}
-
-.ll-volumetric-beam {
-  position: absolute;
-  top: -140px;
-  left: 50%;
-  width: min(1150px, 140vw);
-  height: 620px;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    ellipse 54% 58% at 50% 10%,
-    rgba(245, 158, 11, 0.14) 0%,
-    rgba(24, 24, 27, 0.04) 44%,
-    rgba(255, 255, 255, 0) 76%
+.ll-sky-canvas {
+  background: linear-gradient(
+    180deg,
+    #456fb5 0%,
+    #638ece 32%,
+    #94b8e6 64%,
+    #d5e4f7 86%,
+    #f5f7fc 100%
   );
-  pointer-events: none;
-  filter: blur(18px);
-  animation: ll-beam-breathe 8s ease-in-out infinite;
 }
 
-.ll-mote {
-  animation: ll-mote-drift 9s ease-in-out infinite;
+@keyframes ll-cloud-drift-slow {
+  0% {
+    transform: translate3d(-4%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(5%, -10px, 0) scale(1.05);
+  }
+  100% {
+    transform: translate3d(-4%, 0, 0) scale(1);
+  }
 }
 
-.mask-radial-fade {
-  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 76%);
-  mask-image: radial-gradient(circle at center, black 40%, transparent 76%);
+@keyframes ll-cloud-drift-reverse {
+  0% {
+    transform: translate3d(4%, 0, 0) scale(1.03);
+  }
+  50% {
+    transform: translate3d(-5%, 8px, 0) scale(0.98);
+  }
+  100% {
+    transform: translate3d(4%, 0, 0) scale(1.03);
+  }
+}
+
+.ll-cloud-layer-a {
+  background:
+    radial-gradient(ellipse 36% 24% at 18% 28%, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(ellipse 42% 28% at 78% 22%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(ellipse 30% 22% at 52% 48%, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: blur(26px);
+  animation: ll-cloud-drift-slow 24s ease-in-out infinite;
+}
+
+.ll-cloud-layer-b {
+  background:
+    radial-gradient(ellipse 48% 30% at 24% 68%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(ellipse 44% 28% at 84% 62%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 75%),
+    radial-gradient(ellipse 34% 20% at 46% 18%, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: blur(32px);
+  animation: ll-cloud-drift-reverse 30s ease-in-out infinite;
 }
 
 /* =========================================================================
-   2. WORD-BY-WORD BLUR-TO-FOCUS KINETIC HEADLINE REVEAL
+   2. HERO BLUR-TO-FOCUS ENTRY & RISING MOCKUP (VIDEO 00:00–00:01)
    ========================================================================= */
-@keyframes ll-word-focus-in {
+@keyframes ll-sky-fade-up {
   0% {
     opacity: 0;
-    filter: blur(12px);
-    transform: translate3d(0, 18px, 0) scale(0.97);
+    filter: blur(10px);
+    transform: translate3d(0, 22px, 0) scale(0.985);
   }
   100% {
     opacity: 1;
@@ -101,21 +97,20 @@ body {
   }
 }
 
-.ll-word-reveal {
-  display: inline-block;
+.ll-sky-reveal {
   opacity: 0;
-  animation: ll-word-focus-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: ll-sky-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* =========================================================================
-   3. SCROLL-TRIGGERED SECTION REVEALS
+   3. SCROLL-TRIGGERED SECTION & GRID REVEALS (VIDEO 00:07–00:09)
    ========================================================================= */
 .ll-reveal {
   opacity: 0;
   transform: translate3d(0, 24px, 0);
   transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ll-reveal.ll-reveal-visible {
@@ -124,9 +119,9 @@ body {
 }
 
 /* =========================================================================
-   4. GIANT HORIZONTAL KINETIC MARQUEE
+   4. MINIMAL MONOCHROME ECOSYSTEM TICKER (VIDEO 00:06–00:08)
    ========================================================================= */
-@keyframes ll-marquee-scroll {
+@keyframes ll-ticker-scroll {
   0% {
     transform: translate3d(0, 0, 0);
   }
@@ -135,190 +130,59 @@ body {
   }
 }
 
-@keyframes ll-marquee-scroll-reverse {
-  0% {
-    transform: translate3d(-50%, 0, 0);
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.ll-marquee-track {
+.ll-ticker-track {
   display: flex;
   width: max-content;
-  animation: ll-marquee-scroll 34s linear infinite;
+  animation: ll-ticker-scroll 34s linear infinite;
 }
 
-.ll-marquee-track-reverse {
-  display: flex;
-  width: max-content;
-  animation: ll-marquee-scroll-reverse 38s linear infinite;
-}
-
-.ll-marquee-wrapper:hover .ll-marquee-track,
-.ll-marquee-wrapper:hover .ll-marquee-track-reverse {
+.ll-ticker-wrapper:hover .ll-ticker-track {
   animation-play-state: paused;
 }
 
 /* =========================================================================
-   5. VERTICAL SINUSOIDAL WORD STACK WAVE
+   5. AIRY ELEVATED WHITE CARDS & SOFT PERIWINKLE HOVER GLOW
    ========================================================================= */
-@keyframes ll-wave-sway {
-  0%, 100% {
-    transform: translate3d(-12px, 0, 0);
-    opacity: 0.55;
-  }
-  50% {
-    transform: translate3d(16px, 0, 0);
-    opacity: 1;
-  }
-}
-
-.ll-wave-row {
-  animation: ll-wave-sway 4.4s ease-in-out infinite;
-}
-
-/* =========================================================================
-   6. SILK AURORA RIBBON WAVE FOR 3-STEP STAGE
-   ========================================================================= */
-@keyframes ll-silk-flow {
-  0% {
-    transform: translate3d(-6%, -2%, 0) rotate(-3deg) scale(1);
-  }
-  50% {
-    transform: translate3d(6%, 3%, 0) rotate(3deg) scale(1.06);
-  }
-  100% {
-    transform: translate3d(-6%, -2%, 0) rotate(-3deg) scale(1);
-  }
-}
-
-.ll-silk-ribbon {
-  animation: ll-silk-flow 10s ease-in-out infinite;
-}
-
-/* =========================================================================
-   7. POINTER-TRACKING RADIAL SPOTLIGHT CARD (WHITE MAJOR + LIGHT BLACK)
-   ========================================================================= */
-.ll-spotlight-card {
+.ll-air-card {
   position: relative;
-  --mx: 50%;
-  --my: 50%;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(24, 24, 27, 0.1);
-  box-shadow: 0 4px 20px -4px rgba(24, 24, 27, 0.05);
+  background: #ffffff;
+  border: 1px solid #e4e9f5;
+  box-shadow: 0 8px 30px -12px rgba(20, 27, 45, 0.06);
   transition:
     transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.35s ease,
+    border-color 0.3s ease,
     box-shadow 0.35s ease;
 }
 
-.ll-spotlight-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    360px circle at var(--mx) var(--my),
-    rgba(24, 24, 27, 0.055),
-    rgba(217, 119, 6, 0.08) 42%,
-    transparent 76%
-  );
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-}
-
-.ll-spotlight-card:hover {
+.ll-air-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(24, 24, 27, 0.28);
-  box-shadow: 0 14px 32px -8px rgba(24, 24, 27, 0.1);
+  border-color: #c5d0f9;
+  box-shadow: 0 18px 40px -14px rgba(93, 109, 247, 0.16);
 }
 
-.ll-spotlight-card:hover::before {
-  opacity: 1;
+/* Soft glass surface for hero input bar & floating cards */
+.ll-sky-glass {
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 12px 32px -12px rgba(27, 56, 110, 0.25);
 }
 
-/* =========================================================================
-   8. HORIZON DOME & SHOOTING STREAKS (LIGHT MODE)
-   ========================================================================= */
-@keyframes ll-shooting-streak {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) rotate(-32deg);
-  }
-  15% {
-    opacity: 0.85;
-  }
-  45% {
-    opacity: 0;
-    transform: translate3d(-220px, 140px, 0) rotate(-32deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(-220px, 140px, 0) rotate(-32deg);
-  }
-}
-
-.ll-shooting-star {
-  position: absolute;
-  width: 95px;
-  height: 1.5px;
-  background: linear-gradient(
-    90deg,
-    rgba(24, 24, 27, 0.65),
-    rgba(217, 119, 6, 0.45),
-    transparent
-  );
-  border-radius: 999px;
-  animation: ll-shooting-streak 7s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* =========================================================================
-   9. CONCENTRIC RADAR RINGS & GLASS LENSES (LIGHT MODE)
-   ========================================================================= */
-@keyframes ll-radar-pulse {
-  0% {
-    transform: scale(0.82);
-    opacity: 0.65;
-  }
-  100% {
-    transform: scale(1.38);
-    opacity: 0;
-  }
-}
-
-.ll-radar-ring {
-  animation: ll-radar-pulse 4.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-@keyframes ll-lens-tilt {
-  0%, 100% {
-    transform: translateY(0px) rotate(-8deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(-3deg);
-  }
-}
-
-.ll-glass-lens {
-  animation: ll-lens-tilt 8s ease-in-out infinite;
+.ll-dashboard-frame {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 248, 0.95);
+  box-shadow:
+    0 30px 70px -20px rgba(30, 48, 96, 0.18),
+    0 10px 24px -12px rgba(30, 48, 96, 0.08);
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ll-volumetric-beam,
-  .ll-mote,
-  .animate-float-slow,
-  .ll-word-reveal,
-  .ll-marquee-track,
-  .ll-marquee-track-reverse,
-  .ll-wave-row,
-  .ll-silk-ribbon,
-  .ll-shooting-star,
-  .ll-radar-ring,
-  .ll-glass-lens {
+  .ll-cloud-layer-a,
+  .ll-cloud-layer-b,
+  .ll-sky-reveal,
+  .ll-ticker-track {
     animation: none !important;
     opacity: 1 !important;
     filter: none !important;
