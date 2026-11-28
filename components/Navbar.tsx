@@ -17,6 +17,7 @@ import {
   Scale,
   LayoutDashboard,
 } from 'lucide-react';
+import { ScrollProgressRibbon } from '@/components/MotionPrimitives';
 import { useLanguage } from '@/context/LanguageContext';
 import { createClient } from '@/lib/supabase/client';
 
@@ -197,7 +198,6 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group cursor-pointer shrink-0">
             <img src="/logo.png" alt="LegalLink Logo" className="w-8 h-8 object-contain" />
             <span
@@ -209,7 +209,6 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation Links */}
           <nav
             className={`hidden md:flex items-center gap-5 lg:gap-7 text-xs font-bold transition-colors ${
               isHomeTop ? 'text-white/90' : 'text-slate-600'
@@ -236,7 +235,6 @@ export default function Navbar() {
               );
             })}
 
-            {/* More Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -304,7 +302,6 @@ export default function Navbar() {
             </div>
           </nav>
 
-          {/* Right Header Utilities */}
           <div className="hidden sm:flex items-center gap-3">
             <div
               className={`flex items-center rounded-full p-1 border text-xs font-bold transition-colors ${
@@ -429,7 +426,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="flex items-center gap-2 md:hidden">
             <button
               type="button"
@@ -454,7 +450,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white text-[#182235] px-4 py-6 space-y-5 shadow-xl">
           <nav className="flex flex-col space-y-2 text-sm font-bold text-slate-700">
@@ -555,6 +550,8 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      <ScrollProgressRibbon />
     </header>
   );
 }

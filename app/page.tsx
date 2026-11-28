@@ -28,6 +28,7 @@ import Navbar from '@/components/Navbar';
 import HeroBookingCard from '@/components/HeroBookingCard';
 import ClientTestimonialsCarousel from '@/components/ClientTestimonialsCarousel';
 import {
+  useScrollTelemetry,
   RevealOnScroll,
   KineticHeadline,
   SkyDashboardPreview,
@@ -42,6 +43,8 @@ import { useLanguage } from '@/context/LanguageContext';
 export default function HomePage() {
   const { language, t } = useLanguage();
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
+
+  useScrollTelemetry();
 
   const practiceAreas = [
     { title: t('pa_corp_title'), desc: t('pa_corp_desc'), icon: Building2, slug: 'corporate' },
@@ -185,42 +188,37 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#F5F7FB] text-[#182235] font-sans selection:bg-[#3B66B8] selection:text-white flex flex-col">
-      {/* 01. Adaptive Navigation Bar (Transparent over Sky -> Frosted White on Scroll) */}
       <Navbar />
 
-      {/* 02. Sky Azure Hero Section with Creative Sky-Sculpted Lady Justice & Floating Workspace */}
+      {/* 02. Sky Azure Hero with Scroll-Parallax Clouds, Lady Justice & Unfolding Workspace */}
       <section className="relative -mt-16 sm:-mt-20 pt-28 sm:pt-36 pb-20 md:pb-28 overflow-hidden ll-sky-canvas">
-        {/* Drifting Sunlit Cloud Wisps */}
-        <div
-          aria-hidden="true"
-          className="ll-cloud-left pointer-events-none absolute top-14 -left-24 w-[480px] h-[220px] rounded-full bg-white/25 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="ll-cloud-right pointer-events-none absolute top-28 -right-24 w-[520px] h-[240px] rounded-full bg-white/30 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="ll-cloud-left pointer-events-none absolute top-72 left-1/4 w-[620px] h-[200px] rounded-full bg-white/35 blur-3xl"
-        />
+        <div className="ll-parallax-cloud-left pointer-events-none absolute top-14 -left-24" aria-hidden="true">
+          <div className="ll-cloud-left w-[480px] h-[220px] rounded-full bg-white/25 blur-3xl" />
+        </div>
+        <div className="ll-parallax-cloud-right pointer-events-none absolute top-28 -right-24" aria-hidden="true">
+          <div className="ll-cloud-right w-[520px] h-[240px] rounded-full bg-white/30 blur-3xl" />
+        </div>
+        <div className="ll-parallax-cloud-left pointer-events-none absolute top-72 left-1/4" aria-hidden="true">
+          <div className="ll-cloud-left w-[620px] h-[200px] rounded-full bg-white/35 blur-3xl" />
+        </div>
 
-        {/* Creative Lady Justice Rising Through the Sky Behind the Hero */}
+        {/* Scroll-Parallax Lady Justice Rising in the Sky */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-10 sm:top-12 flex justify-center items-start z-0 select-none overflow-hidden"
         >
-          {/* Warm Sunlit Halo Behind Lady Justice */}
-          <div className="ll-justice-halo absolute top-6 w-[340px] sm:w-[480px] h-[340px] sm:h-[480px] rounded-full bg-radial from-white/55 via-amber-200/25 to-transparent blur-2xl" />
-          <img
-            src="/lady-justice.png"
-            alt=""
-            className="w-[330px] sm:w-[460px] lg:w-[520px] h-auto object-contain animate-float-slow mask-radial-fade opacity-30 sm:opacity-35 mix-blend-luminosity drop-shadow-[0_18px_40px_rgba(24,34,53,0.18)]"
-          />
+          <div className="ll-parallax-justice relative flex items-center justify-center">
+            <div className="ll-justice-halo absolute top-6 w-[340px] sm:w-[480px] h-[340px] sm:h-[480px] rounded-full bg-radial from-white/55 via-amber-200/25 to-transparent blur-2xl" />
+            <img
+              src="/lady-justice.png"
+              alt=""
+              className="w-[330px] sm:w-[460px] lg:w-[520px] h-auto object-contain animate-float-slow mask-radial-fade opacity-30 sm:opacity-35 mix-blend-luminosity drop-shadow-[0_18px_40px_rgba(24,34,53,0.18)]"
+            />
+          </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
-          {/* Centered Sky Hero Copy & Glass Pill Bar (Matches Video 00:00.500–00:02.000) */}
-          <div className="max-w-3xl mx-auto text-center space-y-6">
+          <div className="ll-parallax-hero-copy max-w-3xl mx-auto text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 text-white border border-white/35 backdrop-blur-md text-xs font-bold shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
               <span>{t('hero_badge')}</span>
@@ -232,7 +230,6 @@ export default function HomePage() {
               {t('hero_sub')}
             </p>
 
-            {/* Frosted Glass Pill Action Bar (Mirrors Credix Email/Open Account Pill) */}
             <div className="max-w-lg mx-auto p-1.5 rounded-full bg-white/25 border border-white/45 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Link
                 href="/find-a-lawyer"
@@ -250,7 +247,6 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* 4 Generic Ecosystem Glass Pills */}
             <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
               {heroPillars.map((pillar) => {
                 const Icon = pillar.icon;
@@ -272,12 +268,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Overlapping Floating LegalLink Workspace Preview Window (Video 00:01–00:03.5) */}
           <SkyDashboardPreview />
         </div>
       </section>
 
-      {/* 03. Clean Horizontal Capability Strip (Video 00:06.5) */}
+      {/* 03. Scroll-Velocity Responsive Marquee Strip */}
       <KineticMarquee
         items={[
           'Verified Ethiopian Advocates',
@@ -289,7 +284,7 @@ export default function HomePage() {
         ]}
       />
 
-      {/* 04. Asymmetric Split Section with 3D-Tilted Floating Consultation Card (Video 00:04–00:06) */}
+      {/* 04. Asymmetric Split Section with Scroll-Aligned 3D Consultation Card */}
       <section
         id="consultation-spotlight"
         className="py-20 md:py-28 bg-white border-b border-slate-200/80 relative overflow-hidden"
@@ -334,7 +329,6 @@ export default function HomePage() {
               </div>
             </RevealOnScroll>
 
-            {/* 3D Perspective-Tilted Floating Consultation Card (Video 00:04.5) */}
             <RevealOnScroll
               delayMs={140}
               className="lg:col-span-6 flex justify-center ll-perspective-stage"
@@ -350,7 +344,7 @@ export default function HomePage() {
       {/* 05. Interactive 3-Step Sky-Silk Stage ("How It Works") */}
       <InteractiveSilkHowItWorks />
 
-      {/* 06. Practice Areas (Centered Pill Badge + Staggered Grid — Video 00:07–00:09) */}
+      {/* 06. Practice Areas */}
       <section className="py-20 md:py-28 bg-white border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2.5">
@@ -486,7 +480,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 08. Ethiopian Diaspora Legal Desk (Sky-Blue Horizon Banner) */}
+      {/* 08. Ethiopian Diaspora Legal Desk */}
       <section className="relative bg-gradient-to-br from-[#2E55A5] via-[#3B66B8] to-[#5784D6] text-white py-20 md:py-28 overflow-hidden">
         <div
           aria-hidden="true"
@@ -683,13 +677,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 11. Auto-Rotating "What Our Clients Say" (Managed Live via /admin) */}
+      {/* 11. Auto-Rotating "What Our Clients Say" */}
       <ClientTestimonialsCarousel />
 
       {/* 12. Why LegalLink Grid + Smooth Accordion FAQ + Radar CTA */}
       <section id="about" className="py-20 md:py-28 bg-white border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-          {/* Why LegalLink */}
           <div className="space-y-12">
             <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2.5">
               <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-[#EEF3FB] border border-[#D6E2F5] text-[11px] font-bold text-[#3B66B8] uppercase tracking-widest font-mono">
@@ -724,7 +717,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Smooth Animated FAQ Accordion */}
           <div className="max-w-3xl mx-auto space-y-6">
             <RevealOnScroll className="text-center space-y-2.5">
               <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-[#EEF3FB] border border-[#D6E2F5] text-[11px] font-mono font-bold uppercase tracking-widest text-[#3B66B8]">
@@ -776,7 +768,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Concentric Radar Pulse & Glass Lenses CTA */}
           <RevealOnScroll>
             <RadarPulseEcosystemCTA />
           </RevealOnScroll>
@@ -784,7 +775,7 @@ export default function HomePage() {
       </section>
 
       {/* 13. Official Footer */}
-      <footer className="bg-[#182235] text-slate-300 text-xs">
+      <footer className="bg-[#182235] text-slate-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
             <div className="space-y-4 col-span-2">

@@ -19,7 +19,97 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 
 /* =========================================================================
-   1. STAGGERED SCROLL-TRIGGERED REVEAL WRAPPER (VIDEO 00:07–00:09)
+   0. SMOOTH 60FPS SCROLL TELEMETRY & TOP PROGRESS RIBBON
+   ========================================================================= */
+export function useScrollTelemetry() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const reduced =
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+
+    let rafId = 0;
+
+    const updateVars = () => {
+      rafId = 0;
+      const scrollY = Math.max(0, window.scrollY || 0);
+      const docHeight = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const progress = Math.min(1, Math.max(0, scrollY / docHeight));
+
+      document.documentElement.style.setProperty('--scroll-y', `${scrollY.toFixed(1)}px`);
+      document.documentElement.style.setProperty('--scroll-progress', progress.toFixed(4));
+    };
+
+    const onScroll = () => {
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(updateVars);
+      }
+    };
+
+    updateVars();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+}
+
+export function ScrollProgressRibbon() {
+  const [percent, setPercent] = useState(0);
+
+  useEffect(() => {
+    let rafId = 0;
+
+    const handleScroll = () => {
+      rafId = 0;
+      const scrollTop = Math.max(0, window.scrollY || 0);
+      const maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      setPercent(Math.min(100, Math.max(0, (scrollTop / maxScroll) * 100)));
+    };
+
+    const onScroll = () => {
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(handleScroll);
+      }
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="h-[2.5px] w-full bg-slate-200/30 overflow-hidden pointer-events-none"
+    >
+      <div
+        style={{ width: `${percent}%` }}
+        className="h-full bg-gradient-to-r from-[#2E55A5] via-[#4E7CD1] to-amber-400 transition-[width] duration-75 ease-out"
+      />
+    </div>
+  );
+}
+
+/* =========================================================================
+   1. STAGGERED SCROLL-TRIGGERED BLUR-SCALE REVEAL WRAPPER
    ========================================================================= */
 export function RevealOnScroll({
   children,
@@ -46,7 +136,7 @@ export function RevealOnScroll({
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -24px 0px' }
     );
 
     observer.observe(el);
@@ -65,7 +155,7 @@ export function RevealOnScroll({
 }
 
 /* =========================================================================
-   2. CRISP WHITE OVER SKY BLUR-TO-FOCUS HEADLINE (VIDEO 00:00–00:02)
+   2. CRISP WHITE OVER SKY BLUR-TO-FOCUS HEADLINE
    ========================================================================= */
 export function KineticHeadline({
   primaryText,
@@ -106,15 +196,14 @@ export function KineticHeadline({
 }
 
 /* =========================================================================
-   3. OVERLAPPING FLOATING LEGALLINK WORKSPACE PREVIEW (VIDEO 00:01–00:03.5)
+   3. OVERLAPPING FLOATING LEGALLINK WORKSPACE PREVIEW (SCROLL-UNFOLDING)
    ========================================================================= */
 export function SkyDashboardPreview() {
   const { language } = useLanguage();
 
   return (
-    <div className="ll-window-rise max-w-5xl mx-auto rounded-[28px] border border-white/80 bg-white/95 backdrop-blur-xl shadow-[0_28px_80px_-16px_rgba(30,58,118,0.24)] overflow-hidden text-left text-[#182235]">
+    <div className="ll-window-rise ll-scroll-unfold-card max-w-5xl mx-auto rounded-[28px] border border-white/80 bg-white/95 backdrop-blur-xl shadow-[0_28px_80px_-16px_rgba(30,58,118,0.26)] overflow-hidden text-left text-[#182235]">
       <div className="grid grid-cols-1 md:grid-cols-12">
-        {/* Left App Sidebar (Matches Credix Left Sidebar) */}
         <div className="hidden md:flex md:col-span-3 bg-[#F8FAFE] border-r border-slate-200/80 p-5 flex-col justify-between">
           <div className="space-y-5">
             <div className="flex items-center gap-2 px-2">
@@ -169,9 +258,7 @@ export function SkyDashboardPreview() {
           </div>
         </div>
 
-        {/* Right Main App Preview Area */}
         <div className="md:col-span-9 p-5 sm:p-7 space-y-6 bg-white">
-          {/* Top Search & User Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#F5F7FB] border border-slate-200/80 text-xs text-slate-500 w-full sm:w-64">
               <Search className="w-3.5 h-3.5 text-slate-400" />
@@ -191,9 +278,7 @@ export function SkyDashboardPreview() {
             </div>
           </div>
 
-          {/* Dashboard Cards Row */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Left Blue Verified Chamber Card (Mirrors Credix Blue Card) */}
             <div className="lg:col-span-5 rounded-2xl p-5 text-white bg-gradient-to-br from-[#3B66B8] via-[#4D79CE] to-[#749CE2] shadow-md flex flex-col justify-between space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full font-bold">
@@ -216,7 +301,6 @@ export function SkyDashboardPreview() {
               </div>
             </div>
 
-            {/* Middle Quick Status Cards */}
             <div className="lg:col-span-4 grid grid-cols-2 gap-3">
               <div className="p-4 rounded-2xl bg-[#F5F7FB] border border-slate-200/70 flex flex-col justify-between">
                 <div className="w-8 h-8 rounded-xl bg-[#182235] text-white flex items-center justify-center">
@@ -256,7 +340,6 @@ export function SkyDashboardPreview() {
               </div>
             </div>
 
-            {/* Right Quick Launch Panel */}
             <div className="lg:col-span-3 p-4 rounded-2xl bg-[#F8FAFE] border border-slate-200/80 flex flex-col justify-between space-y-3">
               <div>
                 <span className="text-[10px] font-mono uppercase text-slate-500 font-bold block">
@@ -289,7 +372,6 @@ export function SkyDashboardPreview() {
             </div>
           </div>
 
-          {/* Bottom Activity Rows (Mirrors Credix Recent Transactions List) */}
           <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <Link
               href="/lexdraft"
@@ -371,22 +453,60 @@ export function SpotlightCard({
 }
 
 /* =========================================================================
-   5. CLEAN HORIZONTAL ECOSYSTEM STRIP (VIDEO 00:06.5)
+   5. SCROLL-VELOCITY REACTIVE MARQUEE STRIP
    ========================================================================= */
 export function KineticMarquee({ items }: { items: string[] }) {
   const doubled = [...items, ...items];
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let lastScrollY = window.scrollY || 0;
+    let velocityBoost = 0;
+    let rafId = 0;
+
+    const onWheelOrScroll = () => {
+      const currentY = window.scrollY || 0;
+      const delta = Math.min(40, Math.abs(currentY - lastScrollY));
+      lastScrollY = currentY;
+      velocityBoost = Math.min(28, velocityBoost + delta * 0.45);
+    };
+
+    const tick = () => {
+      if (trackRef.current) {
+        if (velocityBoost > 0.1) {
+          trackRef.current.style.transform = `translate3d(${(-velocityBoost).toFixed(1)}px, 0, 0)`;
+          velocityBoost *= 0.88;
+        } else {
+          velocityBoost = 0;
+          trackRef.current.style.transform = '';
+        }
+      }
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    window.addEventListener('scroll', onWheelOrScroll, { passive: true });
+    rafId = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onWheelOrScroll);
+    };
+  }, []);
 
   return (
     <div className="ll-marquee-wrapper relative overflow-hidden py-7 border-y border-slate-200/80 bg-white select-none">
-      <div className="ll-marquee-track items-center">
-        {doubled.map((item, idx) => (
-          <div key={idx} className="flex items-center shrink-0">
-            <span className="inline-flex items-center gap-2.5 text-lg sm:text-2xl font-extrabold tracking-tight px-8 text-slate-700">
-              <span className="w-2 h-2 rounded-full bg-[#3B66B8]" />
-              <span>{item}</span>
-            </span>
-          </div>
-        ))}
+      <div ref={trackRef} className="transition-transform duration-150 ease-out">
+        <div className="ll-marquee-track items-center">
+          {doubled.map((item, idx) => (
+            <div key={idx} className="flex items-center shrink-0">
+              <span className="inline-flex items-center gap-2.5 text-lg sm:text-2xl font-extrabold tracking-tight px-8 text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-[#3B66B8]" />
+                <span>{item}</span>
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -484,13 +604,11 @@ export function InteractiveSilkHowItWorks() {
           <p className="text-xs sm:text-sm text-slate-600">{t('hiw_sub')}</p>
         </RevealOnScroll>
 
-        {/* Sky-Tinted Glass Stage */}
         <div
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           className="relative rounded-[2rem] border border-[#D6E2F5] bg-gradient-to-b from-[#EEF3FB] via-white to-[#F5F7FB] overflow-hidden p-6 sm:p-12 shadow-sm"
         >
-          {/* Animated Flowing Sky Silk Ribbons */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="ll-silk-ribbon absolute -inset-x-24 top-1/4 h-56 bg-gradient-to-r from-[#3B66B8]/15 via-[#7AA4E4]/20 to-amber-300/15 blur-3xl rounded-full" />
             <div
@@ -499,7 +617,6 @@ export function InteractiveSilkHowItWorks() {
             />
           </div>
 
-          {/* Floating White Glass Preview Card */}
           <div className="relative z-10 max-w-xl mx-auto">
             <div
               key={activeStep}
@@ -546,7 +663,6 @@ export function InteractiveSilkHowItWorks() {
             </div>
           </div>
 
-          {/* Bottom 3-Step Selector Tabs */}
           <div className="relative z-10 mt-10 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-5">
             {steps.map((step, idx) => {
               const isSelected = activeStep === idx;
@@ -588,7 +704,7 @@ export function InteractiveSilkHowItWorks() {
 }
 
 /* =========================================================================
-   7. VERTICAL SINUSOIDAL KINETIC STACK (SKY BLUE & DEEP SLATE)
+   7. VERTICAL SINUSOIDAL KINETIC STACK
    ========================================================================= */
 export function VerticalKineticWaveStack() {
   const { language } = useLanguage();
@@ -634,12 +750,11 @@ export function VerticalKineticWaveStack() {
 }
 
 /* =========================================================================
-   8. CONCENTRIC RADAR PULSE + GLASS LENSES CTA (SKY BLUE & WHITE)
+   8. CONCENTRIC RADAR PULSE + GLASS LENSES CTA
    ========================================================================= */
 export function RadarPulseEcosystemCTA() {
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-[#D6E2F5] bg-gradient-to-b from-[#EEF3FB] via-white to-[#F5F7FB] px-6 py-16 sm:py-20 text-center shadow-sm">
-      {/* Concentric Pulsing Radar Rings */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-64 h-64 rounded-full border border-dashed border-[#3B66B8]/30 ll-radar-ring" />
         <div
@@ -652,7 +767,6 @@ export function RadarPulseEcosystemCTA() {
         />
       </div>
 
-      {/* Overlapping Translucent Frosted Glass Lenses */}
       <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4 pointer-events-none opacity-80">
         <div className="w-36 h-36 rounded-full border border-[#D6E2F5] bg-gradient-to-tr from-[#3B66B8]/10 to-white/60 backdrop-blur-md ll-glass-lens" />
         <div

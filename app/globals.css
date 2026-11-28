@@ -9,6 +9,8 @@
   --ll-slate-ink: #182235;
   --ll-slate-muted: #526077;
   --ll-amber: #f59e0b;
+  --scroll-y: 0px;
+  --scroll-progress: 0;
 }
 
 html {
@@ -23,7 +25,7 @@ body {
 }
 
 /* =========================================================================
-   1. SUNLIT AZURE SKY CANVAS & DRIFTING CLOUD WISPS (VIDEO 00:00–00:02)
+   1. SUNLIT AZURE SKY CANVAS & SCROLL-LINKED PARALLAX LAYERS
    ========================================================================= */
 .ll-sky-canvas {
   background: linear-gradient(
@@ -41,7 +43,7 @@ body {
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(-28px, -8px, 0) scale(1.04);
+    transform: translate3d(-24px, -6px, 0) scale(1.04);
   }
 }
 
@@ -50,7 +52,7 @@ body {
     transform: translate3d(0, 0, 0) scale(1);
   }
   50% {
-    transform: translate3d(28px, 6px, 0) scale(1.05);
+    transform: translate3d(24px, 6px, 0) scale(1.05);
   }
 }
 
@@ -60,6 +62,28 @@ body {
 
 .ll-cloud-right {
   animation: ll-cloud-drift-right 16s ease-in-out infinite;
+}
+
+.ll-parallax-cloud-left {
+  transform: translate3d(calc(var(--scroll-progress) * -48px), calc(var(--scroll-y) * -0.14), 0);
+  will-change: transform;
+}
+
+.ll-parallax-cloud-right {
+  transform: translate3d(calc(var(--scroll-progress) * 48px), calc(var(--scroll-y) * -0.1), 0);
+  will-change: transform;
+}
+
+.ll-parallax-justice {
+  transform: translate3d(0, calc(var(--scroll-y) * -0.22), 0)
+    scale(calc(1 + var(--scroll-progress) * 0.06));
+  will-change: transform;
+}
+
+.ll-parallax-hero-copy {
+  transform: translate3d(0, calc(var(--scroll-y) * 0.12), 0);
+  opacity: calc(1 - var(--scroll-progress) * 0.45);
+  will-change: transform, opacity;
 }
 
 /* =========================================================================
@@ -121,7 +145,7 @@ body {
 }
 
 /* =========================================================================
-   4. FLOATING DASHBOARD RISE & 3D PERSPECTIVE TILT (VIDEO 00:01–00:06)
+   4. FLOATING DASHBOARD SCROLL-UNFOLD & 3D PERSPECTIVE TILT
    ========================================================================= */
 @keyframes ll-window-rise {
   0% {
@@ -135,7 +159,16 @@ body {
 }
 
 .ll-window-rise {
-  animation: ll-window-rise 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+  animation: ll-window-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.ll-scroll-unfold-card {
+  transform: perspective(1300px)
+    rotateX(calc(max(0px, 6px - var(--scroll-progress) * 14px)))
+    translate3d(0, calc(var(--scroll-progress) * -18px), 0)
+    scale(calc(0.985 + min(0.025, var(--scroll-progress) * 0.04)));
+  transform-origin: center top;
+  will-change: transform;
 }
 
 .ll-perspective-stage {
@@ -143,9 +176,11 @@ body {
 }
 
 .ll-tilt-card {
-  transform: rotateY(-7deg) rotateX(2deg);
+  transform: rotateY(calc(-7deg + var(--scroll-progress) * 10deg))
+    rotateX(calc(2deg - var(--scroll-progress) * 3deg));
   transform-style: preserve-3d;
-  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.65s ease;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.55s ease;
+  will-change: transform;
 }
 
 .ll-tilt-card:hover {
@@ -153,23 +188,26 @@ body {
 }
 
 /* =========================================================================
-   5. STAGGERED SCROLL-TRIGGERED SECTION REVEALS (VIDEO 00:07–00:09)
+   5. STAGGERED SCROLL-TRIGGERED BLUR-SCALE REVEALS
    ========================================================================= */
 .ll-reveal {
   opacity: 0;
-  transform: translate3d(0, 24px, 0);
+  filter: blur(5px);
+  transform: translate3d(0, 26px, 0) scale(0.975);
   transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ll-reveal.ll-reveal-visible {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  filter: blur(0px);
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 /* =========================================================================
-   6. CLEAN HORIZONTAL CAPABILITY STRIP MARQUEE (VIDEO 00:06.5)
+   6. HORIZONTAL CAPABILITY STRIP MARQUEE
    ========================================================================= */
 @keyframes ll-marquee-scroll {
   0% {
@@ -300,10 +338,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ll-cloud-left,
   .ll-cloud-right,
+  .ll-parallax-cloud-left,
+  .ll-parallax-cloud-right,
+  .ll-parallax-justice,
+  .ll-parallax-hero-copy,
   .animate-float-slow,
   .ll-justice-halo,
   .ll-word-reveal,
   .ll-window-rise,
+  .ll-scroll-unfold-card,
   .ll-marquee-track,
   .ll-silk-ribbon,
   .ll-wave-row,
@@ -317,6 +360,7 @@ body {
   .ll-reveal,
   .ll-tilt-card {
     opacity: 1 !important;
+    filter: none !important;
     transform: none !important;
   }
 }
