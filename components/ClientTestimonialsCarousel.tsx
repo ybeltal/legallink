@@ -113,16 +113,16 @@ export default function ClientTestimonialsCarousel() {
     .toUpperCase();
 
   return (
-    <section className="py-20 md:py-28 bg-[#050914] border-b border-white/10 relative overflow-hidden">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-[#F0F9FF] to-white border-b border-sky-100 relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
         <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-[11px] font-bold text-amber-400 uppercase tracking-widest block font-mono">
+          <span className="text-[11px] font-bold text-sky-600 uppercase tracking-widest block font-mono">
             {language === 'am' ? 'የደንበኞች አስተያየት' : 'CLIENT STORIES'}
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
             {language === 'am' ? 'ደንበኞቻችን ምን ይላሉ?' : 'What Our Clients Say'}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600">
             {language === 'am'
               ? 'በመላው ኢትዮጵያና በዲያስፖራ የሚገኙ ተገልጋዮች ስለ ሊጋልሊንክ የሚሰጡት ተሞክሮ።'
               : 'Real experiences from individuals, founders, and diaspora users navigating Ethiopian law with LegalLink.'}
@@ -133,10 +133,10 @@ export default function ClientTestimonialsCarousel() {
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <SpotlightCard className="rounded-3xl p-8 sm:p-12 shadow-2xl">
+          <SpotlightCard className="rounded-3xl p-8 sm:p-12">
             <div className="flex flex-col justify-between min-h-[220px] space-y-6 relative z-10">
               <div className="flex items-center justify-between gap-4">
-                <div className="w-11 h-11 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center shrink-0">
                   <Quote className="w-5 h-5" />
                 </div>
 
@@ -146,8 +146,8 @@ export default function ClientTestimonialsCarousel() {
                       key={i}
                       className={`w-4 h-4 ${
                         i < (current.rating || 5)
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-slate-700'
+                          ? 'fill-sky-500 text-sky-500'
+                          : 'text-slate-200'
                       }`}
                     />
                   ))}
@@ -156,26 +156,26 @@ export default function ClientTestimonialsCarousel() {
 
               <blockquote
                 key={current.id}
-                className="ll-word-reveal text-base sm:text-xl font-semibold text-white leading-relaxed"
+                className="ll-word-reveal text-base sm:text-xl font-semibold text-[#0A1128] leading-relaxed"
               >
                 “{language === 'am' && current.amharic_quote ? current.amharic_quote : current.quote}”
               </blockquote>
 
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-4 border-t border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-amber-400 text-[#060B19] font-black text-xs flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                     {initials}
                   </div>
                   <div>
-                    <strong className="text-sm font-black text-white block">
+                    <strong className="text-sm font-black text-[#0A1128] block">
                       {current.client_name}
                     </strong>
-                    <span className="text-xs text-slate-400 block">{current.client_role}</span>
+                    <span className="text-xs text-slate-500 block">{current.client_role}</span>
                   </div>
                 </div>
 
                 {current.practice_area && (
-                  <span className="px-3 py-1 rounded-full bg-white/[0.06] text-amber-300 border border-white/10 text-[11px] font-bold w-fit">
+                  <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[11px] font-bold w-fit">
                     {current.practice_area}
                   </span>
                 )}
@@ -183,7 +183,7 @@ export default function ClientTestimonialsCarousel() {
             </div>
 
             {total > 1 && (
-              <div className="mt-8 pt-5 border-t border-white/10 flex items-center justify-between gap-4 relative z-10">
+              <div className="mt-8 pt-5 border-t border-sky-100 flex items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-2">
                   {items.map((item, idx) => (
                     <button
@@ -193,8 +193,8 @@ export default function ClientTestimonialsCarousel() {
                       aria-label={`Show testimonial ${idx + 1}`}
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         idx === activeIndex
-                          ? 'w-8 bg-amber-400'
-                          : 'w-2 bg-white/25 hover:bg-white/40'
+                          ? 'w-8 bg-sky-500'
+                          : 'w-2 bg-sky-200 hover:bg-sky-300'
                       }`}
                     />
                   ))}
@@ -205,7 +205,7 @@ export default function ClientTestimonialsCarousel() {
                     type="button"
                     onClick={goPrev}
                     aria-label="Previous testimonial"
-                    className="w-9 h-9 rounded-xl bg-white/[0.07] hover:bg-amber-400 text-slate-200 hover:text-[#060B19] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -213,7 +213,7 @@ export default function ClientTestimonialsCarousel() {
                     type="button"
                     onClick={goNext}
                     aria-label="Next testimonial"
-                    className="w-9 h-9 rounded-xl bg-white/[0.07] hover:bg-amber-400 text-slate-200 hover:text-[#060B19] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
