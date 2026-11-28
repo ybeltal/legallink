@@ -2,10 +2,11 @@
 
 :root {
   --ll-white: #ffffff;
-  --ll-ice: #f0f9ff;
-  --ll-sky: #38bdf8;
-  --ll-sky-deep: #0284c7;
-  --ll-navy: #0a1128;
+  --ll-alabaster: #f8fafc;
+  --ll-ink: #18181b;
+  --ll-charcoal: #27272a;
+  --ll-amber: #d97706;
+  --ll-emerald: #059669;
 }
 
 html {
@@ -15,32 +16,32 @@ html {
 
 body {
   background-color: #ffffff;
-  color: #0f172a;
+  color: #18181b;
   overflow-x: hidden;
 }
 
 /* =========================================================================
-   1. VOLUMETRIC LIGHT-BLUE SPOTLIGHT & FLOATING MOTES ON WHITE
+   1. VOLUMETRIC SPOTLIGHT & AMBIENT FLOATING LEGAL MOTES (LIGHT MODE)
    ========================================================================= */
 @keyframes ll-beam-breathe {
   0%, 100% {
-    opacity: 0.72;
+    opacity: 0.75;
     transform: translateX(-50%) scaleX(1) scaleY(1);
   }
   50% {
     opacity: 1;
-    transform: translateX(-50%) scaleX(1.08) scaleY(1.04);
+    transform: translateX(-50%) scaleX(1.06) scaleY(1.03);
   }
 }
 
 @keyframes ll-mote-drift {
   0%, 100% {
     transform: translate3d(0, 0, 0) rotate(0deg);
-    opacity: 0.35;
+    opacity: 0.25;
   }
   50% {
-    transform: translate3d(12px, -20px, 0) rotate(3deg);
-    opacity: 0.75;
+    transform: translate3d(10px, -18px, 0) rotate(3deg);
+    opacity: 0.55;
   }
 }
 
@@ -49,7 +50,7 @@ body {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-12px);
+    transform: translateY(-10px);
   }
 }
 
@@ -59,19 +60,19 @@ body {
 
 .ll-volumetric-beam {
   position: absolute;
-  top: -150px;
+  top: -140px;
   left: 50%;
-  width: min(1180px, 145vw);
+  width: min(1150px, 140vw);
   height: 620px;
   transform: translateX(-50%);
   background: radial-gradient(
     ellipse 54% 58% at 50% 10%,
-    rgba(56, 189, 248, 0.28) 0%,
-    rgba(186, 230, 253, 0.34) 38%,
+    rgba(245, 158, 11, 0.14) 0%,
+    rgba(24, 24, 27, 0.04) 44%,
     rgba(255, 255, 255, 0) 76%
   );
   pointer-events: none;
-  filter: blur(22px);
+  filter: blur(18px);
   animation: ll-beam-breathe 8s ease-in-out infinite;
 }
 
@@ -80,8 +81,8 @@ body {
 }
 
 .mask-radial-fade {
-  -webkit-mask-image: radial-gradient(circle at center, black 42%, transparent 78%);
-  mask-image: radial-gradient(circle at center, black 42%, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 76%);
+  mask-image: radial-gradient(circle at center, black 40%, transparent 76%);
 }
 
 /* =========================================================================
@@ -113,8 +114,8 @@ body {
   opacity: 0;
   transform: translate3d(0, 24px, 0);
   transition:
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ll-reveal.ll-reveal-visible {
@@ -165,11 +166,11 @@ body {
    ========================================================================= */
 @keyframes ll-wave-sway {
   0%, 100% {
-    transform: translate3d(-14px, 0, 0);
+    transform: translate3d(-12px, 0, 0);
     opacity: 0.55;
   }
   50% {
-    transform: translate3d(18px, 0, 0);
+    transform: translate3d(16px, 0, 0);
     opacity: 1;
   }
 }
@@ -179,7 +180,7 @@ body {
 }
 
 /* =========================================================================
-   6. SILK LIGHT-BLUE AURORA RIBBON WAVE (3-STEP STAGE)
+   6. SILK AURORA RIBBON WAVE FOR 3-STEP STAGE
    ========================================================================= */
 @keyframes ll-silk-flow {
   0% {
@@ -198,15 +199,15 @@ body {
 }
 
 /* =========================================================================
-   7. WHITE & LIGHT-BLUE POINTER-TRACKING SPOTLIGHT CARD
+   7. POINTER-TRACKING RADIAL SPOTLIGHT CARD (WHITE MAJOR + LIGHT BLACK)
    ========================================================================= */
 .ll-spotlight-card {
   position: relative;
   --mx: 50%;
   --my: 50%;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fcff 100%);
-  border: 1px solid #e0f2fe;
-  box-shadow: 0 8px 28px -12px rgba(14, 165, 233, 0.14);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(24, 24, 27, 0.1);
+  box-shadow: 0 4px 20px -4px rgba(24, 24, 27, 0.05);
   transition:
     transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.35s ease,
@@ -219,9 +220,9 @@ body {
   inset: 0;
   border-radius: inherit;
   background: radial-gradient(
-    340px circle at var(--mx) var(--my),
-    rgba(56, 189, 248, 0.2),
-    rgba(186, 230, 253, 0.16) 42%,
+    360px circle at var(--mx) var(--my),
+    rgba(24, 24, 27, 0.055),
+    rgba(217, 119, 6, 0.08) 42%,
     transparent 76%
   );
   opacity: 0;
@@ -231,8 +232,8 @@ body {
 
 .ll-spotlight-card:hover {
   transform: translateY(-4px);
-  border-color: #7dd3fc;
-  box-shadow: 0 18px 36px -14px rgba(14, 165, 233, 0.24);
+  border-color: rgba(24, 24, 27, 0.28);
+  box-shadow: 0 14px 32px -8px rgba(24, 24, 27, 0.1);
 }
 
 .ll-spotlight-card:hover::before {
@@ -240,46 +241,51 @@ body {
 }
 
 /* =========================================================================
-   8. LIGHT-BLUE SHOOTING STREAKS FOR HORIZON DOME
+   8. HORIZON DOME & SHOOTING STREAKS (LIGHT MODE)
    ========================================================================= */
 @keyframes ll-shooting-streak {
   0% {
     opacity: 0;
-    transform: translate3d(0, 0, 0) rotate(-30deg);
+    transform: translate3d(0, 0, 0) rotate(-32deg);
   }
-  18% {
-    opacity: 0.95;
+  15% {
+    opacity: 0.85;
   }
-  48% {
+  45% {
     opacity: 0;
-    transform: translate3d(-220px, 130px, 0) rotate(-30deg);
+    transform: translate3d(-220px, 140px, 0) rotate(-32deg);
   }
   100% {
     opacity: 0;
-    transform: translate3d(-220px, 130px, 0) rotate(-30deg);
+    transform: translate3d(-220px, 140px, 0) rotate(-32deg);
   }
 }
 
 .ll-shooting-star {
   position: absolute;
-  width: 96px;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.85), rgba(186, 230, 253, 0.15), transparent);
+  width: 95px;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    rgba(24, 24, 27, 0.65),
+    rgba(217, 119, 6, 0.45),
+    transparent
+  );
   border-radius: 999px;
   animation: ll-shooting-streak 7s ease-in-out infinite;
   pointer-events: none;
 }
 
 /* =========================================================================
-   9. CONCENTRIC RADAR RINGS & FROSTED ICE-BLUE GLASS LENSES
+   9. CONCENTRIC RADAR RINGS & GLASS LENSES (LIGHT MODE)
    ========================================================================= */
 @keyframes ll-radar-pulse {
   0% {
-    transform: scale(0.8);
-    opacity: 0.75;
+    transform: scale(0.82);
+    opacity: 0.65;
   }
   100% {
-    transform: scale(1.42);
+    transform: scale(1.38);
     opacity: 0;
   }
 }

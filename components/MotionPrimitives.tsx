@@ -60,7 +60,7 @@ export function RevealOnScroll({
 }
 
 /* =========================================================================
-   2. WORD-BY-WORD BLUR-TO-FOCUS KINETIC HEADLINE (NAVY + LIGHT BLUE)
+   2. WORD-BY-WORD BLUR-TO-FOCUS KINETIC HEADLINE (LIGHT BLACK INK)
    ========================================================================= */
 export function KineticHeadline({
   primaryText,
@@ -73,7 +73,7 @@ export function KineticHeadline({
   const accentWords = accentText.trim().split(/\s+/);
 
   return (
-    <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-[#0A1128]">
+    <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-[#18181B]">
       <span className="block">
         {primaryWords.map((word, idx) => (
           <span
@@ -85,7 +85,7 @@ export function KineticHeadline({
           </span>
         ))}
       </span>
-      <span className="block mt-1 bg-gradient-to-r from-sky-500 via-blue-600 to-sky-400 bg-clip-text text-transparent">
+      <span className="block mt-1 bg-gradient-to-r from-[#18181B] via-amber-700 to-amber-600 bg-clip-text text-transparent">
         {accentWords.map((word, idx) => (
           <span
             key={`a-${idx}`}
@@ -101,7 +101,7 @@ export function KineticHeadline({
 }
 
 /* =========================================================================
-   3. POINTER-TRACKING RADIAL SPOTLIGHT CARD (WHITE + SKY BLUE GLOW)
+   3. POINTER-TRACKING RADIAL SPOTLIGHT CARD (WHITE MAJOR + LIGHT BLACK)
    ========================================================================= */
 export function SpotlightCard({
   children,
@@ -132,7 +132,7 @@ export function SpotlightCard({
 }
 
 /* =========================================================================
-   4. GIANT HORIZONTAL KINETIC MARQUEE BANNER (WHITE + LIGHT BLUE)
+   4. GIANT HORIZONTAL KINETIC MARQUEE BANNER (WHITE MAJOR + LIGHT BLACK)
    ========================================================================= */
 export function KineticMarquee({
   items,
@@ -144,20 +144,18 @@ export function KineticMarquee({
   const doubled = [...items, ...items];
 
   return (
-    <div className="ll-marquee-wrapper relative overflow-hidden py-6 border-y border-sky-100 bg-gradient-to-r from-[#F0F9FF] via-white to-[#F0F9FF] select-none">
+    <div className="ll-marquee-wrapper relative overflow-hidden py-6 border-y border-slate-200 bg-[#F8FAFC] select-none">
       <div className={reverse ? 'll-marquee-track-reverse' : 'll-marquee-track'}>
         {doubled.map((item, idx) => (
           <div key={idx} className="flex items-center shrink-0">
             <span
               className={`text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight px-6 ${
-                idx % 2 === 0
-                  ? 'text-[#0A1128]'
-                  : 'bg-gradient-to-r from-sky-500 to-blue-600 bg-clip-text text-transparent'
+                idx % 2 === 0 ? 'text-[#18181B]' : 'text-slate-400'
               }`}
             >
               {item}
             </span>
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-600 shrink-0" />
           </div>
         ))}
       </div>
@@ -166,7 +164,7 @@ export function KineticMarquee({
 }
 
 /* =========================================================================
-   5. INTERACTIVE 3-STEP SILK-WAVE STAGE (WHITE + ICE BLUE AURORA)
+   5. INTERACTIVE 3-STEP SILK-WAVE STAGE ("HOW IT WORKS" — LIGHT MODE)
    ========================================================================= */
 export function InteractiveSilkHowItWorks() {
   const { language, t } = useLanguage();
@@ -245,63 +243,63 @@ export function InteractiveSilkHowItWorks() {
   const StepIcon = current.icon;
 
   return (
-    <section className="py-20 md:py-28 bg-white border-t border-sky-100 relative overflow-hidden">
+    <section className="py-20 md:py-28 bg-white border-t border-slate-200 relative overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-sky-600 block">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-amber-700 block">
             {t('hiw_tag')}
           </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-[#0A1128] tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-black text-[#18181B] tracking-tight">
             {t('hiw_title')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600">{t('hiw_sub')}</p>
         </RevealOnScroll>
 
-        {/* Light Ice-Blue Silk-Wave Glass Stage */}
+        {/* White Major Silk-Wave Glass Stage */}
         <div
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
-          className="relative rounded-[2rem] border border-sky-200/80 bg-gradient-to-b from-[#F0F9FF] via-white to-[#EFF6FF] overflow-hidden p-6 sm:p-12 shadow-xl shadow-sky-100/80"
+          className="relative rounded-[2rem] border border-slate-200/90 bg-[#F8FAFC] overflow-hidden p-6 sm:p-12 shadow-sm"
         >
-          {/* Animated Flowing Light-Blue Silk Aurora Ribbons */}
+          {/* Animated Flowing Silk Aurora Ribbons (Subtle Amber & Light Black) */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="ll-silk-ribbon absolute -inset-x-24 top-1/4 h-56 bg-gradient-to-r from-sky-300/35 via-blue-300/30 to-cyan-200/40 blur-3xl rounded-full" />
+            <div className="ll-silk-ribbon absolute -inset-x-24 top-1/4 h-56 bg-gradient-to-r from-amber-400/20 via-slate-900/[0.06] to-emerald-400/15 blur-3xl rounded-full" />
             <div
               style={{ animationDelay: '-4s' }}
-              className="ll-silk-ribbon absolute -inset-x-16 bottom-8 h-48 bg-gradient-to-r from-blue-200/35 via-sky-300/35 to-indigo-200/25 blur-2xl rounded-full"
+              className="ll-silk-ribbon absolute -inset-x-16 bottom-10 h-44 bg-gradient-to-r from-slate-900/[0.05] via-amber-300/20 to-slate-400/15 blur-2xl rounded-full"
             />
           </div>
 
-          {/* Floating Pure White Frosted Card Inside the Silk Stage */}
+          {/* Floating White Glass Preview Card Inside the Silk Stage */}
           <div className="relative z-10 max-w-xl mx-auto">
             <div
               key={activeStep}
-              className="ll-word-reveal w-full rounded-3xl border border-sky-200/90 bg-white/90 backdrop-blur-xl p-6 sm:p-8 shadow-xl shadow-sky-200/50 space-y-5"
+              className="ll-word-reveal w-full rounded-3xl border border-slate-200 bg-white/95 backdrop-blur-xl p-6 sm:p-8 shadow-xl shadow-slate-900/[0.06] space-y-5"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-[11px] font-mono font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-mono font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                   <span>{current.badge}</span>
                 </span>
-                <span className="text-xs font-mono font-bold text-sky-600">
+                <span className="text-xs font-mono font-bold text-[#18181B]">
                   0{activeStep + 1} / 03
                 </span>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-sky-300/50">
+                <div className="w-12 h-12 rounded-2xl bg-[#18181B] text-amber-400 flex items-center justify-center shrink-0 shadow-md">
                   <StepIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-black text-[#0A1128]">{current.cardTitle}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{current.cardSub}</p>
+                  <h3 className="text-lg sm:text-xl font-black text-[#18181B]">{current.cardTitle}</h3>
+                  <p className="text-xs text-slate-600 mt-0.5">{current.cardSub}</p>
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-sky-100">
+              <div className="space-y-2 pt-2 border-t border-slate-100">
                 {current.highlights.map((h, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-xs text-slate-700">
-                    <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
+                  <div key={i} className="flex items-center gap-2.5 text-xs text-slate-700 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>{h}</span>
                   </div>
                 ))}
@@ -310,17 +308,17 @@ export function InteractiveSilkHowItWorks() {
               <div className="pt-2 flex justify-end">
                 <Link
                   href={current.ctaHref}
-                  className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm shadow-sky-200 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-[#18181B] hover:bg-[#27272A] text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all"
                 >
                   <span>{current.ctaLabel}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
                 </Link>
               </div>
             </div>
           </div>
 
           {/* Bottom 3-Step Selector Tabs + Progress Line */}
-          <div className="relative z-10 mt-10 pt-6 border-t border-sky-200/70 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="relative z-10 mt-10 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-5">
             {steps.map((step, idx) => {
               const isSelected = activeStep === idx;
               return (
@@ -330,25 +328,25 @@ export function InteractiveSilkHowItWorks() {
                   onClick={() => setActiveStep(idx as 0 | 1 | 2)}
                   className={`text-left space-y-2 p-4 rounded-2xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-white border-sky-300 shadow-md shadow-sky-100'
-                      : 'bg-white/40 border-transparent hover:bg-white/80 opacity-75 hover:opacity-100'
+                      ? 'bg-white border-slate-300 shadow-xs'
+                      : 'bg-transparent border-transparent hover:bg-white/60 opacity-65 hover:opacity-100'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-[11px] font-mono font-black tracking-wider ${
-                        isSelected ? 'text-sky-600' : 'text-slate-400'
+                        isSelected ? 'text-[#18181B]' : 'text-slate-500'
                       }`}
                     >
                       {step.num}
                     </span>
                     <span
                       className={`h-1 rounded-full transition-all duration-500 ${
-                        isSelected ? 'w-12 bg-sky-500' : 'w-4 bg-sky-200'
+                        isSelected ? 'w-12 bg-[#18181B]' : 'w-4 bg-slate-300'
                       }`}
                     />
                   </div>
-                  <h4 className="text-sm font-black text-[#0A1128]">{step.title}</h4>
+                  <h4 className="text-sm font-black text-[#18181B]">{step.title}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed">{step.desc}</p>
                 </button>
               );
@@ -361,7 +359,7 @@ export function InteractiveSilkHowItWorks() {
 }
 
 /* =========================================================================
-   6. VERTICAL SINUSOIDAL KINETIC STACK (WHITE + LIGHT BLUE WAVE)
+   6. VERTICAL SINUSOIDAL KINETIC STACK (WHITE MAJOR + LIGHT BLACK)
    ========================================================================= */
 export function VerticalKineticWaveStack() {
   const { language } = useLanguage();
@@ -386,8 +384,8 @@ export function VerticalKineticWaveStack() {
         ];
 
   return (
-    <div className="relative py-7 px-6 select-none overflow-hidden rounded-3xl border border-sky-200 bg-gradient-to-br from-white via-[#F0F9FF] to-[#E0F2FE]/60 shadow-lg shadow-sky-100/70">
-      <div className="absolute inset-0 bg-radial from-sky-300/20 via-transparent to-transparent pointer-events-none" />
+    <div className="relative py-7 px-6 select-none overflow-hidden rounded-3xl border border-slate-200 bg-[#F8FAFC] shadow-xs">
+      <div className="absolute inset-0 bg-radial from-amber-400/12 via-transparent to-transparent pointer-events-none" />
       <div className="space-y-1.5 relative z-10">
         {rows.map((phrase, idx) => (
           <div
@@ -395,8 +393,8 @@ export function VerticalKineticWaveStack() {
             style={{ animationDelay: `${idx * -0.55}s` }}
             className={`ll-wave-row text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-none whitespace-nowrap ${
               idx % 2 === 0
-                ? 'text-[#0A1128]'
-                : 'bg-gradient-to-r from-sky-500 via-blue-600 to-sky-400 bg-clip-text text-transparent'
+                ? 'text-[#18181B]'
+                : 'bg-gradient-to-r from-[#18181B] via-amber-700 to-amber-600 bg-clip-text text-transparent'
             }`}
           >
             {phrase}
@@ -408,47 +406,47 @@ export function VerticalKineticWaveStack() {
 }
 
 /* =========================================================================
-   7. CONCENTRIC RADAR PULSE + FROSTED LIGHT-BLUE GLASS LENSES CTA
+   7. CONCENTRIC RADAR PULSE + GLASS LENSES CTA (WHITE MAJOR + LIGHT BLACK)
    ========================================================================= */
 export function RadarPulseEcosystemCTA() {
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-sky-200 bg-gradient-to-b from-[#F0F9FF] via-white to-[#E0F2FE]/80 px-6 py-16 sm:py-20 text-center shadow-xl shadow-sky-100/80">
-      {/* Concentric Pulsing Light-Blue Radar Rings */}
+    <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white px-6 py-16 sm:py-20 text-center shadow-sm">
+      {/* Concentric Pulsing Radar Rings (Light Black & Warm Amber) */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-64 h-64 rounded-full border border-dashed border-sky-400/50 ll-radar-ring" />
+        <div className="w-64 h-64 rounded-full border border-dashed border-slate-900/20 ll-radar-ring" />
         <div
           style={{ animationDelay: '1.5s' }}
-          className="absolute w-64 h-64 rounded-full border border-dashed border-blue-400/40 ll-radar-ring"
+          className="absolute w-64 h-64 rounded-full border border-dashed border-amber-600/25 ll-radar-ring"
         />
         <div
           style={{ animationDelay: '3s' }}
-          className="absolute w-64 h-64 rounded-full border border-sky-300/45 ll-radar-ring"
+          className="absolute w-64 h-64 rounded-full border border-slate-900/15 ll-radar-ring"
         />
       </div>
 
-      {/* Overlapping Translucent Frosted Light-Blue Glass Lenses */}
-      <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4 pointer-events-none opacity-80">
-        <div className="w-36 h-36 rounded-full border border-sky-200 bg-gradient-to-tr from-sky-200/50 to-white/70 backdrop-blur-md ll-glass-lens" />
+      {/* Overlapping Translucent Frosted Glass Lenses */}
+      <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4 pointer-events-none opacity-75">
+        <div className="w-36 h-36 rounded-full border border-slate-300/70 bg-gradient-to-tr from-slate-900/[0.06] to-white/40 backdrop-blur-md ll-glass-lens" />
         <div
           style={{ animationDelay: '-2.5s' }}
-          className="w-44 h-44 rounded-full border border-blue-200 bg-gradient-to-tr from-blue-200/50 to-sky-100/60 backdrop-blur-md ll-glass-lens"
+          className="w-44 h-44 rounded-full border border-amber-300/60 bg-gradient-to-tr from-amber-500/[0.10] to-slate-900/[0.04] backdrop-blur-md ll-glass-lens"
         />
         <div
           style={{ animationDelay: '-5s' }}
-          className="w-36 h-36 rounded-full border border-sky-200 bg-gradient-to-tr from-cyan-200/45 to-white/70 backdrop-blur-md ll-glass-lens"
+          className="w-36 h-36 rounded-full border border-slate-300/70 bg-gradient-to-tr from-slate-900/[0.06] to-white/40 backdrop-blur-md ll-glass-lens"
         />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto space-y-5">
-        <div className="w-14 h-14 rounded-2xl bg-white border border-sky-200 shadow-lg shadow-sky-200/60 flex items-center justify-center mx-auto">
-          <Scale className="w-7 h-7 text-sky-600" />
+        <div className="w-14 h-14 rounded-2xl bg-[#18181B] shadow-md flex items-center justify-center mx-auto">
+          <Scale className="w-7 h-7 text-amber-400" />
         </div>
 
-        <span className="text-[10px] font-mono uppercase tracking-widest text-sky-600 font-bold block">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold block">
           INSTITUTIONS, UNIVERSITIES &amp; DEVELOPMENT PARTNERS
         </span>
 
-        <h3 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+        <h3 className="text-2xl sm:text-4xl font-black text-[#18181B] tracking-tight">
           Building a More Connected Legal Ecosystem Across Ethiopia
         </h3>
 
@@ -459,16 +457,16 @@ export function RadarPulseEcosystemCTA() {
         <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/about"
-            className="px-6 py-3 rounded-xl bg-white hover:bg-sky-50 border border-sky-200 text-[#0A1128] font-bold text-xs shadow-xs transition-all"
+            className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#18181B] font-bold text-xs transition-all"
           >
             About LegalLink
           </Link>
           <Link
             href="/about#partnerships"
-            className="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-lg shadow-sky-300/40 transition-all"
+            className="px-6 py-3 rounded-xl bg-[#18181B] hover:bg-[#27272A] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition-all"
           >
             <span>Partner With Us</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
           </Link>
         </div>
       </div>

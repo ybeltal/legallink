@@ -113,13 +113,13 @@ export default function ClientTestimonialsCarousel() {
     .toUpperCase();
 
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-[#F0F9FF] to-white border-b border-sky-100 relative overflow-hidden">
+    <section className="py-20 md:py-28 bg-[#F8FAFC] border-b border-slate-200 relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
         <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-[11px] font-bold text-sky-600 uppercase tracking-widest block font-mono">
+          <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest block font-mono">
             {language === 'am' ? 'የደንበኞች አስተያየት' : 'CLIENT STORIES'}
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-[#18181B] tracking-tight">
             {language === 'am' ? 'ደንበኞቻችን ምን ይላሉ?' : 'What Our Clients Say'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600">
@@ -136,7 +136,7 @@ export default function ClientTestimonialsCarousel() {
           <SpotlightCard className="rounded-3xl p-8 sm:p-12">
             <div className="flex flex-col justify-between min-h-[220px] space-y-6 relative z-10">
               <div className="flex items-center justify-between gap-4">
-                <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-[#18181B] text-amber-400 flex items-center justify-center shrink-0">
                   <Quote className="w-5 h-5" />
                 </div>
 
@@ -146,7 +146,7 @@ export default function ClientTestimonialsCarousel() {
                       key={i}
                       className={`w-4 h-4 ${
                         i < (current.rating || 5)
-                          ? 'fill-sky-500 text-sky-500'
+                          ? 'fill-amber-500 text-amber-500'
                           : 'text-slate-200'
                       }`}
                     />
@@ -156,26 +156,26 @@ export default function ClientTestimonialsCarousel() {
 
               <blockquote
                 key={current.id}
-                className="ll-word-reveal text-base sm:text-xl font-semibold text-[#0A1128] leading-relaxed"
+                className="ll-word-reveal text-base sm:text-xl font-semibold text-[#18181B] leading-relaxed"
               >
                 “{language === 'am' && current.amharic_quote ? current.amharic_quote : current.quote}”
               </blockquote>
 
-              <div className="pt-4 border-t border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-[#18181B] text-amber-400 font-black text-xs flex items-center justify-center shrink-0">
                     {initials}
                   </div>
                   <div>
-                    <strong className="text-sm font-black text-[#0A1128] block">
+                    <strong className="text-sm font-black text-[#18181B] block">
                       {current.client_name}
                     </strong>
-                    <span className="text-xs text-slate-500 block">{current.client_role}</span>
+                    <span className="text-xs text-slate-600 block">{current.client_role}</span>
                   </div>
                 </div>
 
                 {current.practice_area && (
-                  <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[11px] font-bold w-fit">
+                  <span className="px-3 py-1 rounded-full bg-slate-100 text-[#18181B] border border-slate-200 text-[11px] font-bold w-fit">
                     {current.practice_area}
                   </span>
                 )}
@@ -183,7 +183,7 @@ export default function ClientTestimonialsCarousel() {
             </div>
 
             {total > 1 && (
-              <div className="mt-8 pt-5 border-t border-sky-100 flex items-center justify-between gap-4 relative z-10">
+              <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-2">
                   {items.map((item, idx) => (
                     <button
@@ -193,8 +193,8 @@ export default function ClientTestimonialsCarousel() {
                       aria-label={`Show testimonial ${idx + 1}`}
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         idx === activeIndex
-                          ? 'w-8 bg-sky-500'
-                          : 'w-2 bg-sky-200 hover:bg-sky-300'
+                          ? 'w-8 bg-[#18181B]'
+                          : 'w-2 bg-slate-300 hover:bg-slate-400'
                       }`}
                     />
                   ))}
@@ -205,7 +205,7 @@ export default function ClientTestimonialsCarousel() {
                     type="button"
                     onClick={goPrev}
                     aria-label="Previous testimonial"
-                    className="w-9 h-9 rounded-xl bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#18181B] text-[#18181B] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -213,7 +213,7 @@ export default function ClientTestimonialsCarousel() {
                     type="button"
                     onClick={goNext}
                     aria-label="Next testimonial"
-                    className="w-9 h-9 rounded-xl bg-sky-50 hover:bg-sky-500 text-sky-700 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#18181B] text-[#18181B] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>

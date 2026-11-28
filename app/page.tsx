@@ -184,35 +184,35 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-sky-200 selection:text-[#0A1128] flex flex-col">
-      {/* 01. Crisp Frosted White Navigation Bar */}
+    <div className="min-h-screen bg-white text-[#18181B] font-sans selection:bg-amber-200 selection:text-[#18181B] flex flex-col">
+      {/* 01. Crisp White Navigation Bar */}
       <Navbar />
 
-      {/* 02. Volumetric Light-Blue Spotlight Hero Section (White Major) */}
-      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden bg-gradient-to-b from-white via-[#F8FCFF] to-white">
-        {/* Top-Down Volumetric Light-Blue Spotlight Beam */}
+      {/* 02. White Major Volumetric Spotlight Hero Section */}
+      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden bg-gradient-to-b from-white via-[#F8FAFC] to-white">
+        {/* Top-Down Soft Volumetric Spotlight Beam */}
         <div className="ll-volumetric-beam" aria-hidden="true" />
 
-        {/* Subtle Floating Legal Motes */}
+        {/* Subtle Floating Light-Black Legal Motes */}
         <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
-          <span className="ll-mote absolute top-24 left-[8%] font-mono text-xs text-sky-500/45">
+          <span className="ll-mote absolute top-24 left-[10%] font-mono text-xs font-semibold text-slate-900/30">
             § Proc. 1249/2021
           </span>
           <span
             style={{ animationDelay: '-3s' }}
-            className="ll-mote absolute top-36 right-[14%] font-mono text-xs text-blue-500/40"
+            className="ll-mote absolute top-40 right-[14%] font-mono text-xs font-semibold text-amber-800/35"
           >
             አዋጅ 1156/2019
           </span>
           <span
             style={{ animationDelay: '-5s' }}
-            className="ll-mote absolute bottom-28 left-[14%] font-mono text-xs text-sky-600/35"
+            className="ll-mote absolute bottom-28 left-[16%] font-mono text-xs font-semibold text-slate-800/25"
           >
             Civil Code Art. 1731
           </span>
           <span
             style={{ animationDelay: '-2s' }}
-            className="ll-mote absolute bottom-36 right-[20%] font-mono text-xs text-sky-500/40"
+            className="ll-mote absolute bottom-36 right-[22%] font-mono text-xs font-semibold text-slate-900/25"
           >
             Commercial Code 1243/2021
           </span>
@@ -223,18 +223,17 @@ export default function HomePage() {
           className="absolute right-[-4%] md:right-[2%] lg:right-[6%] top-1/2 -translate-y-1/2 w-[320px] sm:w-[460px] lg:w-[540px] h-full pointer-events-none z-0 flex items-center justify-center select-none"
           aria-hidden="true"
         >
-          <div className="absolute w-[360px] h-[360px] bg-sky-200/45 rounded-full blur-3xl" />
           <img
             src="/lady-justice.png"
             alt=""
-            className="w-full h-auto object-contain animate-float-slow mask-radial-fade opacity-35 md:opacity-45"
+            className="w-full h-auto object-contain animate-float-slow mask-radial-fade opacity-15 md:opacity-25"
           />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl mx-auto lg:mx-0 space-y-7 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 text-xs font-bold shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-[#18181B] border border-slate-200 text-xs font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping" />
               <span>{t('hero_badge')}</span>
             </div>
 
@@ -248,14 +247,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-3.5 pt-2 justify-center lg:justify-start">
               <Link
                 href="/find-a-lawyer"
-                className="px-8 py-4 bg-sky-500 hover:bg-sky-600 text-white font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-200 group cursor-pointer"
+                className="px-8 py-4 bg-[#18181B] hover:bg-[#27272A] text-white font-black text-xs rounded-full flex items-center justify-center gap-2 transition-all shadow-md group cursor-pointer"
               >
                 <span>{t('hero_cta_find')}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/lexdraft"
-                className="px-8 py-4 bg-white hover:bg-sky-50 text-[#0A1128] border border-sky-200 font-bold text-xs rounded-full flex items-center justify-center transition-all shadow-xs cursor-pointer"
+                className="px-8 py-4 bg-white hover:bg-slate-50 text-[#18181B] border border-slate-300 font-bold text-xs rounded-full flex items-center justify-center transition-all shadow-2xs cursor-pointer"
               >
                 <span>{language === 'am' ? 'ህጋዊ ሰነዶችን ያዘጋጁ (LexDraft)' : 'Draft Legal Forms'}</span>
               </Link>
@@ -270,11 +269,11 @@ export default function HomePage() {
                     key={pillar.title}
                     className="p-3.5 rounded-2xl text-center space-y-1"
                   >
-                    <Icon className="w-4 h-4 text-sky-600 mx-auto relative z-10" />
-                    <div className="text-xs font-black text-[#0A1128] leading-snug relative z-10">
+                    <Icon className="w-4 h-4 text-[#18181B] mx-auto relative z-10" />
+                    <div className="text-xs font-black text-[#18181B] leading-snug relative z-10">
                       {pillar.title}
                     </div>
-                    <span className="text-[10px] text-slate-500 font-semibold block relative z-10">
+                    <span className="text-[10px] text-slate-600 font-semibold block relative z-10">
                       {pillar.sub}
                     </span>
                   </SpotlightCard>
@@ -287,10 +286,10 @@ export default function HomePage() {
           <div className="hidden md:flex justify-end pt-8">
             <a
               href="#consultation-spotlight"
-              className="inline-flex items-center gap-2 text-[11px] font-mono text-slate-500 hover:text-sky-600 transition-colors"
+              className="inline-flex items-center gap-2 text-[11px] font-mono text-slate-500 hover:text-[#18181B] transition-colors"
             >
               <span>Scroll to explore</span>
-              <ArrowDown className="w-3.5 h-3.5 animate-bounce text-sky-500" />
+              <ArrowDown className="w-3.5 h-3.5 animate-bounce text-[#18181B]" />
             </a>
           </div>
         </div>
@@ -310,17 +309,17 @@ export default function HomePage() {
       {/* 04. Direct Consultation Spotlight */}
       <section
         id="consultation-spotlight"
-        className="py-20 md:py-28 bg-white border-b border-sky-100 relative"
+        className="py-20 md:py-28 bg-white border-b border-slate-200 relative"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <RevealOnScroll className="lg:col-span-7 space-y-5 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-200 text-[11px] font-bold uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200 text-[11px] font-bold uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span>{language === 'am' ? 'ቀጥተኛ የህግ ማማከር' : 'Direct Advocate Matching'}</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-black text-[#18181B] tracking-tight">
                 {language === 'am'
                   ? 'ከተረጋገጡ የኢትዮጵያ ጠበቆች ጋር በቀጥታ ይገናኙ'
                   : 'Connect with Verified Counsel in Minutes'}
@@ -332,21 +331,21 @@ export default function HomePage() {
                   : 'Submit your legal matter by practice area, city, and preferred language — by text or voice brief. LegalLink routes your inquiry directly to verified advocates with full continuity.'}
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-bold text-slate-700 max-w-lg mx-auto lg:mx-0 text-left">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-bold text-[#18181B] max-w-lg mx-auto lg:mx-0 text-left">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{language === 'am' ? 'ቀላል እና ግልጽ የጥያቄ ሂደት' : 'Structured, transparent inquiry flow'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{language === 'am' ? 'በስልክ፣ በቪዲዮ ወይም በቢሮ መገናኘት' : 'Phone, video, or chamber office visits'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{language === 'am' ? 'በፍትህ ሚኒስቴር ፍቃድ የተረጋገጡ ጠበቆች' : 'Ministry of Justice license checks'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{language === 'am' ? 'ሚስጥራዊ የደንበኛ መረጃ አያያዝ' : 'Private, role-restricted inquiry handling'}</span>
                 </div>
               </div>
@@ -362,23 +361,23 @@ export default function HomePage() {
       {/* 05. Interactive 3-Step Silk-Wave Stage ("How It Works") */}
       <InteractiveSilkHowItWorks />
 
-      {/* 06. Practice Areas (Pointer-Tracking White & Light-Blue Spotlight Grid) */}
-      <section className="py-20 md:py-28 bg-gradient-to-b from-[#F8FCFF] to-white border-t border-sky-100">
+      {/* 06. Practice Areas (Pointer-Tracking White Spotlight Grid) */}
+      <section className="py-20 md:py-28 bg-[#F8FAFC] border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <RevealOnScroll className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1.5">
-              <span className="text-[11px] font-bold text-sky-600 uppercase tracking-widest block font-mono">
+              <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest block font-mono">
                 {t('pa_tag')}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">{t('pa_title')}</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#18181B]">{t('pa_title')}</h2>
               <p className="text-xs text-slate-600">{t('pa_sub')}</p>
             </div>
             <Link
               href="/practice-areas"
-              className="px-4 py-2.5 border border-sky-200 hover:border-sky-400 rounded-xl bg-white text-xs font-bold text-[#0A1128] flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+              className="px-4 py-2.5 border border-slate-300 hover:border-[#18181B] rounded-xl bg-white text-xs font-bold text-[#18181B] flex items-center gap-1.5 transition-all shrink-0"
             >
               <span>{t('pa_browse_all')}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-sky-600" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </RevealOnScroll>
 
@@ -390,15 +389,15 @@ export default function HomePage() {
                   <Link href={`/find-a-lawyer?category=${area.slug}`} className="block h-full group">
                     <SpotlightCard className="p-6 rounded-3xl h-full flex flex-col justify-between space-y-4">
                       <div className="space-y-3 relative z-10">
-                        <div className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
+                        <div className="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[#18181B] group-hover:bg-[#18181B] group-hover:text-amber-400 transition-colors">
                           <Icon className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-bold text-[#0A1128]">{area.title}</h3>
+                        <h3 className="text-sm font-bold text-[#18181B]">{area.title}</h3>
                         <p className="text-xs text-slate-600 leading-relaxed font-normal">
                           {area.desc}
                         </p>
                       </div>
-                      <div className="pt-2 text-xs font-bold text-sky-600 group-hover:translate-x-1 transition-transform flex items-center gap-1 relative z-10">
+                      <div className="pt-2 text-xs font-bold text-[#18181B] group-hover:translate-x-1 transition-transform flex items-center gap-1 relative z-10">
                         <span>→</span>
                       </div>
                     </SpotlightCard>
@@ -411,22 +410,22 @@ export default function HomePage() {
       </section>
 
       {/* 07. Featured Advocates */}
-      <section className="py-20 md:py-28 bg-white border-t border-sky-100">
+      <section className="py-20 md:py-28 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <RevealOnScroll className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1.5">
-              <span className="text-[11px] font-bold text-sky-600 uppercase tracking-widest block font-mono">
+              <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest block font-mono">
                 {t('fl_tag')}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">{t('fl_title')}</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#18181B]">{t('fl_title')}</h2>
               <p className="text-xs text-slate-600">{t('fl_sub')}</p>
             </div>
             <Link
               href="/find-a-lawyer"
-              className="px-4 py-2.5 border border-sky-200 hover:border-sky-400 rounded-xl bg-white text-xs font-bold text-[#0A1128] flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+              className="px-4 py-2.5 border border-slate-300 hover:border-[#18181B] rounded-xl bg-white text-xs font-bold text-[#18181B] flex items-center gap-1.5 transition-all shrink-0"
             >
               <span>{t('fl_view_all')}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-sky-600" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </RevealOnScroll>
 
@@ -436,15 +435,15 @@ export default function HomePage() {
                 <SpotlightCard className="rounded-3xl p-6 h-full flex flex-col justify-between space-y-5">
                   <div className="space-y-3 relative z-10">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">
+                      <div className="w-11 h-11 rounded-full bg-[#18181B] text-amber-400 font-black flex items-center justify-center text-xs shrink-0">
                         {lawyer.initials}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
-                          <strong className="text-xs font-bold text-[#0A1128] truncate">
+                          <strong className="text-xs font-bold text-[#18181B] truncate">
                             {lawyer.name}
                           </strong>
-                          <ShieldCheck className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         </div>
                         <span className="text-[11px] text-slate-600 block truncate">
                           {lawyer.role}
@@ -454,27 +453,27 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex items-center justify-between text-[11px]">
-                      <div className="flex items-center gap-1 font-bold text-slate-700">
-                        <Star className="w-3.5 h-3.5 fill-sky-500 text-sky-500" />
+                      <div className="flex items-center gap-1 font-bold text-[#18181B]">
+                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                         <span>{lawyer.rating}</span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-bold text-[10px]">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
                         Verified
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 py-2 border-y border-sky-100 text-center font-mono">
-                      <div className="p-1.5 bg-sky-50/70 rounded-xl">
+                    <div className="grid grid-cols-2 gap-2 py-2 border-y border-slate-100 text-center font-mono">
+                      <div className="p-1.5 bg-slate-50 rounded-xl">
                         <span className="text-[10px] text-slate-500 uppercase block">
                           {language === 'am' ? 'ችሎት' : 'Standing'}
                         </span>
-                        <strong className="text-[11px] text-[#0A1128]">{lawyer.standing}</strong>
+                        <strong className="text-[11px] text-[#18181B]">{lawyer.standing}</strong>
                       </div>
-                      <div className="p-1.5 bg-sky-50/70 rounded-xl">
+                      <div className="p-1.5 bg-slate-50 rounded-xl">
                         <span className="text-[10px] text-slate-500 uppercase block">
                           {t('fl_yrs_exp')}
                         </span>
-                        <strong className="text-[11px] text-[#0A1128]">{lawyer.experience} yrs</strong>
+                        <strong className="text-[11px] text-[#18181B]">{lawyer.experience} yrs</strong>
                       </div>
                     </div>
 
@@ -485,7 +484,7 @@ export default function HomePage() {
 
                   <Link
                     href={`/find-a-lawyer?category=${lawyer.category}`}
-                    className="relative z-10 w-full py-2.5 bg-sky-50 hover:bg-sky-500 text-sky-800 hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 group"
+                    className="relative z-10 w-full py-2.5 bg-slate-100 hover:bg-[#18181B] text-[#18181B] hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1 group"
                   >
                     <span>{t('fl_view_profile')}</span>
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
@@ -497,9 +496,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 08. Ethiopian Diaspora Legal Desk with Glowing Light-Blue Horizon Dome & Shooting Streaks */}
-      <section className="relative bg-gradient-to-b from-[#E0F2FE]/60 via-[#F0F9FF] to-white text-[#0A1128] py-20 md:py-28 border-y border-sky-200/70 overflow-hidden">
-        {/* Light-Blue Shooting Light Streaks */}
+      {/* 08. Ethiopian Diaspora Legal Desk with Light Horizon Dome & Shooting Streaks */}
+      <section className="relative bg-[#F8FAFC] text-[#18181B] py-20 md:py-28 border-y border-slate-200 overflow-hidden">
+        {/* Subtle Light-Black & Amber Shooting Streaks */}
         <div className="ll-shooting-star top-12 left-[28%]" aria-hidden="true" />
         <div
           style={{ animationDelay: '3.4s' }}
@@ -507,18 +506,18 @@ export default function HomePage() {
           aria-hidden="true"
         />
 
-        {/* Glowing White & Sky-Blue Planetary Horizon Dome */}
+        {/* White Horizon Dome with Soft Light-Black Rim */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-72 left-1/2 -translate-x-1/2 w-[150vw] max-w-[1700px] h-[440px] rounded-[100%] bg-white border-t-2 border-sky-300 shadow-[0_-24px_80px_rgba(56,189,248,0.28)]"
+          className="pointer-events-none absolute -bottom-72 left-1/2 -translate-x-1/2 w-[150vw] max-w-[1700px] h-[440px] rounded-[100%] bg-white border-t-2 border-slate-900/15 shadow-[0_-20px_70px_rgba(24,24,27,0.06)]"
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
           <RevealOnScroll className="max-w-3xl space-y-3">
-            <span className="text-[11px] font-mono text-sky-700 uppercase tracking-widest font-bold block">
+            <span className="text-[11px] font-mono text-amber-700 uppercase tracking-widest font-bold block">
               {t('diaspora_tag')}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0A1128]">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#18181B]">
               {t('diaspora_title')}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
@@ -529,10 +528,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <RevealOnScroll delayMs={0}>
               <SpotlightCard className="p-7 rounded-3xl h-full space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-[#18181B] text-amber-400 flex items-center justify-center font-bold relative z-10">
                   ው
                 </div>
-                <h3 className="text-sm font-bold text-[#0A1128] relative z-10">
+                <h3 className="text-sm font-bold text-[#18181B] relative z-10">
                   {t('diaspora_poa_title')}
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-normal relative z-10">
@@ -543,10 +542,10 @@ export default function HomePage() {
 
             <RevealOnScroll delayMs={90}>
               <SpotlightCard className="p-7 rounded-3xl h-full space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold relative z-10">
                   ካ
                 </div>
-                <h3 className="text-sm font-bold text-[#0A1128] relative z-10">
+                <h3 className="text-sm font-bold text-[#18181B] relative z-10">
                   {t('diaspora_land_title')}
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-normal relative z-10">
@@ -557,10 +556,10 @@ export default function HomePage() {
 
             <RevealOnScroll delayMs={180}>
               <SpotlightCard className="p-7 rounded-3xl h-full space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-800 flex items-center justify-center font-bold relative z-10">
+                <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold relative z-10">
                   ውር
                 </div>
-                <h3 className="text-sm font-bold text-[#0A1128] relative z-10">
+                <h3 className="text-sm font-bold text-[#18181B] relative z-10">
                   {t('diaspora_est_title')}
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-normal relative z-10">
@@ -570,32 +569,32 @@ export default function HomePage() {
             </RevealOnScroll>
           </div>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-sky-200/70">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200/80">
             <span className="text-xs text-slate-600">
               Remote advocate access for Ethiopian diaspora clients worldwide.
             </span>
             <Link
               href="/diaspora"
-              className="px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-black text-xs rounded-xl flex items-center gap-2 transition-all shadow-md shadow-sky-200 group cursor-pointer"
+              className="px-6 py-3 bg-[#18181B] hover:bg-[#27272A] text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-sm group cursor-pointer"
             >
               <span>{t('diaspora_cta_btn')}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* 09. LexDraft Document Automation with Sinusoidal Kinetic Wave Stack */}
-      <section id="lexdraft" className="py-20 md:py-28 bg-white border-b border-sky-100">
+      <section id="lexdraft" className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <RevealOnScroll className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-200 text-[11px] font-bold uppercase tracking-wider">
-                <Sparkles className="w-3 h-3 text-sky-600" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-950 border border-amber-200 text-[11px] font-bold uppercase tracking-wider">
+                <Sparkles className="w-3 h-3 text-amber-700" />
                 <span>{t('lex_pill')}</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-black text-[#18181B] tracking-tight">
                 {t('lex_title')}
               </h2>
 
@@ -612,8 +611,8 @@ export default function HomePage() {
                   t('lex_item5'),
                   t('lex_item6'),
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                    <CheckCircle2 className="w-4 h-4 text-sky-500 shrink-0" />
+                  <div key={idx} className="flex items-center gap-2 text-xs font-bold text-[#18181B]">
+                    <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -622,15 +621,15 @@ export default function HomePage() {
               <div className="pt-4 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/lexdraft"
-                  className="px-6 py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm shadow-sky-200 group cursor-pointer"
+                  className="px-6 py-3.5 bg-[#18181B] hover:bg-[#27272A] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm group cursor-pointer"
                 >
                   <span>{t('lex_cta_btn')}</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <Link
                   href="/library"
-                  className="px-6 py-3.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold text-xs rounded-xl flex items-center justify-center transition-all cursor-pointer"
+                  className="px-6 py-3.5 bg-slate-50 hover:bg-slate-100 text-[#18181B] border border-slate-200 font-bold text-xs rounded-xl flex items-center justify-center transition-all cursor-pointer"
                 >
                   <span>{language === 'am' ? 'የፌዴራል አዋጆችን ያንብቡ' : 'Browse Federal Laws'}</span>
                 </Link>
@@ -645,22 +644,22 @@ export default function HomePage() {
       </section>
 
       {/* 10. LegalTalk Knowledge Hub */}
-      <section className="py-20 md:py-28 bg-[#F8FCFF] border-b border-sky-100">
+      <section className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <RevealOnScroll className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-[10px] font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-[#18181B] text-[10px] font-bold uppercase tracking-wider">
                 {t('lt_pill')}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">{t('lt_title')}</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#18181B]">{t('lt_title')}</h2>
               <p className="text-xs text-slate-600">{t('lt_sub')}</p>
             </div>
             <Link
               href="/legaltalk"
-              className="px-4 py-2.5 border border-sky-200 hover:border-sky-400 rounded-xl bg-white text-xs font-bold text-[#0A1128] flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+              className="px-4 py-2.5 border border-slate-300 hover:border-[#18181B] rounded-xl bg-white text-xs font-bold text-[#18181B] flex items-center gap-1.5 transition-all shrink-0"
             >
               <span>{t('lt_explore_btn')}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-sky-600" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </RevealOnScroll>
 
@@ -669,22 +668,22 @@ export default function HomePage() {
               <RevealOnScroll key={guide.href} delayMs={idx * 80}>
                 <Link href={guide.href} className="block h-full group">
                   <SpotlightCard className="rounded-3xl overflow-hidden h-full flex flex-col">
-                    <div className="h-44 relative overflow-hidden bg-sky-900 flex flex-col justify-end p-4">
+                    <div className="h-44 relative overflow-hidden bg-[#18181B] flex flex-col justify-end p-4">
                       <img
                         src={guide.image}
                         alt={guide.title}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
-                        className="absolute inset-0 w-full h-full object-cover object-center opacity-90 group-hover:scale-105 transition-transform duration-500"
+                        className="absolute inset-0 w-full h-full object-cover object-center opacity-85 group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128]/80 via-[#0A1128]/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#18181B]/90 via-[#18181B]/25 to-transparent" />
                       <div className="relative z-10 flex items-center justify-between gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-white/90 text-[#0A1128] text-[10px] font-black uppercase tracking-wider">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#18181B]/80 border border-white/20 text-white text-[10px] font-black uppercase tracking-wider">
                           {guide.tag}
                         </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-mono font-black">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400 text-[#18181B] text-[10px] font-mono font-black">
                           <Headphones className="w-3 h-3" />
                           <span>{guide.audio}</span>
                         </span>
@@ -692,7 +691,7 @@ export default function HomePage() {
                     </div>
                     <div className="p-6 flex-1 flex flex-col justify-between space-y-4 relative z-10">
                       <div className="space-y-2">
-                        <h3 className="text-sm font-bold text-[#0A1128] group-hover:text-sky-700 transition-colors leading-snug">
+                        <h3 className="text-sm font-bold text-[#18181B] group-hover:text-amber-700 transition-colors leading-snug">
                           {guide.title}
                         </h3>
                         <p className="text-xs text-slate-600 leading-relaxed font-normal line-clamp-3">
@@ -713,33 +712,31 @@ export default function HomePage() {
       <ClientTestimonialsCarousel />
 
       {/* 12. Why LegalLink Spotlight Bento + Smooth Accordion FAQ + Radar CTA */}
-      <section id="about" className="py-20 md:py-28 bg-white border-b border-sky-100">
+      <section id="about" className="py-20 md:py-28 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
           {/* Why LegalLink */}
           <div className="space-y-12">
             <RevealOnScroll className="text-center max-w-2xl mx-auto space-y-2">
-              <span className="text-[11px] font-bold text-sky-600 uppercase tracking-widest block font-mono">
+              <span className="text-[11px] font-bold text-amber-700 uppercase tracking-widest block font-mono">
                 {t('why_tag')}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-[#0A1128]">{t('why_title')}</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#18181B]">{t('why_title')}</h2>
               <p className="text-xs sm:text-sm text-slate-600">{t('why_sub')}</p>
             </RevealOnScroll>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { icon: ShieldCheck, title: t('why_c1_title'), desc: t('why_c1_desc') },
-                { icon: Lock, title: t('why_c2_title'), desc: t('why_c2_desc') },
-                { icon: Scale, title: t('why_c3_title'), desc: t('why_c3_desc') },
-                { icon: Languages, title: t('why_c4_title'), desc: t('why_c4_desc') },
+                { icon: ShieldCheck, color: 'text-emerald-600', title: t('why_c1_title'), desc: t('why_c1_desc') },
+                { icon: Lock, color: 'text-[#18181B]', title: t('why_c2_title'), desc: t('why_c2_desc') },
+                { icon: Scale, color: 'text-amber-700', title: t('why_c3_title'), desc: t('why_c3_desc') },
+                { icon: Languages, color: 'text-blue-700', title: t('why_c4_title'), desc: t('why_c4_desc') },
               ].map((card, idx) => {
                 const Icon = card.icon;
                 return (
                   <RevealOnScroll key={idx} delayMs={idx * 70}>
                     <SpotlightCard className="p-6 rounded-3xl h-full space-y-3">
-                      <div className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center relative z-10">
-                        <Icon className="w-5 h-5 text-sky-600" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#0A1128] relative z-10">{card.title}</h3>
+                      <Icon className={`w-6 h-6 ${card.color} relative z-10`} />
+                      <h3 className="text-sm font-bold text-[#18181B] relative z-10">{card.title}</h3>
                       <p className="text-xs text-slate-600 leading-relaxed relative z-10">
                         {card.desc}
                       </p>
@@ -753,10 +750,10 @@ export default function HomePage() {
           {/* Smooth Animated FAQ Accordion */}
           <div className="max-w-3xl mx-auto space-y-6">
             <RevealOnScroll className="text-center space-y-2">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-sky-600 block">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-amber-700 block">
                 COMMON QUESTIONS
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#18181B]">
                 Answers to Frequently Asked Questions
               </h2>
             </RevealOnScroll>
@@ -769,8 +766,8 @@ export default function HomePage() {
                     key={idx}
                     className={`rounded-2xl border transition-colors ${
                       isOpen
-                        ? 'bg-sky-50/70 border-sky-300'
-                        : 'bg-white border-sky-100 hover:border-sky-200'
+                        ? 'bg-[#F8FAFC] border-slate-300 shadow-2xs'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <button
@@ -778,9 +775,9 @@ export default function HomePage() {
                       onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
                       className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 cursor-pointer"
                     >
-                      <span className="text-xs sm:text-sm font-bold text-[#0A1128]">{item.q}</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#18181B]">{item.q}</span>
                       <Plus
-                        className={`w-4 h-4 text-sky-600 shrink-0 transition-transform duration-300 ${
+                        className={`w-4 h-4 text-[#18181B] shrink-0 transition-transform duration-300 ${
                           isOpen ? 'rotate-45' : ''
                         }`}
                       />
@@ -791,7 +788,7 @@ export default function HomePage() {
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <p className="px-6 pb-5 text-xs text-slate-600 leading-relaxed border-t border-sky-100 pt-3">
+                        <p className="px-6 pb-5 text-xs text-slate-600 leading-relaxed border-t border-slate-200/70 pt-3">
                           {item.a}
                         </p>
                       </div>
@@ -802,92 +799,92 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Concentric Radar Pulse & Light-Blue Glass Lenses CTA */}
+          {/* Concentric Radar Pulse & Glass Lenses CTA */}
           <RevealOnScroll>
             <RadarPulseEcosystemCTA />
           </RevealOnScroll>
         </div>
       </section>
 
-      {/* 13. Clean Light-Blue Accent Footer */}
-      <footer className="bg-[#F0F9FF] text-slate-600 border-t border-sky-200/80 text-xs">
+      {/* 13. Light Black Architectural Footer */}
+      <footer className="bg-[#18181B] text-slate-300 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
             <div className="space-y-4 col-span-2">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="LegalLink" className="w-7 h-7 object-contain" />
-                <span className="font-black text-base text-[#0A1128]">
-                  Legal<span className="text-sky-600">Link</span>
+                <span className="font-black text-base text-white">
+                  Legal<span className="text-amber-400">Link</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-600 max-w-sm leading-relaxed font-normal">
+              <p className="text-xs text-slate-400 max-w-sm leading-relaxed font-normal">
                 {t('footer_tagline')}
               </p>
 
-              <div className="space-y-1.5 text-slate-700 text-xs pt-1">
+              <div className="space-y-1.5 text-slate-300 text-xs pt-1">
                 <a
                   href="mailto:info.legallinkethiopia@gmail.com"
-                  className="flex items-center gap-2 hover:text-sky-700 transition-colors"
+                  className="flex items-center gap-2 hover:text-amber-300 transition-colors"
                 >
-                  <Mail className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>info.legallinkethiopia@gmail.com</span>
                 </a>
                 <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>+251-964-600-737 / +251-905-941-865</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>{t('footer_address')}</span>
                 </div>
               </div>
 
-              <p className="text-[11px] italic text-sky-800 font-medium pt-1">
+              <p className="text-[11px] italic text-amber-300/90 pt-1">
                 “{t('footer_motto')}”
               </p>
             </div>
 
             <div className="space-y-3">
-              <strong className="text-xs font-mono font-bold text-[#0A1128] uppercase tracking-wider block">
+              <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 {t('footer_platform_title')}
               </strong>
-              <ul className="space-y-2 text-[11px] text-slate-600">
-                <li><Link href="/find-a-lawyer" className="hover:text-sky-700 transition-colors">{t('nav_find_lawyer')}</Link></li>
-                <li><Link href="/for-lawyers" className="hover:text-sky-700 transition-colors">{t('nav_for_lawyers')}</Link></li>
-                <li><Link href="/lexdraft" className="hover:text-sky-700 transition-colors">{t('nav_lexdraft')}</Link></li>
-                <li><Link href="/diaspora" className="hover:text-sky-700 transition-colors">Diaspora Legal Hub</Link></li>
-                <li><Link href="/nextgen" className="hover:text-sky-700 transition-colors">NextGen Hub</Link></li>
+              <ul className="space-y-2 text-[11px] text-slate-400">
+                <li><Link href="/find-a-lawyer" className="hover:text-white transition-colors">{t('nav_find_lawyer')}</Link></li>
+                <li><Link href="/for-lawyers" className="hover:text-white transition-colors">{t('nav_for_lawyers')}</Link></li>
+                <li><Link href="/lexdraft" className="hover:text-white transition-colors">{t('nav_lexdraft')}</Link></li>
+                <li><Link href="/diaspora" className="hover:text-white transition-colors">Diaspora Legal Hub</Link></li>
+                <li><Link href="/nextgen" className="hover:text-white transition-colors">NextGen Hub</Link></li>
               </ul>
             </div>
 
             <div className="space-y-3">
-              <strong className="text-xs font-mono font-bold text-[#0A1128] uppercase tracking-wider block">
+              <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 {t('footer_resources_title')}
               </strong>
-              <ul className="space-y-2 text-[11px] text-slate-600">
-                <li><Link href="/legal-center" className="hover:text-sky-700 transition-colors">Legal Center &amp; Dictionary</Link></li>
-                <li><Link href="/library" className="hover:text-sky-700 transition-colors">Federal Legal Library</Link></li>
-                <li><Link href="/legaltalk" className="hover:text-sky-700 transition-colors">LegalTalk Audio Guides</Link></li>
-                <li><Link href="/tools" className="hover:text-sky-700 transition-colors">Severance &amp; DARS Tools</Link></li>
-                <li><Link href="/dashboard" className="hover:text-sky-700 transition-colors">Client Dashboard</Link></li>
+              <ul className="space-y-2 text-[11px] text-slate-400">
+                <li><Link href="/legal-center" className="hover:text-white transition-colors">Legal Center &amp; Dictionary</Link></li>
+                <li><Link href="/library" className="hover:text-white transition-colors">Federal Legal Library</Link></li>
+                <li><Link href="/legaltalk" className="hover:text-white transition-colors">LegalTalk Audio Guides</Link></li>
+                <li><Link href="/tools" className="hover:text-white transition-colors">Severance &amp; DARS Tools</Link></li>
+                <li><Link href="/dashboard" className="hover:text-white transition-colors">Client Dashboard</Link></li>
               </ul>
             </div>
 
             <div className="space-y-3">
-              <strong className="text-xs font-mono font-bold text-[#0A1128] uppercase tracking-wider block">
+              <strong className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
                 {t('footer_company_title')}
               </strong>
-              <ul className="space-y-2 text-[11px] text-slate-600">
-                <li><Link href="/about" className="hover:text-sky-700 transition-colors">About LegalLink</Link></li>
-                <li><Link href="/about#partnerships" className="hover:text-sky-700 text-sky-600 font-bold transition-colors">Partnerships &amp; Donors</Link></li>
-                <li><Link href="/terms" className="hover:text-sky-700 transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy" className="hover:text-sky-700 transition-colors">Privacy Policy</Link></li>
+              <ul className="space-y-2 text-[11px] text-slate-400">
+                <li><Link href="/about" className="hover:text-white transition-colors">About LegalLink</Link></li>
+                <li><Link href="/about#partnerships" className="hover:text-amber-300 text-amber-400 font-bold transition-colors">Partnerships &amp; Donors</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><span className="text-slate-500">Proc. No. 1249/2021</span></li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-8 border-t border-sky-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+          <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
             <p>{t('footer_rights')}</p>
             <p>{t('footer_disclaimer')}</p>
           </div>
